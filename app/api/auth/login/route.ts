@@ -21,15 +21,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { password, email } = body;
-
     if (!password || !email) {
       return fail("Missing required fields", 400);
     }
-
     const result = await authService.login(email, password);
     return ok(result, "User logged in successfully");
   } catch (error: unknown) {
-    console.error("Failed to fetch user", error);
-    return fail((error as Error)?.message || "Failed to fetch user", 500);
+    const message = (error as Error)?.message || "Login failed";
+    if (message === "INVALID_CREDENTIALS") {
+      return fail("Invalid email or password", 401);
+    }
+    return fail(message, 500);
   }
 }

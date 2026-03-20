@@ -19,11 +19,11 @@ const getUserByEmail = async (email: string) => {
 const login = async (email: string, password: string): Promise<IUserDTO & {token: string, refreshToken: string}> => {
     const user = await getUserByEmail(email) as IUser;
     if (!user) {
-        throw new Error("Invalid email or password");
+        throw new Error("INVALID_CREDENTIALS");
     }
     const isPasswordValid = await comparePassword(password, user.password);
     if (!isPasswordValid) {
-        throw new Error("Invalid email or password");
+        throw new Error("INVALID_CREDENTIALS");
     }
     const token = await generateToken(user);
     const refreshToken = await generateRefreshToken(user);

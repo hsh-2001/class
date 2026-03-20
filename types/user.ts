@@ -9,3 +9,5 @@ export interface IUser {
 export type ICreateUserDTO = Omit<IUser, 'id'>;
 
 export type IUserDTO = Omit<IUser, 'password'>;
+
+export type ILoginDTO = Pick<IUser, 'email' | 'password'>;
