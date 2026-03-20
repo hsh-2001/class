@@ -1,3 +1,4 @@
+import { AppApiError } from "./api-error";
 import axios from "axios";
 
 const api = axios.create({
@@ -5,6 +6,7 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+
 });
 
 
@@ -19,15 +21,14 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response && error.response.status === 403) {
-            if (typeof window !== "undefined") {
-                window.localStorage.removeItem("token");
-                window.location.href = "/login";
-            }
-        }
-        return Promise.reject(error);
+        const message = error?.response?.data?.message || error?.message || "Something went wrong";
+
+        return Promise.reject({
+            message,
+            status: error?.response?.status,
+            data: error?.response?.data,
+        });
     }
 );
 
 export default api;
-

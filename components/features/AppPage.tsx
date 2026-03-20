@@ -31,7 +31,7 @@ export default function AppPage({
   title,
 }: AppPageProps) {
   return (
-    <section className="grid gap-6">
+    <section className="grid gap-6 page-body">
       <div className="rounded-xl border border-black/10 bg-white/80 p-6 backdrop-blur dark:border-white/10 dark:bg-white/5">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
           {eyebrow}

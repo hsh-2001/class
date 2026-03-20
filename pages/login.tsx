@@ -2,6 +2,8 @@ import useAthentication from "@/hooks/useAthentication";
 
 export default function Login() {
   const {
+    errorMessage,
+    isSubmitting,
     loginModel,
     setLoginModel,
     handleSubmit,
@@ -41,12 +43,19 @@ export default function Login() {
             />
           </label>
 
+          {errorMessage ? (
+            <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              {errorMessage}
+            </p>
+          ) : null}
+
           <button
             type="button"
             onClick={handleSubmit}
-            className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-700"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Continue
+            {isSubmitting ? "Signing in..." : "Continue"}
           </button>
         </form>
       </section>

@@ -1,13 +1,30 @@
-export interface IUser {
-    id: string;
-    username: string;
-    email: string;
-    password: string;
-    roleId: number;
+import type { Gender, Role } from "@/prisma/generated/enums";
+
+export interface IUserProfileDTO {
+    firstName: string;
+    lastName: string;
+    phone?: string | null;
+    gender?: Gender;
 }
 
-export type ICreateUserDTO = Omit<IUser, 'id'>;
+export interface IUser {
+    id: string;
+    email: string;
+    password: string;
+    role: Role;
+    profile?: IUserProfileDTO | null;
+}
 
-export type IUserDTO = Omit<IUser, 'password'>;
+export interface ICreateUserDTO {
+    email: string;
+    password: string;
+    role: Role;
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    gender?: Gender;
+}
 
-export type ILoginDTO = Pick<IUser, 'email' | 'password'>;
+export type IUserDTO = Omit<IUser, "password">;
+
+export type ILoginDTO = Pick<IUser, "email" | "password">;

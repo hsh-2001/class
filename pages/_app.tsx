@@ -2,6 +2,7 @@ import type { AppProps } from "next/app";
 import MainLayout from "@/components/layouts/MainLayout";
 import { ThemeProvider } from "next-themes";
 import "@/assets/styles/main.css";
+import "@/assets/styles/ant-custom.css";
 import AuthGuard from "@/components/guard/AuthGuard";
 
 type LayoutAwareComponent = AppProps["Component"] & {
@@ -22,11 +23,11 @@ export default function App({ Component, pageProps }: AppProps) {
       enableSystem
       disableTransitionOnChange
     >
-      <AuthGuard>
-        <MainLayout>
-          <PageComponent {...pageProps} />
-        </MainLayout>
-      </AuthGuard>
+        <AuthGuard>
+          <MainLayout>
+            <PageComponent {...pageProps} />
+          </MainLayout>
+        </AuthGuard>
     </ThemeProvider>
   );
 }

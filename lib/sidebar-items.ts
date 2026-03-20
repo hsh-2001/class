@@ -11,7 +11,7 @@ import {
 
 export const sidebarItems = [
   { label: "Home", href: "/", icon: LayoutDashboard },
-  { label: "Students", href: "/students", icon: Users },
+  { label: "Members", href: "/members", icon: Users },
   { label: "Live Classes", href: "/live-classes", icon: Video },
   { label: "Courses", href: "/courses", icon: BookOpen },
   { label: "Schedule", href: "/schedule", icon: CalendarDays },

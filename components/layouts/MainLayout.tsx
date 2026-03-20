@@ -12,8 +12,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       <Header onToggleSidebar={onToggleSidebar} isSidebarOpen={isSidebarOpen} />
       <div className="flex h-[calc(100vh-5rem)]">
         <SideBar onToggleSidebar={onToggleSidebar} />
-        <main className="flex-1 overflow-hidden main-layout">
-          <div className="w-full h-full overflow-auto p-2 sm:p-4">
+        <main className="flex-1 main-layout">
+          <div className="w-full h-full overflow-auto p-2 sm:p-4 page-body">
             {children}
           </div>
         </main>

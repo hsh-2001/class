@@ -15,7 +15,7 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
                         Learning Space
                     </p>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Deep dive into your class management dashboard.
+                        Deep Work Zone
                     </p>
                 </div>
 

@@ -28,9 +28,6 @@ export async function POST(request: NextRequest) {
     return ok(result, "User logged in successfully");
   } catch (error: unknown) {
     const message = (error as Error)?.message || "Login failed";
-    if (message === "INVALID_CREDENTIALS") {
-      return fail("Invalid email or password", 401);
-    }
     return fail(message, 500);
   }
 }

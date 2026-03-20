@@ -1,43 +1,20 @@
 @import "tailwindcss";
+@source "../../app";
+@source "../../components";
+@source "../../pages";
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", monospace;
-}
 
-:root {
-  --background: #f4f7fb;
-  --foreground: #0f172a;
-}
-
-.dark {
-  --background: #020617;
-  --foreground: #e2e8f0;
-}
-
-html {
-  background: var(--background);
-}
-
-body {
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at top, rgba(14, 165, 233, 0.1), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.9));
-  color: var(--foreground);
-  font-family: var(--font-sans);
-}
-
-.dark body {
-  background:
-    radial-gradient(circle at top, rgba(14, 165, 233, 0.14), transparent 28%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.96), rgba(15, 23, 42, 0.98));
+button {
+  @apply cursor-pointer;
 }
 
 .header {
   left: 0;
+}
+
+.enter-animation {
+  animation: opacityIn .5s ease-in-out forwards;
 }
 
 .main-layout {
@@ -52,14 +29,13 @@ body {
   transition: transform 300ms ease, opacity 300ms ease;
 }
 
-@media (max-width: 999px) {
+@media (max-width: 1000px) {
   .sidebar {
     position: fixed;
     top: 5rem;
     left: 0;
     z-index: 40;
-    width: min(20rem, calc(100vw - 1.5rem));
-    max-width: calc(100vw - 1.5rem);
+    width: 16rem;
     transform: translateX(-105%);
     opacity: 0;
     box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
@@ -84,5 +60,34 @@ body {
     transform: none;
     opacity: 1;
     box-shadow: none;
+  }
+}
+
+
+.page-body:first-child:not(#S_MODAL) {
+  animation: opacityIn .5s ease-in-out forwards;
+}
+
+@keyframes opacityIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+
+#S_MODAL {
+  animation: fadeIn .3s ease-in-out forwards;
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
   }
 }

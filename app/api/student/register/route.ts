@@ -4,15 +4,20 @@ import authService from "@/services/auth.service";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { email, password } = body;
-        const username = body.username ?? body.name;
-        const roleId = body.roleId ?? 1;
+        const { email, password, firstName, lastName, phone, gender } = body;
 
-        if (!email || !password || !username) {
+        if (!email || !password || !firstName || !lastName || !gender) {
             return fail("Missing required fields", 400);
         }
 
-        await authService.createUser({ email, password, username, roleId });
+        await authService.createStudentUser({
+            email,
+            password,
+            firstName,
+            lastName,
+            phone,
+            gender,
+        });
         return ok(null, "User created successfully", 201);
     } catch (error: unknown) {
         console.error("Failed to create user", error);
