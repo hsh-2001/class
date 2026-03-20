@@ -18,7 +18,9 @@ const getUserByEmail = async (email: string) => {
     });
 }
 
-export default {
+const authRepo = {
     createUser,
     getUserByEmail,
 };
+
+export default authRepo;

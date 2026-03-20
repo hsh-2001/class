@@ -78,7 +78,7 @@ const verifyToken = async (token: string) => {
     }
 }
 
-export default {
+const authService = {
     createUser,
     getUserByEmail,
     comparePassword,
@@ -87,3 +87,5 @@ export default {
     generateRefreshToken,
     verifyToken,
 };
+
+export default authService;
