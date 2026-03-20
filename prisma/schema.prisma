@@ -7,17 +7,32 @@ datasource db {
   provider = "postgresql"
 }
 
+model School {
+  id      String   @id @default(uuid())
+  name    String
+  users   User[]
+  courses Course[]
+  classes Class[]
+
+  @@map("schools")
+}
+
 model User {
   id       String       @id @default(uuid())
-  email    String       @unique
+  schoolId String       @map("school_id")
+  school   School       @relation(fields: [schoolId], references: [id])
+  email    String
   password String
   role     Role
   profile  UserProfile?
   student  Student?
   teacher  Teacher?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([email, schoolId])
+  @@map("users")
 }
 
 enum Role {
@@ -33,27 +48,37 @@ enum Gender {
 
 model UserProfile {
   id        String  @id @default(uuid())
-  userId    String  @unique
-  firstName String
-  lastName  String
+  userId    String  @unique @map("user_id")
+  firstName String  @map("first_name")
+  lastName  String  @map("last_name")
   phone     String?
   gender    Gender
-  user      User    @relation(fields: [userId], references: [id])
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_profiles")
 }
 
 model Student {
   id     String @id @default(uuid())
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @map("user_id")
+
+  user User @relation(fields: [userId], references: [id])
 
   enrollments Enrollment[]
+
+  @@map("students")
 }
 
 model Teacher {
-  id      String  @id @default(uuid())
-  userId  String  @unique
-  user    User    @relation(fields: [userId], references: [id])
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  user User @relation(fields: [userId], references: [id])
+
   classes Class[]
+
+  @@map("teachers")
 }
 
 model Course {
@@ -61,37 +86,45 @@ model Course {
   name        String
   code        String  @unique
   description String?
-  classes     Class[]
+
+  classes  Class[]
+  school   School? @relation(fields: [schoolId], references: [id])
+  schoolId String?
 
   @@map("courses")
 }
 
 model Class {
-  id          String       @id @default(uuid())
-  name        String
-  courseId    String
-  teacherId   String
-  startDate   DateTime
-  endDate     DateTime?
-  course      Course       @relation(fields: [courseId], references: [id])
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
+  id        String    @id @default(uuid())
+  name      String
+  courseId  String    @map("course_id")
+  teacherId String    @map("teacher_id")
+  startDate DateTime  @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  course  Course  @relation(fields: [courseId], references: [id])
+  teacher Teacher @relation(fields: [teacherId], references: [id])
+
   enrollments Enrollment[]
   lessons     Lesson[]
   assignments Assignment[]
+  school      School?      @relation(fields: [schoolId], references: [id])
+  schoolId    String?
 
   @@map("classes")
 }
 
 model Enrollment {
   id        String   @id @default(uuid())
-  studentId String
-  classId   String
+  studentId String   @map("student_id")
+  classId   String   @map("class_id")
   grade     String?
-  createdAt DateTime @default(now())
-  student   Student  @relation(fields: [studentId], references: [id])
-  class     Class    @relation(fields: [classId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
 
-  @@unique([studentId, classId]) // prevent duplicate enroll
+  student Student @relation(fields: [studentId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, classId])
   @@index([studentId])
   @@index([classId])
   @@map("enrollments")
@@ -99,23 +132,25 @@ model Enrollment {
 
 model Lesson {
   id        String   @id @default(uuid())
-  classId   String
+  classId   String   @map("class_id")
   title     String
-  content   String? // markdown / text
-  videoUrl  String?
-  createdAt DateTime @default(now())
-  class     Class    @relation(fields: [classId], references: [id])
+  content   String?
+  videoUrl  String?  @map("video_url")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  class Class @relation(fields: [classId], references: [id])
 
   @@map("lessons")
 }
 
 model Assignment {
   id        String   @id @default(uuid())
-  classId   String
+  classId   String   @map("class_id")
   title     String
-  dueDate   DateTime
-  createdAt DateTime @default(now())
-  class     Class    @relation(fields: [classId], references: [id])
+  dueDate   DateTime @map("due_date")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  class Class @relation(fields: [classId], references: [id])
 
   @@map("assignments")
 }

@@ -16,6 +16,7 @@ export interface IUser {
 }
 
 export interface ICreateUserDTO {
+    schoolId: string;
     email: string;
     password: string;
     role: Role;

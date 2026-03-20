@@ -2,8 +2,13 @@ import prisma from "@/lib/prisma";
 import { ICreateUserDTO } from "@/types/user";
 
 const createUser = async (user: ICreateUserDTO) => {
+    if (!user.schoolId) {
+        throw new Error("MISSING_SCHOOL_ID");
+    }
+
     return await prisma.user.create({
         data: {
+            schoolId: "school-01",
             email: user.email,
             password: user.password,
             role: user.role,

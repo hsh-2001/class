@@ -9,3 +9,7 @@ export const callLogin = async (request: ILoginDTO) => {
 export const callCreateStudent = async (request: TCreateStudentDTO) => {
   return await api.post("/admin/student", request);
 }
+
+export const callGetStudents = async () => {
+  return await api.get("/admin/student");
+}

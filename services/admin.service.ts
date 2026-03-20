@@ -8,6 +8,7 @@ const createStudent = async (studentData: TCreateStudentDTO) => {
     }
 
     const user = await authService.createStudentUser({
+        schoolId: studentData.schoolId || "school-01",
         email: studentData.email,
         password: studentData.password,
         firstName: studentData.firstName,

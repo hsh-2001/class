@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import "@/assets/styles/main.css";
 import "@/assets/styles/ant-custom.css";
 import AuthGuard from "@/components/guard/AuthGuard";
+import AntdThemeProvider from "@/components/providers/AntdThemeProvider";
 
 type LayoutAwareComponent = AppProps["Component"] & {
   disableLayout?: boolean;
@@ -23,11 +24,13 @@ export default function App({ Component, pageProps }: AppProps) {
       enableSystem
       disableTransitionOnChange
     >
-        <AuthGuard>
-          <MainLayout>
+      <AuthGuard>
+        <MainLayout>
+          <AntdThemeProvider>
             <PageComponent {...pageProps} />
-          </MainLayout>
-        </AuthGuard>
+          </AntdThemeProvider>
+        </MainLayout>
+      </AuthGuard>
     </ThemeProvider>
   );
 }

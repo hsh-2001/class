@@ -1,16 +1,22 @@
 import { getApiErrorMessage } from "@/lib/api-error";
 import { IFormItem } from "@/types/formBase";
-import { TCreateStudentDTO } from "@/types/student";
+import { StudentResponse, TCreateStudentDTO } from "@/types/student";
 import dayjs from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import { useState } from "react";
-import { callCreateStudent } from "@/lib/api-calling";
+import { callCreateStudent, callGetStudents } from "@/lib/api-calling";
 
 
 export default function useMembers() {
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [studentList, setStudentList] = useState<StudentResponse[]>([]);
 
     const [form] = useForm<TCreateStudentDTO & { confirmPassword: string }>();
+
+    const genders = [
+        { label: "Male", value: "MALE" },
+        { label: "Female", value: "FEMALE" },
+    ]
 
     const fieldItem: IFormItem<TCreateStudentDTO & { confirmPassword: string }>[] = [
         {
@@ -101,9 +107,26 @@ export default function useMembers() {
 
         try {
             const response = await callCreateStudent(payload);
-            console.log("Student created successfully:", response.data);
+            if (response.data.success) {
+                setIsModalVisible(false);
+                form.resetFields();
+                onGetAllStudents();
+            }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to create student."));
+        }
+    }
+
+    const onGetAllStudents = async () => {
+        try {
+            const response = await callGetStudents();
+            console.log(response.data);
+            if (response.data.success) {
+                const students = response.data.data.map((item: StudentResponse) => new StudentResponse(item));
+                setStudentList(students);
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to fetch students."));
         }
     }
 
@@ -113,5 +136,8 @@ export default function useMembers() {
         form,
         onSubmit,
         fieldItem,
+        genders,
+        onGetAllStudents,
+        studentList,
     }
 };
