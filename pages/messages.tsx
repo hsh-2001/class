@@ -14,6 +14,7 @@ export default function MessagesPage() {
   const {
     canCreateThread,
     canSendMessage,
+    confirmDeleteMessage,
     currentUserId,
     forwardTargetMessage,
     form,
@@ -25,6 +26,7 @@ export default function MessagesPage() {
     isSendingMessage,
     memberOptions,
     messageContent,
+    pendingDeleteMessageId,
     onCreateThread,
     onDeleteMessage,
     onForwardMessage,
@@ -40,6 +42,7 @@ export default function MessagesPage() {
     setForwardTargetMessage,
     setIsModalVisible,
     setMessageContent,
+    setPendingDeleteMessageId,
     setReplyTargetMessage,
     setSelectedThreadId,
     threads,
@@ -200,6 +203,26 @@ export default function MessagesPage() {
           </SButton>
           <SButton type="button" color="primary" onClick={onCreateThread} loading={isCreatingThread}>
             Start chat
+          </SButton>
+        </div>
+      </SModal>
+
+      <SModal
+        isOpen={Boolean(pendingDeleteMessageId)}
+        onClose={() => setPendingDeleteMessageId(null)}
+        title="Delete Message?"
+      >
+        <div className="rounded-[1rem] border border-rose-200 bg-rose-50/80 px-4 py-3 dark:border-rose-500/20 dark:bg-rose-500/10">
+          <p className="text-[13px] leading-6 text-slate-700 dark:text-slate-200">
+            This action cannot be undone.
+          </p>
+        </div>
+        <div className="flex justify-end gap-2">
+          <SButton type="button" color="secondary" onClick={() => setPendingDeleteMessageId(null)}>
+            Cancel
+          </SButton>
+          <SButton type="button" color="danger" onClick={() => void confirmDeleteMessage()} loading={isSendingMessage}>
+            Delete
           </SButton>
         </div>
       </SModal>

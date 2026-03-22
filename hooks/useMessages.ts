@@ -82,6 +82,7 @@ export default function useMessages() {
     const [selectedAttachments, setSelectedAttachments] = useState<DraftMessageAttachment[]>([]);
     const [replyTargetMessage, setReplyTargetMessage] = useState<IMessageReplyPreview | null>(null);
     const [forwardTargetMessage, setForwardTargetMessage] = useState<ForwardMessagePayload | null>(null);
+    const [pendingDeleteMessageId, setPendingDeleteMessageId] = useState<string | null>(null);
     const [canCreateThread, setCanCreateThread] = useState(false);
     const [canSendMessage, setCanSendMessage] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -348,8 +349,11 @@ export default function useMessages() {
             return;
         }
 
-        const shouldDelete = window.confirm("Delete this message?");
-        if (!shouldDelete) {
+        setPendingDeleteMessageId(messageId);
+    };
+
+    const confirmDeleteMessage = async () => {
+        if (!selectedThreadId || !pendingDeleteMessageId || isSendingMessageRef.current) {
             return;
         }
 
@@ -359,14 +363,15 @@ export default function useMessages() {
         try {
             const response = await callDeleteMessage({
                 threadId: selectedThreadId,
-                messageId,
+                messageId: pendingDeleteMessageId,
             });
 
             if (response.data.success) {
                 syncPageData(response.data.data as IMessagePageData);
-                if (replyTargetMessage?.id === messageId) {
+                if (replyTargetMessage?.id === pendingDeleteMessageId) {
                     setReplyTargetMessage(null);
                 }
+                setPendingDeleteMessageId(null);
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to delete message."));
@@ -460,9 +465,11 @@ export default function useMessages() {
         isLoadingOlderMessages,
         memberOptions,
         messageContent,
+        pendingDeleteMessageId,
         replyTargetMessage,
         forwardTargetMessage,
         clearSelectedAttachments,
+        confirmDeleteMessage,
         onSelectMessageFiles,
         onCreateThread,
         onDeleteMessage,
@@ -477,6 +484,7 @@ export default function useMessages() {
         setIsModalVisible,
         setMessageContent,
         setForwardTargetMessage,
+        setPendingDeleteMessageId,
         setReplyTargetMessage,
         setSelectedThreadId,
         threads,
