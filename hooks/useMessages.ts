@@ -1,8 +1,18 @@
 import { getApiErrorMessage } from "@/lib/api-error";
 import { callCreateMessageThread, callGetMessages, callSendMessage } from "@/lib/api-calling";
-import { IMessagePageData, MessageThreadResponse } from "@/types/message";
+import { socketServerPath } from "@/lib/socket-shared";
+import {
+    ICreateMessageThreadDTO,
+    IMessagePageData,
+    IMessageSocketAck,
+    ISendMessageDTO,
+    MessageClientToServerEvents,
+    MessageServerToClientEvents,
+    MessageThreadResponse,
+} from "@/types/message";
 import { useForm } from "antd/es/form/Form";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 
 type CreateThreadFormValues = {
     classId: string;
@@ -11,6 +21,7 @@ type CreateThreadFormValues = {
 
 export default function useMessages() {
     const [form] = useForm<CreateThreadFormValues>();
+    const socketRef = useRef<Socket<MessageServerToClientEvents, MessageClientToServerEvents> | null>(null);
     const [threads, setThreads] = useState<MessageThreadResponse[]>([]);
     const [currentUserId, setCurrentUserId] = useState("");
     const [classOptions, setClassOptions] = useState<IMessagePageData["classOptions"]>([]);
@@ -57,6 +68,42 @@ export default function useMessages() {
         void fetchMessages();
     }, [fetchMessages]);
 
+    const connectMessageSocket = useCallback(async () => {
+        if (typeof window === "undefined" || socketRef.current) {
+            return;
+        }
+
+        const token = window.localStorage.getItem("token");
+        if (!token) {
+            return;
+        }
+
+        await fetch("/api/socket");
+
+        const socket = io({
+            path: socketServerPath,
+            transports: ["websocket"],
+            auth: {
+                token,
+            },
+        });
+
+        socket.on("message:page-data", (payload) => {
+            syncPageData(payload);
+        });
+
+        socketRef.current = socket;
+    }, [syncPageData]);
+
+    useEffect(() => {
+        void connectMessageSocket();
+
+        return () => {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+        };
+    }, [connectMessageSocket]);
+
     const selectedThread = useMemo(
         () => threads.find((item) => item.id === selectedThreadId) ?? null,
         [selectedThreadId, threads],
@@ -64,6 +111,25 @@ export default function useMessages() {
 
     const selectedClassOption = classOptions.find((item) => item.value === selectedClassId);
     const studentOptions = selectedClassOption?.students ?? [];
+
+    const emitSocketEvent = useCallback(
+        async (
+            eventName: "message:thread:create" | "message:send",
+            payload: ICreateMessageThreadDTO | ISendMessageDTO,
+        ) => {
+            const socket = socketRef.current;
+            if (!socket) {
+                return null;
+            }
+
+            return await new Promise<IMessageSocketAck>((resolve) => {
+                socket.emit(eventName, payload as never, (response) => {
+                    resolve(response);
+                });
+            });
+        },
+        [],
+    );
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
@@ -76,6 +142,13 @@ export default function useMessages() {
         setIsCreatingThread(true);
 
         try {
+            const socketResponse = await emitSocketEvent("message:thread:create", values);
+            if (socketResponse?.success && socketResponse.data) {
+                syncPageData(socketResponse.data);
+                handleCloseModal();
+                return;
+            }
+
             const response = await callCreateMessageThread(values);
             if (response.data.success) {
                 syncPageData(response.data.data as IMessagePageData);
@@ -96,10 +169,18 @@ export default function useMessages() {
         setIsSendingMessage(true);
 
         try {
-            const response = await callSendMessage({
+            const payload = {
                 threadId: selectedThreadId,
                 content: messageContent,
-            });
+            };
+            const socketResponse = await emitSocketEvent("message:send", payload);
+            if (socketResponse?.success && socketResponse.data) {
+                syncPageData(socketResponse.data);
+                setMessageContent("");
+                return;
+            }
+
+            const response = await callSendMessage(payload);
             if (response.data.success) {
                 syncPageData(response.data.data as IMessagePageData);
                 setMessageContent("");

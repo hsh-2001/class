@@ -51,6 +51,33 @@ export interface ISendMessageDTO {
     content: string;
 }
 
+export interface IMessageSocketUser {
+    id: string;
+    role: "ADMIN" | "STUDENT" | "TEACHER";
+    schoolId: string;
+}
+
+export interface IMessageSocketAck<T = IMessagePageData> {
+    success: boolean;
+    data?: T;
+    message?: string;
+}
+
+export interface MessageServerToClientEvents {
+    "message:page-data": (payload: IMessagePageData) => void;
+}
+
+export interface MessageClientToServerEvents {
+    "message:send": (
+        payload: ISendMessageDTO,
+        callback: (response: IMessageSocketAck) => void,
+    ) => void;
+    "message:thread:create": (
+        payload: ICreateMessageThreadDTO,
+        callback: (response: IMessageSocketAck) => void,
+    ) => void;
+}
+
 export class MessageThreadResponse implements IMessageThreadItem {
     id: string;
     classId: string;

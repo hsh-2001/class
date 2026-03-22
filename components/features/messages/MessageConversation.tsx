@@ -2,6 +2,7 @@ import SButton from "@/components/ui/SButton";
 import { MessageThreadResponse } from "@/types/message";
 import { ArrowLeftRight } from "lucide-react";
 import { Avatar, Empty, Input, Typography } from "antd";
+import { useEffect, useRef } from "react";
 
 interface MessageConversationProps {
     currentUserId: string;
@@ -24,6 +25,19 @@ export default function MessageConversation({
     onSendMessage,
     onBackToThreads,
 }: MessageConversationProps) {
+    const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!thread) {
+            return;
+        }
+
+        bottomAnchorRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "end",
+        });
+    }, [thread?.id, thread?.messages.length]);
+
     if (!thread) {
         return (
             <div className="flex h-full items-center justify-center p-6">
@@ -33,7 +47,7 @@ export default function MessageConversation({
     }
 
     return (
-        <div className="flex h-full flex-col">
+        <div className="flex h-full min-h-0 flex-col">
             <div className="border-b border-black/10 px-4 py-3 dark:border-white/10 sm:px-5">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -62,11 +76,12 @@ export default function MessageConversation({
                 </div>
             </div>
 
-            <div className="flex-1 space-y-3 overflow-y-auto bg-black/[0.02] px-3 py-4 dark:bg-white/[0.02] sm:px-5">
+            <div className="flex-1 min-h-0 space-y-3 overflow-y-auto bg-black/[0.02] px-3 py-4 scroll-smooth dark:bg-white/[0.02] sm:px-5">
                 {thread.messages.length === 0 ? (
                     <Empty description="No messages in this conversation yet." />
                 ) : (
-                    thread.messages.map((message) => {
+                    <>
+                        {thread.messages.map((message) => {
                         const isOwnMessage = message.senderUserId === currentUserId;
 
                         return (
@@ -86,7 +101,9 @@ export default function MessageConversation({
                                 </div>
                             </div>
                         );
-                    })
+                        })}
+                        <div ref={bottomAnchorRef} />
+                    </>
                 )}
             </div>
 

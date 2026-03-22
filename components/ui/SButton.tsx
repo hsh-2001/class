@@ -25,7 +25,7 @@ export default function SButton({ children, onClick, type, color, loading }: SBu
     return (
         <button
             type={type}
-            className={`rounded-full px-4 h-8 text-sm font-medium transition-colors ${styleMapping(color)} ${loading ? "cursor-not-allowed opacity-50" : " cursor-pointer"}`}
+            className={`h-8 whitespace-nowrap rounded-full px-4 text-sm font-medium transition-colors ${styleMapping(color)} ${loading ? "cursor-not-allowed opacity-50" : " cursor-pointer"}`}
             onClick={onClick}
             disabled={loading}
         >

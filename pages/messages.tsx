@@ -60,6 +60,30 @@ export default function MessagesPage() {
   return (
     <>
       <section className="grid gap-4 page-body">
+        <div className="rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Messages</h1>
+              <Typography.Text className="!text-xs text-slate-500 dark:!text-slate-400">
+                Realtime class conversation
+              </Typography.Text>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:min-w-72 sm:flex-row">
+              <SInput
+                placeholder="Search conversations"
+                value={searchValue}
+                onChange={(value) => setSearchValue(String(value))}
+              />
+              {canCreateThread ? (
+                <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
+                  New Conversation
+                </SButton>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
           <section
             className={[
@@ -105,7 +129,7 @@ export default function MessagesPage() {
 
           <section
             className={[
-              "min-h-[40rem] overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5",
+              "h-[40rem] min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5",
               mobilePane === "threads" ? "hidden md:block" : "block",
             ].join(" ")}
           >

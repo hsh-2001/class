@@ -1,12 +1,19 @@
+import { emitMessagePageDataToUser } from "@/lib/socket-server";
 import type { Role } from "@/prisma/generated/enums";
 import messageRepo from "@/repositories/message.repo";
-import { ICreateMessageThreadDTO, IMessageClassOption, IMessageItem, IMessagePageData, IMessageThreadItem, ISendMessageDTO } from "@/types/message";
+import { ICreateMessageThreadDTO, IMessageClassOption, IMessageItem, IMessagePageData, IMessageSocketUser, IMessageThreadItem, ISendMessageDTO } from "@/types/message";
 
 type MessageUserContext = {
     id: string;
     role: Role;
     schoolId: string;
 };
+
+const mapUserContext = (user: IMessageSocketUser): MessageUserContext => ({
+    id: user.id,
+    role: user.role,
+    schoolId: user.schoolId,
+});
 
 const getDisplayName = (
     user: {
@@ -93,6 +100,27 @@ const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePag
     };
 };
 
+const notifyRealtimeParticipants = async (threadId: string) => {
+    const thread = await messageRepo.getThreadById(threadId);
+    if (!thread) {
+        return;
+    }
+
+    const teacherPageData = await getMessagePageData({
+        id: thread.teacher.userId,
+        role: thread.teacher.user.role,
+        schoolId: thread.teacher.user.schoolId,
+    });
+    emitMessagePageDataToUser(thread.teacher.userId, teacherPageData);
+
+    const studentPageData = await getMessagePageData({
+        id: thread.student.userId,
+        role: thread.student.user.role,
+        schoolId: thread.student.user.schoolId,
+    });
+    emitMessagePageDataToUser(thread.student.userId, studentPageData);
+};
+
 const createThreadForTeacher = async (user: MessageUserContext, request: ICreateMessageThreadDTO) => {
     if (user.role !== "TEACHER") {
         throw new Error("UNAUTHORIZED");
@@ -118,9 +146,8 @@ const createThreadForTeacher = async (user: MessageUserContext, request: ICreate
     }
 
     const existingThread = await messageRepo.getThreadByUnique(request.classId, teacher.id, request.studentId);
-    if (!existingThread) {
-        await messageRepo.createThread(request.classId, teacher.id, request.studentId);
-    }
+    const thread = existingThread ?? await messageRepo.createThread(request.classId, teacher.id, request.studentId);
+    await notifyRealtimeParticipants(thread.id);
 
     return await getMessagePageData(user);
 };
@@ -148,12 +175,15 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
     }
 
     await messageRepo.sendMessage(request.threadId, user.id, request.content.trim());
+    await notifyRealtimeParticipants(request.threadId);
     return await getMessagePageData(user);
 };
 
 const messageService = {
     getMessagePageData,
     createThreadForTeacher,
+    mapUserContext,
+    notifyRealtimeParticipants,
     sendMessageForUser,
 };
 
