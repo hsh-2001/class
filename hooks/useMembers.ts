@@ -1,20 +1,31 @@
 import { getApiErrorMessage } from "@/lib/api-error";
 import { IFormItem } from "@/types/formBase";
-import { StudentResponse, TCreateStudentDTO } from "@/types/student";
+import { StudentResponse, TCreateStudentDTO, TUpdateStudentDTO } from "@/types/student";
 import dayjs from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import { useState } from "react";
-import { callCreateStudent, callCreateTeacher, callGetStudents, callGetTeachers } from "@/lib/api-calling";
-import { ICreateTeacherDTO, TeacherResponse } from "@/types/teacher";
+import {
+    callCreateStudent,
+    callCreateTeacher,
+    callGetStudents,
+    callGetTeachers,
+    callUpdateStudent,
+    callUpdateTeacher
+} from "@/lib/api-calling";
+import { ICreateTeacherDTO, IUpdateTeacherDTO, TeacherResponse } from "@/types/teacher";
 
+type StudentFormValues = TCreateStudentDTO & { confirmPassword: string };
+type TeacherFormValues = ICreateTeacherDTO & { confirmPassword: string };
 
 export default function useMembers() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [studentList, setStudentList] = useState<StudentResponse[]>([]);
     const [isActive, setIsActive] = useState("students");
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const isEditing = editingId !== null;
 
-    const [form] = useForm<TCreateStudentDTO & { confirmPassword: string }>();
-    const [teacherForm] = useForm<ICreateTeacherDTO & { confirmPassword: string }>();
+    const [form] = useForm<StudentFormValues>();
+    const [teacherForm] = useForm<TeacherFormValues>();
     const [teacherList, setTeacherList] = useState<TeacherResponse[]>([]);
 
     const genders = [
@@ -22,7 +33,7 @@ export default function useMembers() {
         { label: "Female", value: "FEMALE" },
     ]
 
-    const fieldItem: IFormItem<TCreateStudentDTO & { confirmPassword: string }>[] = [
+    const studentCreateFields: IFormItem<StudentFormValues>[] = [
         {
             name: "email",
             label: "Email",
@@ -100,7 +111,7 @@ export default function useMembers() {
         },
     ];
 
-    const teacherFieldItems: IFormItem<ICreateTeacherDTO & { confirmPassword: string }>[] = [
+    const teacherCreateFields: IFormItem<TeacherFormValues>[] = [
         {
             name: "email",
             label: "Email",
@@ -166,6 +177,14 @@ export default function useMembers() {
         },
     ];
 
+    const fieldItem = studentCreateFields.filter((field) =>
+        !isEditing || (field.name !== "password" && field.name !== "confirmPassword")
+    );
+
+    const teacherFieldItems = teacherCreateFields.filter((field) =>
+        !isEditing || (field.name !== "password" && field.name !== "confirmPassword")
+    );
+
 
     const handleCreateStudent = async () => {
         const values = form.getFieldsValue();
@@ -188,6 +207,31 @@ export default function useMembers() {
         }
     }
 
+    const handleUpdateStudent = async () => {
+        const values = form.getFieldsValue();
+        if (!editingId) return;
+
+        const payload: TUpdateStudentDTO = {
+            id: editingId,
+            email: values.email,
+            username: values.username,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            phone: values.phone,
+            gender: values.gender,
+        };
+
+        try {
+            const response = await callUpdateStudent(payload);
+            if (response.data.success) {
+                handleCloseModal();
+                onGetAllStudents();
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to update student."));
+        }
+    }
+
     const handleCreateTeacher = async () => {
         const values = teacherForm.getFieldsValue();
         const payload = {
@@ -199,13 +243,41 @@ export default function useMembers() {
             if (response.data.success) {
                 setIsModalVisible(false);
                 teacherForm.resetFields();
+                onGetAllTeachers();
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to create teacher."));
         }
     }
 
-    const onSubmit = isActive === "students" ? handleCreateStudent : handleCreateTeacher;
+    const handleUpdateTeacher = async () => {
+        const values = teacherForm.getFieldsValue();
+        if (!editingId) return;
+
+        const payload: IUpdateTeacherDTO = {
+            id: editingId,
+            email: values.email,
+            username: values.username,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            phone: values.phone,
+            gender: values.gender,
+        };
+
+        try {
+            const response = await callUpdateTeacher(payload);
+            if (response.data.success) {
+                handleCloseModal();
+                onGetAllTeachers();
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to update teacher."));
+        }
+    }
+
+    const onSubmit = isActive === "students"
+        ? isEditing ? handleUpdateStudent : handleCreateStudent
+        : isEditing ? handleUpdateTeacher : handleCreateTeacher;
 
     const onGetAllStudents = async () => {
         try {
@@ -223,7 +295,7 @@ export default function useMembers() {
     const onGetAllTeachers = async () => {
         try {
             const response = await callGetTeachers();
-            console.log(response.data);
+            console.log(response.data.success);
             if (response.data.success) {
                 const teachers = response.data.data.map((item: TeacherResponse) => new TeacherResponse(item));
                 setTeacherList(teachers);
@@ -232,6 +304,41 @@ export default function useMembers() {
             console.error(getApiErrorMessage(error, "Failed to fetch teachers."));
         }
 
+    }
+
+    const onClickEdit = (record: StudentResponse | TeacherResponse) => {
+        setEditingId(record.id);
+        if (isActive === "students" && record instanceof StudentResponse) {
+            form.setFieldsValue({
+                email: record.email,
+                username: record.username,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                phone: record.phone || undefined,
+                gender: record.gender,
+                dateOfBirth: record.dateOfBirth ? dayjs(record.dateOfBirth) : undefined,
+                confirmPassword: "",
+            });
+        } else if (record instanceof TeacherResponse) {
+            teacherForm.setFieldsValue({
+                email: record.email,
+                username: record.username,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                phone: record.phone || undefined,
+                gender: record.gender,
+                schoolId: record.schoolId,
+                confirmPassword: "",
+            });
+        }
+        setIsModalVisible(true);
+    }
+
+    const handleCloseModal = () => {
+        setIsModalVisible(false);
+        setEditingId(null);
+        form.resetFields();
+        teacherForm.resetFields();
     }
 
     return {
@@ -249,5 +356,8 @@ export default function useMembers() {
         teacherForm,
         onGetAllTeachers,
         teacherList,
+        onClickEdit,
+        handleCloseModal,
+        isEditing,
     }
 };

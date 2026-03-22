@@ -10,10 +10,11 @@ interface IAddStudentFormProps {
     genders: { label: string, value: string }[];
     onSubmit: () => void;
     onCancel?: () => void;
+    submitText?: string;
 }
 
 export default function AddStudentForm(
-    { form, fieldItem, genders, onSubmit, onCancel }: IAddStudentFormProps
+    { form, fieldItem, genders, onSubmit, onCancel, submitText = "Submit" }: IAddStudentFormProps
 ) {
 
     return (
@@ -64,7 +65,7 @@ export default function AddStudentForm(
                         Cancel
                     </SButton>
                     <SButton type="submit" color="primary" >
-                        Submit
+                        {submitText}
                     </SButton>
                 </div>
             </Form>

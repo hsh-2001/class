@@ -5,7 +5,7 @@ import authService from "@/services/auth.service";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { schoolId, email, password, role, firstName, lastName, phone, gender } = body;
+        const { schoolId, email, password, role, firstName, lastName, phone, gender, username } = body;
 
         await authService.createUser({
             schoolId,
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
             lastName,
             phone,
             gender,
+            username,
         });
         return ok({ message: "User created successfully" });
     } catch (error: unknown) {

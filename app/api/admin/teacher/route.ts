@@ -23,3 +23,20 @@ export async function POST(request: NextRequest) {
         return fail(message, 500);
     }
 }
+
+export async function PUT(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { id, ...data } = body;
+
+        if (!id) {
+            return fail("Missing teacher ID", 400);
+        }
+
+        const response = await adminService.updateTeacher(id, data);
+        return ok(response, "updated successfully");
+    } catch (error) {
+        const message = (error as Error)?.message || "Failed to update teacher";
+        return fail(message, 500);
+    }
+}

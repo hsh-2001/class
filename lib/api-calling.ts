@@ -1,7 +1,7 @@
 import { ILoginDTO } from "@/types/user";
 import api from "./api";
-import { TCreateStudentDTO } from "@/types/student";
-import { ICreateTeacherDTO } from "@/types/teacher";
+import { TCreateStudentDTO, TUpdateStudentDTO } from "@/types/student";
+import { ICreateTeacherDTO, IUpdateTeacherDTO } from "@/types/teacher";
 
 export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
@@ -21,4 +21,12 @@ export const callGetStudents = async () => {
 
 export const callGetTeachers = async () => {
   return await api.get("/admin/teacher");
+}
+
+export const callUpdateStudent = async (request: TUpdateStudentDTO) => {
+  return await api.put("/admin/student", request);
+}
+
+export const callUpdateTeacher = async (request: IUpdateTeacherDTO) => {
+  return await api.put("/admin/teacher", request);
 }

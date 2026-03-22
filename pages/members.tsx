@@ -24,6 +24,9 @@ export default function Members() {
         teacherForm,
         onGetAllTeachers,
         teacherList,
+        onClickEdit,
+        handleCloseModal,
+        isEditing,
     } = useMembers();
 
     useEffect(() => {
@@ -48,14 +51,18 @@ export default function Members() {
 
                 {
                     isActive === "students" ?
-                        <StudentList studentList={studentList} />
-                        : <TeacherList teacherList={teacherList} />
+                        <StudentList studentList={studentList} onClickEdit={onClickEdit} />
+                        : <TeacherList teacherList={teacherList} onClickEdit={onClickEdit} />
                 }
             </div>
             <SModal
                 isOpen={isModalVisible}
-                onClose={() => setIsModalVisible(false)}
-                title={isActive === "students" ? "Add new student" : "Add new teacher"}
+                onClose={handleCloseModal}
+                title={
+                    isActive === "students"
+                        ? isEditing ? "Update student" : "Add new student"
+                        : isEditing ? "Update teacher" : "Add new teacher"
+                }
             >
                 {
                     isActive === "students" ?
@@ -64,7 +71,8 @@ export default function Members() {
                             fieldItem={fieldItem}
                             genders={genders}
                             onSubmit={onSubmit}
-                            onCancel={() => setIsModalVisible(false)}
+                            onCancel={handleCloseModal}
+                            submitText={isEditing ? "Update" : "Submit"}
                         />
                         :
 
@@ -73,7 +81,8 @@ export default function Members() {
                             fieldItem={teacherFieldItems}
                             genders={genders}
                             onSubmit={onSubmit}
-                            onCancel={() => setIsModalVisible(false)}
+                            onCancel={handleCloseModal}
+                            submitText={isEditing ? "Update" : "Submit"}
                         />
                 }
             </SModal>

@@ -20,7 +20,17 @@ export interface ICreateTeacherDTO extends ITeacherProfileInput {
     address?: string;
 }
 
-export class TeacherResponse implements ICreateTeacherDTO {
+export interface ITeacherListItem extends ITeacherProfileInput {
+    id: string;
+    userId: string;
+    email: string;
+    role: $Enums.Role;
+    username?: string;
+}
+
+export type IUpdateTeacherDTO = Partial<Omit<ICreateTeacherDTO, "password" | "schoolId">> & { id: string };
+
+export class TeacherResponse implements ITeacherListItem {
     id: string;
     userId: string;
     email: string;
@@ -28,13 +38,10 @@ export class TeacherResponse implements ICreateTeacherDTO {
     firstName: string;
     lastName: string;
     phone?: string | null;
-    password: string;
     username?: string | undefined;
-    age?: number | undefined;
-    address?: string | undefined;
     gender: "MALE" | "FEMALE" | "OTHER";
     schoolId: string;
-    constructor(data: ICreateTeacherDTO & { id: string; userId: string; role: $Enums.Role }) {
+    constructor(data: ITeacherListItem) {
         this.id = data.id;
         this.userId = data.userId;
         this.email = data.email;
@@ -42,13 +49,8 @@ export class TeacherResponse implements ICreateTeacherDTO {
         this.firstName = data.firstName;
         this.lastName = data.lastName;
         this.phone = data.phone || null;
-        this.password = data.password;
         this.username = data.username;
-        this.age = data.age;
-        this.address = data.address;
         this.gender = data.gender;
         this.schoolId = data.schoolId;
     }
-
-
 }

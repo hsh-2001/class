@@ -1,7 +1,8 @@
 import { StudentResponse } from "@/types/student";
 import { Table } from "antd";
+import { Edit } from "lucide-react";
 
-export default function StudentList({ studentList }: { studentList: StudentResponse[] }) {
+export default function StudentList({ studentList, onClickEdit }: { studentList: StudentResponse[], onClickEdit: (record: StudentResponse) => void }) {
     return (
         <div className="w-full overflow-auto">
             <Table
@@ -13,12 +14,19 @@ export default function StudentList({ studentList }: { studentList: StudentRespo
                         title: "ID",
                         dataIndex: "id",
                         key: "id",
+                        width: '20%',
                     },
                     {
                         title: "Full Name",
                         key: "name",
-                        width: '50%',
+                        width: '20%',
                         render: (_, record) => `${record.firstName} ${record.lastName}`,
+                    },
+                    {
+                        title: "Username",
+                        dataIndex: "username",
+                        key: "username",
+                        render: (_, record) => record.username || "--",
                     },
                     {
                         title: "Email",
@@ -30,6 +38,16 @@ export default function StudentList({ studentList }: { studentList: StudentRespo
                         dataIndex: "phone",
                         key: "phone",
                     },
+                    {
+                        title: "Actions",
+                        key: "actions",
+                        render: (_, record) => (
+                            <button onClick={() => onClickEdit(record)}>
+                                <Edit className="text-black/90 dark:text-slate-50 h-4 w-4 cursor-pointer" />
+                            </button>
+                        ),
+                    },
+
                 ]}
             />
         </div>

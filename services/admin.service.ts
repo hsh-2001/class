@@ -2,8 +2,8 @@ import { $Enums } from "@/prisma/generated/browser";
 import adminRepo from "@/repositories/admin.repo";
 import authService from "@/services/auth.service";
 import { IStudentListItem, TCreateStudentDTO } from "@/types/student";
-import { TeacherResponse } from "@/types/teacher";
-import { ICreateUserDTO } from "@/types/user";
+import { ITeacherListItem } from "@/types/teacher";
+import { ICreateUserDTO, IUpdateUserDTO } from "@/types/user";
 
 const createStudent = async (studentData: TCreateStudentDTO) => {
     if (!studentData.email || !studentData.password || !studentData.firstName || !studentData.lastName || !studentData.gender) {
@@ -12,6 +12,7 @@ const createStudent = async (studentData: TCreateStudentDTO) => {
 
     const user = await authService.createStudentUser({
         schoolId: studentData.schoolId || "school-01",
+        username: studentData.username || "",
         email: studentData.email,
         password: studentData.password,
         firstName: studentData.firstName,
@@ -36,15 +37,17 @@ const getStudents = async (): Promise<IStudentListItem[]> => {
             id: student.id,
             userId: student.userId,
             email: student.user.email,
+            username: student.user.username,
             role: student.user.role as $Enums.Role,
             firstName: student.user.profile!.firstName,
             lastName: student.user.profile!.lastName,
             phone: student.user.profile!.phone,
             gender: student.user.profile!.gender as $Enums.Gender,
+            dateOfBirth: student.user.createdAt,
         }));
 }
 
-const updateStudent = async (id: string, data: Partial<TCreateStudentDTO>) => {
+const updateStudent = async (id: string, data: IUpdateUserDTO) => {
     return await adminRepo.updateStudent(id, data);
 }
 
@@ -66,7 +69,7 @@ const createTeacher = async (request: ICreateUserDTO) => {
     return await adminRepo.createTeacher(user.id);
 }
 
-const getTeachers = async (): Promise<Partial<TeacherResponse>[]> => {
+const getTeachers = async (): Promise<ITeacherListItem[]> => {
     const teachers = await adminRepo.getAllTeachers();
 
     return teachers.map((teacher) => ({
@@ -74,12 +77,17 @@ const getTeachers = async (): Promise<Partial<TeacherResponse>[]> => {
         userId: teacher.userId,
         email: teacher.user.email,
         role: teacher.user.role as $Enums.Role,
+        username: teacher.user.username,
         firstName: teacher.user.profile?.firstName || "",
         lastName: teacher.user.profile?.lastName || "",
         phone: teacher.user.profile?.phone || "",
         schoolId: teacher.user.schoolId,
         gender: teacher.user.profile?.gender as $Enums.Gender || "OTHER",
     }));
+}
+
+const updateTeacher = async (id: string, data: IUpdateUserDTO) => {
+    return await adminRepo.updateTeacher(id, data);
 }
 
 
@@ -90,6 +98,7 @@ const adminService = {
     getUserById,
     createTeacher,
     getTeachers,
+    updateTeacher,
 };
 
 export default adminService;

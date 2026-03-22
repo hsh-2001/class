@@ -4,9 +4,9 @@ import authService from "@/services/auth.service";
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { schoolId, email, password, firstName, lastName, phone, gender } = body;
+        const { schoolId, email, password, firstName, lastName, phone, gender, username} = body;
 
-        if (!schoolId || !email || !password || !firstName || !lastName || !gender) {
+        if (!email || !password || !firstName || !lastName || !gender) {
             return fail("Missing required fields", 400);
         }
 
@@ -18,6 +18,7 @@ export async function POST(request: Request) {
             lastName,
             phone,
             gender,
+            username
         });
         return ok(null, "User created successfully", 201);
     } catch (error: unknown) {

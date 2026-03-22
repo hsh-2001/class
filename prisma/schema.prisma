@@ -21,6 +21,7 @@ model User {
   id       String       @id @default(uuid())
   schoolId String       @map("school_id")
   school   School       @relation(fields: [schoolId], references: [id])
+  username String      @default("")
   email    String
   password String
   role     Role
@@ -31,7 +32,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([email, schoolId])
+  @@unique([email, username, schoolId])
   @@map("users")
 }
 

@@ -11,7 +11,7 @@ const createUser = async (request: ICreateUserDTO) => {
     }
 
     const hashedPassword = await getPasswordHash(request.password);
-    return await authRepo.createUser({ ...request, password: hashedPassword, schoolId: "school-01"});
+    return await authRepo.createUser({ ...request, password: hashedPassword });
 }
 
 const getUserByEmail = async (email: string) => {

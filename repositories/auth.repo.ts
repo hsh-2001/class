@@ -6,12 +6,14 @@ const createUser = async (user: ICreateUserDTO) => {
         throw new Error("MISSING_SCHOOL_ID");
     }
 
+    console.log("Creating user with data:", user);
     return await prisma.user.create({
         data: {
-            schoolId: "school-01",
+            schoolId: user.schoolId,
             email: user.email,
             password: user.password,
             role: user.role,
+            username: user.username ?? "",
             ...(user.firstName && user.lastName && user.gender ? {
                 profile: {
                     create: {
@@ -32,7 +34,7 @@ const createUser = async (user: ICreateUserDTO) => {
 }
 
 const getUserByEmail = async (email: string) => {
-    return await prisma.user.findUnique({
+    return await prisma.user.findFirst({
         where: { email },
         include: {
             profile: true,

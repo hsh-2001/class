@@ -18,8 +18,18 @@ export interface IUser {
 export interface ICreateUserDTO {
     schoolId: string;
     email: string;
+    username?: string;
     password: string;
     role: Role;
+    firstName?: string;
+    lastName?: string;
+    phone?: string | null;
+    gender?: Gender;
+}
+
+export interface IUpdateUserDTO {
+    email?: string;
+    username?: string;
     firstName?: string;
     lastName?: string;
     phone?: string | null;

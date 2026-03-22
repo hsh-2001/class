@@ -10,10 +10,11 @@ interface IAddTeacherFormProps {
     genders: { label: string, value: string }[];
     onSubmit: () => void;
     onCancel?: () => void;
+    submitText?: string;
 }
 
 export default function AddTeacherForm(
-    { form, fieldItem, genders, onSubmit, onCancel }: IAddTeacherFormProps
+    { form, fieldItem, genders, onSubmit, onCancel, submitText = "Submit" }: IAddTeacherFormProps
 ) {
     return (
         <>
@@ -61,7 +62,7 @@ export default function AddTeacherForm(
                         Cancel
                     </SButton>
                     <SButton type="submit" color="primary" >
-                        Submit
+                        {submitText}
                     </SButton>
                 </div>
             </Form>
