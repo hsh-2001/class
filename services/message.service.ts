@@ -3,6 +3,7 @@ import type { Role } from "@/prisma/generated/enums";
 import messageRepo from "@/repositories/message.repo";
 import {
     ICreateMessageThreadDTO,
+    IDeleteMessageDTO,
     IMessageAttachment,
     IMessageItem,
     IMessageMemberOption,
@@ -105,6 +106,7 @@ const getLastMessagePreview = (message?: { content: string; attachments: IMessag
 const mapMessageItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number]["messages"][number],
 ): IMessageItem => {
+    const forwardedState = item as typeof item & { isForwarded?: boolean | null };
     const attachments = normalizeAttachments(item.attachments, item.imageUrl);
     const replyToMessage = item.replyToMessage
         ? {
@@ -127,6 +129,7 @@ const mapMessageItem = (
         content: item.content,
         attachments,
         imageUrl: item.imageUrl ?? undefined,
+        isForwarded: Boolean(forwardedState.isForwarded),
         replyToMessage,
         createdAt: item.createdAt.toISOString(),
     };
@@ -414,7 +417,55 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         imageUrl,
         attachments,
         request.replyToMessageId,
+        request.isForwarded,
     );
+    await notifyRealtimeParticipants(request.threadId);
+    return await getMessagePageData(user);
+};
+
+const deleteMessageForUser = async (user: MessageUserContext, request: IDeleteMessageDTO) => {
+    if (!request.threadId || !request.messageId) {
+        throw new Error("MISSING_FIELDS");
+    }
+
+    const thread = await messageRepo.getThreadById(request.threadId);
+    if (!thread) {
+        throw new Error("THREAD_NOT_FOUND");
+    }
+
+    if (thread.participantOneUserId || thread.participantTwoUserId) {
+        if (thread.participantOneUserId !== user.id && thread.participantTwoUserId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+    } else {
+        if (user.role === "TEACHER" && thread.teacher?.userId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+
+        if (user.role === "STUDENT") {
+            if (thread.student && thread.student.userId !== user.id) {
+                throw new Error("UNAUTHORIZED");
+            }
+
+            if (!thread.student) {
+                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                if (!isEnrolled) {
+                    throw new Error("UNAUTHORIZED");
+                }
+            }
+        }
+    }
+
+    const message = thread.messages.find((item) => item.id === request.messageId);
+    if (!message) {
+        throw new Error("MESSAGE_NOT_FOUND");
+    }
+
+    if (message.senderUserId !== user.id) {
+        throw new Error("UNAUTHORIZED");
+    }
+
+    await messageRepo.deleteMessage(request.threadId, request.messageId);
     await notifyRealtimeParticipants(request.threadId);
     return await getMessagePageData(user);
 };
@@ -426,6 +477,7 @@ const messageService = {
     notifyRealtimeParticipants,
     ensureClassGroupThreadForClass,
     sendMessageForUser,
+    deleteMessageForUser,
 };
 
 export default messageService;

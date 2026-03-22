@@ -30,3 +30,22 @@ export async function POST(request: NextRequest) {
         return fail(message, status);
     }
 }
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const user = getUserFromHeader(request) as { id: string; role: "ADMIN" | "STUDENT" | "TEACHER"; schoolId: string };
+        const body = await request.json();
+        const response = await messageService.deleteMessageForUser(user, body);
+        return ok(response, "Message deleted successfully");
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Failed to delete message";
+        const status = message === "UNAUTHORIZED"
+            ? 401
+            : message === "THREAD_NOT_FOUND" || message === "MESSAGE_NOT_FOUND"
+                ? 404
+                : message === "MISSING_FIELDS"
+                    ? 400
+                    : 500;
+        return fail(message, status);
+    }
+}

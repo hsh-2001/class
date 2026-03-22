@@ -290,17 +290,21 @@ const sendMessage = async (
     imageUrl?: string,
     attachments?: unknown,
     replyToMessageId?: string,
+    isForwarded?: boolean,
 ) => {
     return await prisma.$transaction(async (tx) => {
+        const messageData: Prisma.MessageUncheckedCreateInput = {
+            threadId,
+            senderUserId,
+            replyToMessageId,
+            isForwarded: Boolean(isForwarded),
+            content,
+            imageUrl,
+            attachments: attachments as Prisma.InputJsonValue | undefined,
+        };
+
         await tx.message.create({
-            data: {
-                threadId,
-                senderUserId,
-                replyToMessageId,
-                content,
-                imageUrl,
-                attachments: attachments as Prisma.InputJsonValue | undefined,
-            },
+            data: messageData,
         });
 
         await tx.messageThread.update({
@@ -309,6 +313,53 @@ const sendMessage = async (
             },
             data: {
                 updatedAt: new Date(),
+            },
+        });
+
+        return await tx.messageThread.findUnique({
+            where: {
+                id: threadId,
+            },
+            include: threadInclude,
+        });
+    });
+};
+
+const deleteMessage = async (threadId: string, messageId: string) => {
+    return await prisma.$transaction(async (tx) => {
+        const thread = await tx.messageThread.findUnique({
+            where: {
+                id: threadId,
+            },
+            select: {
+                createdAt: true,
+            },
+        });
+
+        await tx.message.delete({
+            where: {
+                id: messageId,
+            },
+        });
+
+        const latestMessage = await tx.message.findFirst({
+            where: {
+                threadId,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            select: {
+                createdAt: true,
+            },
+        });
+
+        await tx.messageThread.update({
+            where: {
+                id: threadId,
+            },
+            data: {
+                updatedAt: latestMessage?.createdAt ?? thread?.createdAt ?? new Date(),
             },
         });
 
@@ -338,6 +389,7 @@ const messageRepo = {
     createGroupThread,
     getUserById,
     sendMessage,
+    deleteMessage,
 };
 
 export default messageRepo;

@@ -23,6 +23,8 @@ interface MessageConversationProps {
     selectedAttachmentAccept: string;
     onChangeMessageContent: (value: string) => void;
     onReplyToMessage: (message: IMessageReplyPreview) => void;
+    onForwardMessage: (message: IMessageReplyPreview) => void;
+    onDeleteMessage: (messageId: string) => void;
     onCancelReply: () => void;
     onRemoveSelectedAttachment: (localId: string) => void;
     onSelectMessageFiles: (files: FileList | null) => void;
@@ -59,6 +61,7 @@ const buildMessageRenderGroups = (messages: MessageThreadResponse["messages"]): 
             content,
             imageAttachments: normalizedImageAttachments,
             fileAttachments,
+            isForwarded: message.isForwarded,
             replyToMessage: message.replyToMessage,
             latestCreatedAt: message.createdAt,
         });
@@ -80,6 +83,8 @@ export default function MessageConversation({
     selectedAttachmentAccept,
     onChangeMessageContent,
     onReplyToMessage,
+    onForwardMessage,
+    onDeleteMessage,
     onCancelReply,
     onRemoveSelectedAttachment,
     onSelectMessageFiles,
@@ -213,6 +218,8 @@ export default function MessageConversation({
                             highlightedMessageId={highlightedMessageId}
                             onJumpToMessage={handleJumpToMessage}
                             onReplyToMessage={onReplyToMessage}
+                            onForwardMessage={onForwardMessage}
+                            onDeleteMessage={onDeleteMessage}
                             onOpenAlbum={(attachments) => {
                                 setActiveAlbum(attachments);
                                 setActiveAlbumIndex(0);

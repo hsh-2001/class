@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from "@/lib/api-error";
-import { callCreateMessageThread, callGetMessages, callSendMessage } from "@/lib/api-calling";
+import { callCreateMessageThread, callDeleteMessage, callGetMessages, callSendMessage } from "@/lib/api-calling";
 import { socketServerPath } from "@/lib/socket-shared";
 import { uploadMany } from "@/lib/upload";
 import {
@@ -21,6 +21,8 @@ import { io, Socket } from "socket.io-client";
 type CreateThreadFormValues = {
     recipientUserId: string;
 };
+
+type ForwardMessagePayload = IMessageReplyPreview;
 
 type DraftMessageAttachment = IMessageAttachment & {
     file: File;
@@ -78,6 +80,7 @@ export default function useMessages() {
     const [messageContent, setMessageContent] = useState("");
     const [selectedAttachments, setSelectedAttachments] = useState<DraftMessageAttachment[]>([]);
     const [replyTargetMessage, setReplyTargetMessage] = useState<IMessageReplyPreview | null>(null);
+    const [forwardTargetMessage, setForwardTargetMessage] = useState<ForwardMessagePayload | null>(null);
     const [canCreateThread, setCanCreateThread] = useState(false);
     const [canSendMessage, setCanSendMessage] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -186,6 +189,17 @@ export default function useMessages() {
             setReplyTargetMessage(null);
         }
     }, [replyTargetMessage, selectedThread]);
+
+    useEffect(() => {
+        if (!forwardTargetMessage) {
+            return;
+        }
+
+        const messageStillExists = threads.some((thread) => thread.messages.some((message) => message.id === forwardTargetMessage.id));
+        if (!messageStillExists) {
+            setForwardTargetMessage(null);
+        }
+    }, [forwardTargetMessage, threads]);
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
@@ -327,6 +341,71 @@ export default function useMessages() {
         }
     };
 
+    const onDeleteMessage = async (messageId: string) => {
+        if (!selectedThreadId || isSendingMessageRef.current) {
+            return;
+        }
+
+        const shouldDelete = window.confirm("Delete this message?");
+        if (!shouldDelete) {
+            return;
+        }
+
+        isSendingMessageRef.current = true;
+        setIsSendingMessage(true);
+
+        try {
+            const response = await callDeleteMessage({
+                threadId: selectedThreadId,
+                messageId,
+            });
+
+            if (response.data.success) {
+                syncPageData(response.data.data as IMessagePageData);
+                if (replyTargetMessage?.id === messageId) {
+                    setReplyTargetMessage(null);
+                }
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to delete message."));
+            void antMessage.error(getApiErrorMessage(error, "Failed to delete message."));
+        } finally {
+            isSendingMessageRef.current = false;
+            setIsSendingMessage(false);
+        }
+    };
+
+    const onForwardMessage = async (targetThreadId: string) => {
+        if (!forwardTargetMessage || !targetThreadId || isSendingMessageRef.current) {
+            return;
+        }
+
+        isSendingMessageRef.current = true;
+        setIsSendingMessage(true);
+
+        try {
+            const response = await callSendMessage({
+                threadId: targetThreadId,
+                content: forwardTargetMessage.content,
+                attachments: forwardTargetMessage.attachments,
+                isForwarded: true,
+            });
+
+            if (response.data.success) {
+                syncPageData(response.data.data as IMessagePageData);
+                setForwardTargetMessage(null);
+                setSelectedThreadId(targetThreadId);
+                void antMessage.success("Message forwarded.");
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to forward message."));
+            void antMessage.error(getApiErrorMessage(error, "Failed to forward message."));
+        } finally {
+            isSendingMessageRef.current = false;
+            setIsSendingMessage(false);
+        }
+    };
+
     return {
         canCreateThread,
         canSendMessage,
@@ -340,9 +419,12 @@ export default function useMessages() {
         memberOptions,
         messageContent,
         replyTargetMessage,
+        forwardTargetMessage,
         clearSelectedAttachments,
         onSelectMessageFiles,
         onCreateThread,
+        onDeleteMessage,
+        onForwardMessage,
         onSendMessage,
         removeSelectedAttachment,
         selectedAttachments,
@@ -351,6 +433,7 @@ export default function useMessages() {
         selectedThreadId,
         setIsModalVisible,
         setMessageContent,
+        setForwardTargetMessage,
         setReplyTargetMessage,
         setSelectedThreadId,
         threads,

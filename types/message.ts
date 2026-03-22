@@ -9,6 +9,7 @@ export interface IMessageItem {
     content: string;
     attachments: IMessageAttachment[];
     imageUrl?: string;
+    isForwarded: boolean;
     replyToMessage?: IMessageReplyPreview;
     createdAt: string;
 }
@@ -91,6 +92,12 @@ export interface ISendMessageDTO {
     content: string;
     attachments?: IMessageAttachment[];
     replyToMessageId?: string;
+    isForwarded?: boolean;
+}
+
+export interface IDeleteMessageDTO {
+    threadId: string;
+    messageId: string;
 }
 
 export const MESSAGE_ATTACHMENT_MAX_SIZE = 3 * 1024 * 1024;
@@ -168,6 +175,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
             content: message.content ?? "",
             attachments: Array.isArray(message.attachments) ? message.attachments : [],
             imageUrl: message.imageUrl ?? undefined,
+            isForwarded: Boolean(message.isForwarded),
             replyToMessage: message.replyToMessage,
         }));
     }

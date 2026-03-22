@@ -1,4 +1,4 @@
-import { ICreateMessageThreadDTO, ISendMessageDTO } from "@/types/message";
+import { ICreateMessageThreadDTO, IDeleteMessageDTO, ISendMessageDTO } from "@/types/message";
 import { ICreateAssignmentDTO } from "@/types/assignment";
 import { ICreateClassDTO } from "@/types/class";
 import { ILoginDTO } from "@/types/user";
@@ -79,6 +79,10 @@ export const callCreateMessageThread = async (request: ICreateMessageThreadDTO) 
 
 export const callSendMessage = async (request: ISendMessageDTO) => {
   return await api.post("/message/send", request);
+}
+
+export const callDeleteMessage = async (request: IDeleteMessageDTO) => {
+  return await api.delete("/message", { data: request });
 }
 
 export const callGetStudentProfile = async () => {

@@ -1,8 +1,8 @@
 import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
 import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
-import { CornerUpLeft, FileText, Paperclip, X } from "lucide-react";
-import { Avatar, Input, Popover, Typography } from "antd";
+import { Copy, CornerUpLeft, FileText, Forward, Paperclip, Trash2, X } from "lucide-react";
+import { Avatar, Input, Popover, Typography, message as antMessage } from "antd";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { RefObject, useEffect, useRef, useState } from "react";
@@ -22,6 +22,7 @@ export type MessageRenderGroup = {
     content: string;
     imageAttachments: IMessageAttachment[];
     fileAttachments: IMessageAttachment[];
+    isForwarded?: boolean;
     replyToMessage?: IMessageReplyPreview;
     latestCreatedAt: string;
 };
@@ -153,6 +154,8 @@ export function MessageBubbleList({
     highlightedMessageId,
     onJumpToMessage,
     onReplyToMessage,
+    onForwardMessage,
+    onDeleteMessage,
     onOpenAlbum,
 }: {
     currentUserId: string;
@@ -161,6 +164,8 @@ export function MessageBubbleList({
     highlightedMessageId?: string | null;
     onJumpToMessage: (messageId: string) => void;
     onReplyToMessage: (message: IMessageReplyPreview) => void;
+    onForwardMessage: (message: IMessageReplyPreview) => void;
+    onDeleteMessage: (messageId: string) => void;
     onOpenAlbum: (attachments: IMessageAttachment[]) => void;
 }) {
     const [menuState, setMenuState] = useState<{
@@ -199,7 +204,7 @@ export function MessageBubbleList({
         bubbleElement: HTMLDivElement,
     ) => {
         const bubbleRect = bubbleElement.getBoundingClientRect();
-        const estimatedMenuHeight = 96;
+        const estimatedMenuHeight = 192;
         const estimatedMenuWidth = 176;
         const spaceBelow = window.innerHeight - bubbleRect.bottom;
         const verticalPlacement = spaceBelow < estimatedMenuHeight ? "top" : "bottom";
@@ -322,6 +327,16 @@ export function MessageBubbleList({
                                             onClick={() => onJumpToMessage(messageGroup.replyToMessage!.id)}
                                         />
                                     ) : null}
+                                    {messageGroup.isForwarded ? (
+                                        <div className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
+                                            isOwnMessage
+                                                ? "bg-white/12 text-white/80 dark:bg-white/[0.12] dark:text-slate-200"
+                                                : "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"
+                                        }`}>
+                                            <Forward className="h-3.5 w-3.5" />
+                                            Forwarded
+                                        </div>
+                                    ) : null}
                                     {messageGroup.imageAttachments.length > 1 ? (
                                         <AlbumPreviewCard
                                             attachments={messageGroup.imageAttachments}
@@ -399,10 +414,51 @@ export function MessageBubbleList({
                                             setMenuState(null);
                                         }}
                                         className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
+                                        >
+                                            <CornerUpLeft className="h-4 w-4" />
+                                            Reply
+                                        </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onForwardMessage(replyPreview);
+                                            setMenuState(null);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
                                     >
-                                        <CornerUpLeft className="h-4 w-4" />
-                                        Reply
+                                        <Forward className="h-4 w-4" />
+                                        Forward
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            try {
+                                                await navigator.clipboard.writeText(messageGroup.content || getReplyPreviewText(replyPreview));
+                                                void antMessage.success("Message copied.");
+                                            } catch {
+                                                void antMessage.error("Failed to copy message.");
+                                            } finally {
+                                                setMenuState(null);
+                                            }
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        Copy
+                                    </button>
+                                    {isOwnMessage ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                onDeleteMessage(messageGroup.id);
+                                                setMenuState(null);
+                                            }}
+                                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                            Delete
+                                        </button>
+                                    ) : null}
                                 </div>,
                                 document.body,
                             )

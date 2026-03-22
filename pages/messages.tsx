@@ -15,6 +15,7 @@ export default function MessagesPage() {
     canCreateThread,
     canSendMessage,
     currentUserId,
+    forwardTargetMessage,
     form,
     handleCloseModal,
     isLoading,
@@ -24,6 +25,8 @@ export default function MessagesPage() {
     memberOptions,
     messageContent,
     onCreateThread,
+    onDeleteMessage,
+    onForwardMessage,
     onSelectMessageFiles,
     onSendMessage,
     replyTargetMessage,
@@ -32,6 +35,7 @@ export default function MessagesPage() {
     selectedAttachmentAccept,
     selectedThread,
     selectedThreadId,
+    setForwardTargetMessage,
     setIsModalVisible,
     setMessageContent,
     setReplyTargetMessage,
@@ -155,6 +159,8 @@ export default function MessagesPage() {
                 selectedAttachmentAccept={selectedAttachmentAccept}
                 onChangeMessageContent={setMessageContent}
                 onReplyToMessage={setReplyTargetMessage}
+                onForwardMessage={setForwardTargetMessage}
+                onDeleteMessage={onDeleteMessage}
                 onCancelReply={() => setReplyTargetMessage(null)}
                 onRemoveSelectedAttachment={removeSelectedAttachment}
                 onSelectMessageFiles={onSelectMessageFiles}
@@ -191,6 +197,58 @@ export default function MessagesPage() {
           <SButton type="button" color="primary" onClick={onCreateThread} loading={isCreatingThread}>
             Start chat
           </SButton>
+        </div>
+      </SModal>
+
+      <SModal
+        isOpen={Boolean(forwardTargetMessage)}
+        onClose={() => setForwardTargetMessage(null)}
+        title="Forward Message"
+      >
+        <div className="space-y-4">
+          {forwardTargetMessage ? (
+            <div className="rounded-[1rem] border border-black/10 bg-black/[0.03] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                From {forwardTargetMessage.senderName}
+              </p>
+              <p className="mt-1 line-clamp-3 break-words text-[13px] text-slate-700 dark:text-slate-200">
+                {forwardTargetMessage.content || (forwardTargetMessage.attachments.length > 0
+                  ? `${forwardTargetMessage.attachments.length} attachment${forwardTargetMessage.attachments.length === 1 ? "" : "s"}`
+                  : "Message")}
+              </p>
+            </div>
+          ) : null}
+          <div className="grid gap-2">
+            {threads
+              .filter((thread) => thread.id !== selectedThreadId)
+              .map((thread) => (
+                <button
+                  key={thread.id}
+                  type="button"
+                  onClick={() => void onForwardMessage(thread.id)}
+                  className="w-full rounded-[1rem] border border-black/10 bg-white/80 px-3 py-3 text-left transition hover:border-sky-300 hover:bg-sky-50/70 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-sky-500/40 dark:hover:bg-sky-500/10"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-semibold text-slate-900 dark:text-slate-50">
+                        {thread.title}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                        {thread.subtitle}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                      Forward
+                    </span>
+                  </div>
+                </button>
+              ))}
+            {threads.filter((thread) => thread.id !== selectedThreadId).length === 0 ? (
+              <Typography.Text className="!text-sm text-slate-500 dark:!text-slate-400">
+                No other conversation available for forwarding.
+              </Typography.Text>
+            ) : null}
+          </div>
         </div>
       </SModal>
     </>
