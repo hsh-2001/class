@@ -19,6 +19,7 @@ export default function MessagesPage() {
     form,
     handleCloseModal,
     isLoading,
+    isLoadingOlderMessages,
     isCreatingThread,
     isModalVisible,
     isSendingMessage,
@@ -27,6 +28,7 @@ export default function MessagesPage() {
     onCreateThread,
     onDeleteMessage,
     onForwardMessage,
+    onLoadOlderMessages,
     onSelectMessageFiles,
     onSendMessage,
     replyTargetMessage,
@@ -153,6 +155,7 @@ export default function MessagesPage() {
                 isVisible={mobilePane === "messages"}
                 canSendMessage={canSendMessage}
                 isSendingMessage={isSendingMessage}
+                isLoadingOlderMessages={isLoadingOlderMessages}
                 messageContent={messageContent}
                 replyTargetMessage={replyTargetMessage}
                 selectedAttachments={selectedAttachments}
@@ -161,6 +164,7 @@ export default function MessagesPage() {
                 onReplyToMessage={setReplyTargetMessage}
                 onForwardMessage={setForwardTargetMessage}
                 onDeleteMessage={onDeleteMessage}
+                onLoadOlderMessages={onLoadOlderMessages}
                 onCancelReply={() => setReplyTargetMessage(null)}
                 onRemoveSelectedAttachment={removeSelectedAttachment}
                 onSelectMessageFiles={onSelectMessageFiles}

@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from "@/lib/api-error";
-import { callCreateMessageThread, callDeleteMessage, callGetMessages, callSendMessage } from "@/lib/api-calling";
+import { callCreateMessageThread, callDeleteMessage, callGetMessages, callGetThreadMessagesPage, callSendMessage } from "@/lib/api-calling";
 import { socketServerPath } from "@/lib/socket-shared";
 import { uploadMany } from "@/lib/upload";
 import {
@@ -11,6 +11,7 @@ import {
     MESSAGE_ATTACHMENT_ACCEPT,
     MESSAGE_ATTACHMENT_MAX_SIZE,
     MessageServerToClientEvents,
+    IMessageThreadMessagesPage,
     MessageThreadResponse,
 } from "@/types/message";
 import { message as antMessage } from "antd";
@@ -87,6 +88,7 @@ export default function useMessages() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isCreatingThread, setIsCreatingThread] = useState(false);
     const [isSendingMessage, setIsSendingMessage] = useState(false);
+    const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false);
 
     useEffect(() => {
         selectedAttachmentsRef.current = selectedAttachments;
@@ -375,6 +377,45 @@ export default function useMessages() {
         }
     };
 
+    const onLoadOlderMessages = async () => {
+        if (!selectedThread || isLoadingOlderMessages || !selectedThread.hasMoreMessages || selectedThread.messages.length === 0) {
+            return;
+        }
+
+        const oldestMessageId = selectedThread.messages[0]?.id;
+        if (!oldestMessageId) {
+            return;
+        }
+
+        setIsLoadingOlderMessages(true);
+
+        try {
+            const response = await callGetThreadMessagesPage(selectedThread.id, oldestMessageId);
+            if (response.data.success) {
+                const page = response.data.data as IMessageThreadMessagesPage;
+                setThreads((currentThreads) => currentThreads.map((thread) => {
+                    if (thread.id !== page.threadId) {
+                        return thread;
+                    }
+
+                    const existingMessageIds = new Set(thread.messages.map((message) => message.id));
+                    const nextMessages = page.messages.filter((message) => !existingMessageIds.has(message.id));
+
+                    return new MessageThreadResponse({
+                        ...thread,
+                        hasMoreMessages: page.hasMoreMessages,
+                        messages: [...nextMessages, ...thread.messages],
+                    });
+                }));
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to load older messages."));
+            void antMessage.error(getApiErrorMessage(error, "Failed to load older messages."));
+        } finally {
+            setIsLoadingOlderMessages(false);
+        }
+    };
+
     const onForwardMessage = async (targetThreadId: string) => {
         if (!forwardTargetMessage || !targetThreadId || isSendingMessageRef.current) {
             return;
@@ -416,6 +457,7 @@ export default function useMessages() {
         isLoading,
         isModalVisible,
         isSendingMessage,
+        isLoadingOlderMessages,
         memberOptions,
         messageContent,
         replyTargetMessage,
@@ -425,6 +467,7 @@ export default function useMessages() {
         onCreateThread,
         onDeleteMessage,
         onForwardMessage,
+        onLoadOlderMessages,
         onSendMessage,
         removeSelectedAttachment,
         selectedAttachments,

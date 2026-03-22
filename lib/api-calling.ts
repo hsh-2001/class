@@ -73,6 +73,15 @@ export const callGetMessages = async () => {
   return await api.get("/message");
 }
 
+export const callGetThreadMessagesPage = async (threadId: string, beforeMessageId: string) => {
+  return await api.get("/message", {
+    params: {
+      threadId,
+      beforeMessageId,
+    },
+  });
+}
+
 export const callCreateMessageThread = async (request: ICreateMessageThreadDTO) => {
   return await api.post("/message", request);
 }

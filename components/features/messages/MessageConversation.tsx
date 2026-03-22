@@ -17,6 +17,7 @@ interface MessageConversationProps {
     isVisible?: boolean;
     canSendMessage: boolean;
     isSendingMessage: boolean;
+    isLoadingOlderMessages: boolean;
     messageContent: string;
     replyTargetMessage: IMessageReplyPreview | null;
     selectedAttachments: DraftMessageAttachment[];
@@ -25,6 +26,7 @@ interface MessageConversationProps {
     onReplyToMessage: (message: IMessageReplyPreview) => void;
     onForwardMessage: (message: IMessageReplyPreview) => void;
     onDeleteMessage: (messageId: string) => void;
+    onLoadOlderMessages: () => void;
     onCancelReply: () => void;
     onRemoveSelectedAttachment: (localId: string) => void;
     onSelectMessageFiles: (files: FileList | null) => void;
@@ -77,6 +79,7 @@ export default function MessageConversation({
     isVisible = true,
     canSendMessage,
     isSendingMessage,
+    isLoadingOlderMessages,
     messageContent,
     replyTargetMessage,
     selectedAttachments,
@@ -85,6 +88,7 @@ export default function MessageConversation({
     onReplyToMessage,
     onForwardMessage,
     onDeleteMessage,
+    onLoadOlderMessages,
     onCancelReply,
     onRemoveSelectedAttachment,
     onSelectMessageFiles,
@@ -94,6 +98,8 @@ export default function MessageConversation({
     const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
     const messageContainerRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const previousScrollHeightRef = useRef<number | null>(null);
+    const previousMessageCountRef = useRef(0);
     const [activeAlbum, setActiveAlbum] = useState<IMessageAttachment[] | null>(null);
     const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
@@ -143,6 +149,33 @@ export default function MessageConversation({
             window.clearTimeout(timeoutId);
         };
     }, [highlightedMessageId]);
+
+    useEffect(() => {
+        const container = messageContainerRef.current;
+        if (!container || !isLoadingOlderMessages) {
+            return;
+        }
+
+        previousScrollHeightRef.current = container.scrollHeight;
+    }, [isLoadingOlderMessages]);
+
+    useEffect(() => {
+        const container = messageContainerRef.current;
+        if (!container || !thread) {
+            return;
+        }
+
+        const previousMessageCount = previousMessageCountRef.current;
+        const currentMessageCount = thread.messages.length;
+
+        if (!isLoadingOlderMessages && currentMessageCount > previousMessageCount && previousScrollHeightRef.current !== null) {
+            const nextScrollHeight = container.scrollHeight;
+            container.scrollTop = nextScrollHeight - previousScrollHeightRef.current;
+            previousScrollHeightRef.current = null;
+        }
+
+        previousMessageCountRef.current = currentMessageCount;
+    }, [isLoadingOlderMessages, thread]);
 
     const handleJumpToMessage = (messageId: string) => {
         const container = messageContainerRef.current;
@@ -206,11 +239,21 @@ export default function MessageConversation({
             <div
                 ref={messageContainerRef}
                 className="flex-1 min-h-0 space-y-2 overflow-y-auto bg-black/2 px-3 py-4 dark:bg-white/2 sm:px-5"
+                onScroll={(event) => {
+                    if (event.currentTarget.scrollTop <= 24) {
+                        void onLoadOlderMessages();
+                    }
+                }}
             >
                 {thread.messages.length === 0 ? (
                     <Empty description="No messages in this conversation yet." />
                 ) : (
                     <div>
+                        {isLoadingOlderMessages ? (
+                            <div className="pb-3 text-center text-[12px] text-slate-500 dark:text-slate-400">
+                                Loading older messages...
+                            </div>
+                        ) : null}
                         <MessageBubbleList
                             currentUserId={currentUserId}
                             isGroupThread={thread.isGroup}

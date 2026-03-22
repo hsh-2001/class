@@ -9,6 +9,7 @@ import {
     IMessageMemberOption,
     IMessagePageData,
     IMessageSocketUser,
+    IMessageThreadMessagesPage,
     ISendMessageDTO,
     MESSAGE_ATTACHMENT_MAX_SIZE,
 } from "@/types/message";
@@ -146,8 +147,9 @@ const mapThreadItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number],
     currentUserId: string,
 ) => {
-    const messages = item.messages.map(mapMessageItem);
+    const messages = [...item.messages].reverse().map(mapMessageItem);
     const lastMessage = messages[messages.length - 1];
+    const hasMoreMessages = item._count.messages > messages.length;
     const isDirectThread = Boolean(item.participantOneUserId && item.participantTwoUserId);
 
     if (isDirectThread) {
@@ -178,6 +180,7 @@ const mapThreadItem = (
             avatarUrl: otherParticipant?.profile?.profile_url ?? undefined,
             updatedAt: item.updatedAt.toISOString(),
             lastMessagePreview: getLastMessagePreview(lastMessage),
+            hasMoreMessages,
             messages,
         };
     }
@@ -217,6 +220,7 @@ const mapThreadItem = (
         avatarUrl: isGroup ? undefined : otherUser?.profile?.profile_url ?? undefined,
         updatedAt: item.updatedAt.toISOString(),
         lastMessagePreview: getLastMessagePreview(lastMessage),
+        hasMoreMessages,
         messages,
     };
 };
@@ -245,6 +249,60 @@ const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePag
         classOptions: [],
         memberOptions: members.map(mapMemberOption),
         threads: threads.map((item) => mapThreadItem(item, user.id)),
+    };
+};
+
+const getThreadMessagesPageForUser = async (
+    user: MessageUserContext,
+    threadId: string,
+    beforeMessageId: string,
+): Promise<IMessageThreadMessagesPage> => {
+    if (!threadId || !beforeMessageId) {
+        throw new Error("MISSING_FIELDS");
+    }
+
+    const thread = await messageRepo.getThreadById(threadId);
+    if (!thread) {
+        throw new Error("THREAD_NOT_FOUND");
+    }
+
+    if (thread.participantOneUserId || thread.participantTwoUserId) {
+        if (thread.participantOneUserId !== user.id && thread.participantTwoUserId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+    } else {
+        if (user.role === "TEACHER" && thread.teacher?.userId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+
+        if (user.role === "STUDENT") {
+            if (thread.student && thread.student.userId !== user.id) {
+                throw new Error("UNAUTHORIZED");
+            }
+
+            if (!thread.student) {
+                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                if (!isEnrolled) {
+                    throw new Error("UNAUTHORIZED");
+                }
+            }
+        }
+    }
+
+    const anchorMessage = await messageRepo.getMessageById(beforeMessageId);
+    if (!anchorMessage || anchorMessage.threadId !== threadId) {
+        throw new Error("MESSAGE_NOT_FOUND");
+    }
+
+    const [olderMessages, remainingCount] = await Promise.all([
+        messageRepo.getThreadMessagesBefore(threadId, anchorMessage.createdAt),
+        messageRepo.countThreadMessagesBefore(threadId, anchorMessage.createdAt),
+    ]);
+
+    return {
+        threadId,
+        hasMoreMessages: remainingCount > olderMessages.length,
+        messages: [...olderMessages].reverse().map(mapMessageItem),
     };
 };
 
@@ -472,6 +530,7 @@ const deleteMessageForUser = async (user: MessageUserContext, request: IDeleteMe
 
 const messageService = {
     getMessagePageData,
+    getThreadMessagesPageForUser,
     createThreadForTeacher,
     mapUserContext,
     notifyRealtimeParticipants,

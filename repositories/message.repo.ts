@@ -1,6 +1,25 @@
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/prisma/generated/client";
 
+const MESSAGE_PAGE_SIZE = 25;
+
+const messageInclude = {
+    replyToMessage: {
+        include: {
+            senderUser: {
+                include: {
+                    profile: true,
+                },
+            },
+        },
+    },
+    senderUser: {
+        include: {
+            profile: true,
+        },
+    },
+} as const;
+
 const threadInclude = {
     class: {
         include: {
@@ -48,26 +67,17 @@ const threadInclude = {
             profile: true,
         },
     },
+    _count: {
+        select: {
+            messages: true,
+        },
+    },
     messages: {
-        include: {
-            replyToMessage: {
-                include: {
-                    senderUser: {
-                        include: {
-                            profile: true,
-                        },
-                    },
-                },
-            },
-            senderUser: {
-                include: {
-                    profile: true,
-                },
-            },
-        },
+        include: messageInclude,
         orderBy: {
-            createdAt: "asc",
+            createdAt: "desc",
         },
+        take: MESSAGE_PAGE_SIZE,
     },
 } as const;
 
@@ -227,6 +237,42 @@ const getThreadById = async (threadId: string) => {
     });
 };
 
+const getMessageById = async (messageId: string) => {
+    return await prisma.message.findUnique({
+        where: {
+            id: messageId,
+        },
+        include: messageInclude,
+    });
+};
+
+const getThreadMessagesBefore = async (threadId: string, beforeMessageCreatedAt: Date) => {
+    return await prisma.message.findMany({
+        where: {
+            threadId,
+            createdAt: {
+                lt: beforeMessageCreatedAt,
+            },
+        },
+        include: messageInclude,
+        orderBy: {
+            createdAt: "desc",
+        },
+        take: MESSAGE_PAGE_SIZE,
+    });
+};
+
+const countThreadMessagesBefore = async (threadId: string, beforeMessageCreatedAt: Date) => {
+    return await prisma.message.count({
+        where: {
+            threadId,
+            createdAt: {
+                lt: beforeMessageCreatedAt,
+            },
+        },
+    });
+};
+
 const createThread = async (classId: string, teacherId: string, studentId: string) => {
     return await prisma.messageThread.create({
         data: {
@@ -383,6 +429,9 @@ const messageRepo = {
     getThreadByUnique,
     getDirectThreadByParticipants,
     getThreadById,
+    getMessageById,
+    getThreadMessagesBefore,
+    countThreadMessagesBefore,
     createThread,
     createDirectThread,
     getGroupThreadByClassAndTeacher,

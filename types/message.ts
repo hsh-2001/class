@@ -60,6 +60,13 @@ export interface IMessageThreadItem {
     avatarUrl?: string;
     updatedAt: string;
     lastMessagePreview: string;
+    hasMoreMessages: boolean;
+    messages: IMessageItem[];
+}
+
+export interface IMessageThreadMessagesPage {
+    threadId: string;
+    hasMoreMessages: boolean;
     messages: IMessageItem[];
 }
 
@@ -149,6 +156,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
     avatarUrl?: string;
     updatedAt: string;
     lastMessagePreview: string;
+    hasMoreMessages: boolean;
     messages: IMessageItem[];
 
     constructor(data: IMessageThreadItem) {
@@ -170,6 +178,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
         this.avatarUrl = data.avatarUrl ?? undefined;
         this.updatedAt = data.updatedAt;
         this.lastMessagePreview = data.lastMessagePreview;
+        this.hasMoreMessages = Boolean(data.hasMoreMessages);
         this.messages = (data.messages ?? []).map((message) => ({
             ...message,
             content: message.content ?? "",

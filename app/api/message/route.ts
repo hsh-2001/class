@@ -6,11 +6,26 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest) {
     try {
         const user = getUserFromHeader(request) as { id: string; role: "ADMIN" | "STUDENT" | "TEACHER"; schoolId: string };
+        const threadId = request.nextUrl.searchParams.get("threadId");
+        const beforeMessageId = request.nextUrl.searchParams.get("beforeMessageId");
+
+        if (threadId && beforeMessageId) {
+            const response = await messageService.getThreadMessagesPageForUser(user, threadId, beforeMessageId);
+            return ok(response, "Messages retrieved successfully");
+        }
+
         const response = await messageService.getMessagePageData(user);
         return ok(response, "Messages retrieved successfully");
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to fetch messages";
-        return fail(message, message === "UNAUTHORIZED" ? 401 : 500);
+        const status = message === "UNAUTHORIZED"
+            ? 401
+            : message === "THREAD_NOT_FOUND" || message === "MESSAGE_NOT_FOUND"
+                ? 404
+                : message === "MISSING_FIELDS"
+                    ? 400
+                    : 500;
+        return fail(message, status);
     }
 }
 
