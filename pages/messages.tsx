@@ -1,20 +1,29 @@
 import MessageConversation from "@/components/features/messages/MessageConversation";
 import MessageThreadList from "@/components/features/messages/MessageThreadList";
+import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
+import SModal from "@/components/ui/SModal";
 import useMessages from "@/hooks/useMessages";
 import { ArrowLeftRight } from "lucide-react";
-import { Empty, Skeleton, Typography } from "antd";
+import { Empty, Form, Select, Skeleton, Typography } from "antd";
 import { useState } from "react";
 
 export default function MessagesPage() {
   const [searchValue, setSearchValue] = useState("");
   const [mobilePane, setMobilePane] = useState<"threads" | "messages">("threads");
   const {
+    canCreateThread,
     canSendMessage,
     currentUserId,
+    form,
+    handleCloseModal,
     isLoading,
+    isCreatingThread,
+    isModalVisible,
     isSendingMessage,
+    memberOptions,
     messageContent,
+    onCreateThread,
     onSelectMessageFiles,
     onSendMessage,
     removeSelectedAttachment,
@@ -22,6 +31,7 @@ export default function MessagesPage() {
     selectedAttachmentAccept,
     selectedThread,
     selectedThreadId,
+    setIsModalVisible,
     setMessageContent,
     setSelectedThreadId,
     threads,
@@ -35,11 +45,11 @@ export default function MessagesPage() {
     }
 
     return [
+      thread.title,
+      thread.subtitle,
       thread.teacherName,
       thread.studentName,
       thread.className,
-      thread.courseName,
-      thread.courseCode,
       thread.lastMessagePreview,
     ].some((value) => value.toLowerCase().includes(keyword));
   });
@@ -67,6 +77,11 @@ export default function MessagesPage() {
                 value={searchValue}
                 onChange={(value) => setSearchValue(String(value))}
               />
+              {canCreateThread ? (
+                <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
+                  New chat
+                </SButton>
+              ) : null}
             </div>
           </div>
         </div>
@@ -103,7 +118,7 @@ export default function MessagesPage() {
               {isLoading ? (
                 <Skeleton active paragraph={{ rows: 8 }} />
               ) : filteredThreads.length === 0 ? (
-                <Empty description={threads.length === 0 ? "No class conversations yet." : "No conversations match your search."} />
+                <Empty description={threads.length === 0 ? "No conversations yet." : "No conversations match your search."} />
               ) : (
                 <MessageThreadList
                   selectedThreadId={selectedThreadId}
@@ -145,6 +160,34 @@ export default function MessagesPage() {
           </section>
         </div>
       </section>
+
+      <SModal isOpen={isModalVisible} onClose={handleCloseModal} title="Start a Conversation">
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="School Member"
+            name="recipientUserId"
+            rules={[{ required: true, message: "Please select a member." }]}
+          >
+            <Select
+              showSearch
+              placeholder="Search by name, username, or email"
+              optionFilterProp="label"
+              options={memberOptions.map((member) => ({
+                value: member.value,
+                label: `${member.label} (${member.username || member.email})`,
+              }))}
+            />
+          </Form.Item>
+        </Form>
+        <div className="flex justify-end gap-2">
+          <SButton type="button" color="secondary" onClick={handleCloseModal}>
+            Cancel
+          </SButton>
+          <SButton type="button" color="primary" onClick={onCreateThread} loading={isCreatingThread}>
+            Start chat
+          </SButton>
+        </div>
+      </SModal>
     </>
   );
 }

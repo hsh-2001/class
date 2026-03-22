@@ -12,6 +12,15 @@ export interface IMessageItem {
     createdAt: string;
 }
 
+export interface IMessageMemberOption {
+    value: string;
+    label: string;
+    username: string;
+    email: string;
+    role: "ADMIN" | "STUDENT" | "TEACHER";
+    profileUrl?: string;
+}
+
 export type MessageAttachmentKind = "IMAGE" | "FILE";
 
 export interface IMessageAttachment {
@@ -24,6 +33,7 @@ export interface IMessageAttachment {
 
 export interface IMessageThreadItem {
     id: string;
+    kind: "CLASS_GROUP" | "CLASS_DIRECT" | "DIRECT";
     classId: string;
     className: string;
     courseName: string;
@@ -34,6 +44,10 @@ export interface IMessageThreadItem {
     studentName: string;
     isGroup: boolean;
     memberCount: number;
+    title: string;
+    subtitle: string;
+    avatarLabel: string;
+    avatarUrl?: string;
     updatedAt: string;
     lastMessagePreview: string;
     messages: IMessageItem[];
@@ -55,12 +69,12 @@ export interface IMessagePageData {
     canCreateThread: boolean;
     canSendMessage: boolean;
     classOptions: IMessageClassOption[];
+    memberOptions: IMessageMemberOption[];
     threads: IMessageThreadItem[];
 }
 
 export interface ICreateMessageThreadDTO {
-    classId: string;
-    studentId: string;
+    recipientUserId: string;
 }
 
 export interface ISendMessageDTO {
@@ -101,6 +115,7 @@ export interface MessageClientToServerEvents {
 
 export class MessageThreadResponse implements IMessageThreadItem {
     id: string;
+    kind: "CLASS_GROUP" | "CLASS_DIRECT" | "DIRECT";
     classId: string;
     className: string;
     courseName: string;
@@ -111,12 +126,17 @@ export class MessageThreadResponse implements IMessageThreadItem {
     studentName: string;
     isGroup: boolean;
     memberCount: number;
+    title: string;
+    subtitle: string;
+    avatarLabel: string;
+    avatarUrl?: string;
     updatedAt: string;
     lastMessagePreview: string;
     messages: IMessageItem[];
 
     constructor(data: IMessageThreadItem) {
         this.id = data.id;
+        this.kind = data.kind;
         this.classId = data.classId;
         this.className = data.className;
         this.courseName = data.courseName;
@@ -127,6 +147,10 @@ export class MessageThreadResponse implements IMessageThreadItem {
         this.studentName = data.studentName;
         this.isGroup = data.isGroup;
         this.memberCount = data.memberCount;
+        this.title = data.title;
+        this.subtitle = data.subtitle;
+        this.avatarLabel = data.avatarLabel;
+        this.avatarUrl = data.avatarUrl ?? undefined;
         this.updatedAt = data.updatedAt;
         this.lastMessagePreview = data.lastMessagePreview;
         this.messages = (data.messages ?? []).map((message) => ({

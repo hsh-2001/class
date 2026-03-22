@@ -5,12 +5,10 @@ import { uploadMany } from "@/lib/upload";
 import {
     ICreateMessageThreadDTO,
     IMessageAttachment,
+    IMessageMemberOption,
     IMessagePageData,
-    IMessageSocketAck,
-    ISendMessageDTO,
     MESSAGE_ATTACHMENT_ACCEPT,
     MESSAGE_ATTACHMENT_MAX_SIZE,
-    MessageClientToServerEvents,
     MessageServerToClientEvents,
     MessageThreadResponse,
 } from "@/types/message";
@@ -20,8 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
 type CreateThreadFormValues = {
-    classId: string;
-    studentId: string;
+    recipientUserId: string;
 };
 
 type DraftMessageAttachment = IMessageAttachment & {
@@ -70,14 +67,13 @@ const uploadAttachments = async (path: string, attachments: DraftMessageAttachme
 
 export default function useMessages() {
     const [form] = useForm<CreateThreadFormValues>();
-    const socketRef = useRef<Socket<MessageServerToClientEvents, MessageClientToServerEvents> | null>(null);
+    const socketRef = useRef<Socket<MessageServerToClientEvents> | null>(null);
     const selectedAttachmentsRef = useRef<DraftMessageAttachment[]>([]);
     const isSendingMessageRef = useRef(false);
     const [threads, setThreads] = useState<MessageThreadResponse[]>([]);
     const [currentUserId, setCurrentUserId] = useState("");
-    const [classOptions, setClassOptions] = useState<IMessagePageData["classOptions"]>([]);
+    const [memberOptions, setMemberOptions] = useState<IMessageMemberOption[]>([]);
     const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
-    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [messageContent, setMessageContent] = useState("");
     const [selectedAttachments, setSelectedAttachments] = useState<DraftMessageAttachment[]>([]);
     const [canCreateThread, setCanCreateThread] = useState(false);
@@ -101,7 +97,7 @@ export default function useMessages() {
         const nextThreads = payload.threads.map((item) => new MessageThreadResponse(item));
         setThreads(nextThreads);
         setCurrentUserId(payload.currentUserId);
-        setClassOptions(payload.classOptions);
+        setMemberOptions(payload.memberOptions);
         setCanCreateThread(payload.canCreateThread);
         setCanSendMessage(payload.canSendMessage);
         setSelectedThreadId((current) => {
@@ -178,46 +174,21 @@ export default function useMessages() {
         [selectedThreadId, threads],
     );
 
-    const selectedClassOption = classOptions.find((item) => item.value === selectedClassId);
-    const studentOptions = selectedClassOption?.students ?? [];
-
-    const emitSocketEvent = useCallback(
-        async (
-            eventName: "message:thread:create" | "message:send",
-            payload: ICreateMessageThreadDTO | ISendMessageDTO,
-        ) => {
-            const socket = socketRef.current;
-            if (!socket) {
-                return null;
-            }
-
-            return await new Promise<IMessageSocketAck>((resolve) => {
-                socket.emit(eventName, payload as never, (response) => {
-                    resolve(response);
-                });
-            });
-        },
-        [],
-    );
-
     const handleCloseModal = () => {
         setIsModalVisible(false);
-        setSelectedClassId(null);
         form.resetFields();
     };
 
     const onCreateThread = async () => {
-        const values = form.getFieldsValue();
+        const values = form.getFieldsValue() as ICreateMessageThreadDTO;
+        if (!values.recipientUserId) {
+            void antMessage.error("Please select a member.");
+            return;
+        }
+
         setIsCreatingThread(true);
 
         try {
-            const socketResponse = await emitSocketEvent("message:thread:create", values);
-            if (socketResponse?.success && socketResponse.data) {
-                syncPageData(socketResponse.data);
-                handleCloseModal();
-                return;
-            }
-
             const response = await callCreateMessageThread(values);
             if (response.data.success) {
                 syncPageData(response.data.data as IMessagePageData);
@@ -344,7 +315,6 @@ export default function useMessages() {
     return {
         canCreateThread,
         canSendMessage,
-        classOptions,
         currentUserId,
         form,
         handleCloseModal,
@@ -352,6 +322,7 @@ export default function useMessages() {
         isLoading,
         isModalVisible,
         isSendingMessage,
+        memberOptions,
         messageContent,
         clearSelectedAttachments,
         onSelectMessageFiles,
@@ -362,12 +333,9 @@ export default function useMessages() {
         selectedAttachmentAccept: MESSAGE_ATTACHMENT_ACCEPT,
         selectedThread,
         selectedThreadId,
-        selectedClassId,
-        setSelectedClassId,
         setIsModalVisible,
         setMessageContent,
         setSelectedThreadId,
-        studentOptions,
         threads,
     };
 }

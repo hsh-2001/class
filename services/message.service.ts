@@ -5,6 +5,7 @@ import {
     ICreateMessageThreadDTO,
     IMessageAttachment,
     IMessageItem,
+    IMessageMemberOption,
     IMessagePageData,
     IMessageSocketUser,
     ISendMessageDTO,
@@ -121,63 +122,116 @@ const mapMessageItem = (
     };
 };
 
+const getAvatarLabel = (value: string) => value
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((item) => item[0]?.toUpperCase() ?? "")
+    .join("") || "DM";
+
 const mapThreadItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number],
+    currentUserId: string,
 ) => {
     const messages = item.messages.map(mapMessageItem);
     const lastMessage = messages[messages.length - 1];
+    const isDirectThread = Boolean(item.participantOneUserId && item.participantTwoUserId);
+
+    if (isDirectThread) {
+        const otherParticipant = item.participantOneUserId === currentUserId
+            ? item.participantTwo
+            : item.participantOne;
+        const title = otherParticipant ? getDisplayName(otherParticipant) : "Direct message";
+        const subtitle = otherParticipant
+            ? `${otherParticipant.role.toLowerCase()} • ${otherParticipant.email}`
+            : "Direct message";
+
+        return {
+            id: item.id,
+            kind: "DIRECT" as const,
+            classId: "",
+            className: "",
+            courseName: "",
+            courseCode: "",
+            teacherId: "",
+            teacherName: "",
+            studentId: null,
+            studentName: "",
+            isGroup: false,
+            memberCount: 2,
+            title,
+            subtitle,
+            avatarLabel: getAvatarLabel(title),
+            avatarUrl: otherParticipant?.profile?.profile_url ?? undefined,
+            updatedAt: item.updatedAt.toISOString(),
+            lastMessagePreview: getLastMessagePreview(lastMessage),
+            messages,
+        };
+    }
+
     const isGroup = !item.studentId;
-    const memberCount = item.class.enrollments.length + 1;
+    const memberCount = item.class?.enrollments.length ? item.class.enrollments.length + 1 : 0;
+    const otherUser = !isGroup
+        ? item.teacher?.user.id === currentUserId
+            ? item.student?.user
+            : item.teacher?.user
+        : null;
+    const title = isGroup
+        ? item.class?.name ?? "Class Group"
+        : otherUser
+            ? getDisplayName(otherUser)
+            : "Conversation";
+    const subtitle = isGroup
+        ? `${memberCount} members • ${item.class?.course.code ?? ""}`
+        : `${item.class?.name ?? ""} • ${item.class?.course.code ?? ""}`;
 
     return {
         id: item.id,
-        classId: item.classId,
-        className: item.class.name,
-        courseName: item.class.course.name,
-        courseCode: item.class.course.code,
-        teacherId: item.teacherId,
-        teacherName: getDisplayName(item.teacher.user),
+        kind: isGroup ? "CLASS_GROUP" as const : "CLASS_DIRECT" as const,
+        classId: item.classId ?? "",
+        className: item.class?.name ?? "",
+        courseName: item.class?.course.name ?? "",
+        courseCode: item.class?.course.code ?? "",
+        teacherId: item.teacherId ?? "",
+        teacherName: item.teacher ? getDisplayName(item.teacher.user) : "",
         studentId: item.studentId,
         studentName: isGroup ? "Class Group" : getDisplayName(item.student!.user),
         isGroup,
         memberCount,
+        title,
+        subtitle,
+        avatarLabel: isGroup ? (item.class?.name ?? "CG").slice(0, 2).toUpperCase() : getAvatarLabel(title),
+        avatarUrl: isGroup ? undefined : otherUser?.profile?.profile_url ?? undefined,
         updatedAt: item.updatedAt.toISOString(),
         lastMessagePreview: getLastMessagePreview(lastMessage),
         messages,
     };
 };
 
+const mapMemberOption = (
+    item: Awaited<ReturnType<typeof messageRepo.getSchoolUsers>>[number],
+): IMessageMemberOption => ({
+    value: item.id,
+    label: getDisplayName(item),
+    username: item.username,
+    email: item.email,
+    role: item.role,
+    profileUrl: item.profile?.profile_url ?? undefined,
+});
+
 const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePageData> => {
-    if (user.role === "ADMIN") {
-        const threads = await messageRepo.getThreadsBySchool(user.schoolId);
-        return {
-            currentUserId: user.id,
-            canCreateThread: false,
-            canSendMessage: false,
-            classOptions: [],
-            threads: threads.map(mapThreadItem),
-        };
-    }
+    const [threads, members] = await Promise.all([
+        messageRepo.getThreadsByUserId(user.id),
+        messageRepo.getSchoolUsers(user.schoolId, user.id),
+    ]);
 
-    if (user.role === "TEACHER") {
-        const threads = await messageRepo.getThreadsByTeacherUserId(user.id);
-
-        return {
-            currentUserId: user.id,
-            canCreateThread: false,
-            canSendMessage: true,
-            classOptions: [],
-            threads: threads.map(mapThreadItem),
-        };
-    }
-
-    const threads = await messageRepo.getThreadsByStudentUserId(user.id);
     return {
         currentUserId: user.id,
-        canCreateThread: false,
+        canCreateThread: members.length > 0,
         canSendMessage: true,
         classOptions: [],
-        threads: threads.map(mapThreadItem),
+        memberOptions: members.map(mapMemberOption),
+        threads: threads.map((item) => mapThreadItem(item, user.id)),
     };
 };
 
@@ -187,12 +241,36 @@ const notifyRealtimeParticipants = async (threadId: string) => {
         return;
     }
 
-    const teacherPageData = await getMessagePageData({
-        id: thread.teacher.userId,
-        role: thread.teacher.user.role,
-        schoolId: thread.teacher.user.schoolId,
-    });
-    emitMessagePageDataToUser(thread.teacher.userId, teacherPageData);
+    if (thread.teacher?.userId) {
+        const teacherPageData = await getMessagePageData({
+            id: thread.teacher.userId,
+            role: thread.teacher.user.role,
+            schoolId: thread.teacher.user.schoolId,
+        });
+        emitMessagePageDataToUser(thread.teacher.userId, teacherPageData);
+    }
+
+    if (thread.participantOneUserId && thread.participantTwoUserId) {
+        if (thread.participantOne) {
+            const firstParticipantPageData = await getMessagePageData({
+                id: thread.participantOne.id,
+                role: thread.participantOne.role,
+                schoolId: thread.participantOne.schoolId,
+            });
+            emitMessagePageDataToUser(thread.participantOne.id, firstParticipantPageData);
+        }
+
+        if (thread.participantTwo) {
+            const secondParticipantPageData = await getMessagePageData({
+                id: thread.participantTwo.id,
+                role: thread.participantTwo.role,
+                schoolId: thread.participantTwo.schoolId,
+            });
+            emitMessagePageDataToUser(thread.participantTwo.id, secondParticipantPageData);
+        }
+
+        return;
+    }
 
     if (thread.student) {
         const studentPageData = await getMessagePageData({
@@ -201,6 +279,10 @@ const notifyRealtimeParticipants = async (threadId: string) => {
             schoolId: thread.student.user.schoolId,
         });
         emitMessagePageDataToUser(thread.student.userId, studentPageData);
+        return;
+    }
+
+    if (!thread.class) {
         return;
     }
 
@@ -229,31 +311,23 @@ const ensureClassGroupThreadForClass = async (classId: string) => {
 };
 
 const createThreadForTeacher = async (user: MessageUserContext, request: ICreateMessageThreadDTO) => {
-    if (user.role !== "TEACHER") {
-        throw new Error("UNAUTHORIZED");
-    }
-
-    if (!request.classId || !request.studentId) {
+    if (!request.recipientUserId) {
         throw new Error("MISSING_FIELDS");
     }
 
-    const teacher = await messageRepo.getTeacherByUserId(user.id);
-    if (!teacher) {
+    if (request.recipientUserId === user.id) {
+        throw new Error("INVALID_RECIPIENT");
+    }
+
+    const recipientUser = await messageRepo.getUserById(request.recipientUserId);
+    if (!recipientUser || recipientUser.schoolId !== user.schoolId) {
         throw new Error("UNAUTHORIZED");
     }
 
-    const classItem = await messageRepo.getClassById(request.classId);
-    if (!classItem || classItem.teacherId !== teacher.id) {
-        throw new Error("UNAUTHORIZED");
-    }
+    const [participantOneUserId, participantTwoUserId] = [user.id, request.recipientUserId].sort();
 
-    const enrollment = await messageRepo.getEnrollmentByClassAndStudent(request.classId, request.studentId);
-    if (!enrollment) {
-        throw new Error("UNAUTHORIZED");
-    }
-
-    const existingThread = await messageRepo.getThreadByUnique(request.classId, teacher.id, request.studentId);
-    const thread = existingThread ?? await messageRepo.createThread(request.classId, teacher.id, request.studentId);
+    const existingThread = await messageRepo.getDirectThreadByParticipants(participantOneUserId, participantTwoUserId);
+    const thread = existingThread ?? await messageRepo.createDirectThread(participantOneUserId, participantTwoUserId);
     await notifyRealtimeParticipants(thread.id);
 
     return await getMessagePageData(user);
@@ -288,28 +362,30 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         throw new Error("ATTACHMENT_TOO_LARGE");
     }
 
-    if (user.role === "ADMIN") {
-        throw new Error("UNAUTHORIZED");
-    }
-
     const thread = await messageRepo.getThreadById(request.threadId);
     if (!thread) {
         throw new Error("THREAD_NOT_FOUND");
     }
 
-    if (user.role === "TEACHER" && thread.teacher.userId !== user.id) {
-        throw new Error("UNAUTHORIZED");
-    }
-
-    if (user.role === "STUDENT") {
-        if (thread.student && thread.student.userId !== user.id) {
+    if (thread.participantOneUserId || thread.participantTwoUserId) {
+        if (thread.participantOneUserId !== user.id && thread.participantTwoUserId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+    } else {
+        if (user.role === "TEACHER" && thread.teacher?.userId !== user.id) {
             throw new Error("UNAUTHORIZED");
         }
 
-        if (!thread.student) {
-            const isEnrolled = thread.class.enrollments.some((enrollment) => enrollment.student.userId === user.id);
-            if (!isEnrolled) {
+        if (user.role === "STUDENT") {
+            if (thread.student && thread.student.userId !== user.id) {
                 throw new Error("UNAUTHORIZED");
+            }
+
+            if (!thread.student) {
+                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                if (!isEnrolled) {
+                    throw new Error("UNAUTHORIZED");
+                }
             }
         }
     }

@@ -21,9 +21,6 @@ export default function MessageThreadList({
         <div className="space-y-1.5">
             {threads.map((thread) => {
                 const isActive = thread.id === selectedThreadId;
-                const initials = thread.isGroup
-                    ? thread.className.slice(0, 2).toUpperCase()
-                    : `${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase();
 
                 return (
                     <button
@@ -38,20 +35,22 @@ export default function MessageThreadList({
                         ].join(" ")}
                     >
                         <div className="flex items-start gap-3">
-                            <Avatar size={40} className="mt-0.5 shrink-0 bg-slate-900 text-sm text-white dark:bg-white dark:text-black">
-                                {initials}
+                            <Avatar
+                                size={40}
+                                src={thread.avatarUrl}
+                                className="mt-0.5 shrink-0 bg-slate-900 text-sm text-white dark:bg-white dark:text-black"
+                            >
+                                {thread.avatarLabel}
                             </Avatar>
 
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <h3 className="truncate text-[13px] font-semibold text-slate-950 dark:text-slate-50">
-                                            {thread.isGroup ? thread.className : thread.studentName}
+                                            {thread.title}
                                         </h3>
                                         <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                            {thread.isGroup
-                                                ? `${thread.memberCount} members • ${thread.courseCode}`
-                                                : `${thread.teacherName} • ${thread.courseCode}`}
+                                            {thread.subtitle}
                                         </p>
                                     </div>
                                     <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">
@@ -68,9 +67,11 @@ export default function MessageThreadList({
                                     ) : null}
                                 </div>
 
-                                <p className="mt-1.5 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
-                                    {thread.className}
-                                </p>
+                                {thread.className ? (
+                                    <p className="mt-1.5 truncate text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">
+                                        {thread.className}
+                                    </p>
+                                ) : null}
                             </div>
                         </div>
                     </button>

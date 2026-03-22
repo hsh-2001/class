@@ -132,19 +132,19 @@ export default function MessageConversation({
             <div className="border-b border-black/10 px-4 py-3 dark:border-white/10 sm:px-5">
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <Avatar size={40} className="bg-slate-900 text-sm text-white dark:bg-white dark:text-black">
-                            {thread.isGroup
-                                ? thread.className.slice(0, 2).toUpperCase()
-                                : `${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase()}
+                        <Avatar
+                            size={40}
+                            src={thread.avatarUrl}
+                            className="bg-slate-900 text-sm text-white dark:bg-white dark:text-black"
+                        >
+                            {thread.avatarLabel}
                         </Avatar>
                         <div className="min-w-0">
                             <h2 className="truncate text-[15px] font-semibold text-slate-950 dark:text-slate-50">
-                                {thread.isGroup ? thread.className : thread.studentName}
+                                {thread.title}
                             </h2>
                             <p className="truncate text-[12px] text-slate-500 dark:text-slate-400">
-                                {thread.isGroup
-                                    ? `${thread.memberCount} members • ${thread.courseName} • ${thread.courseCode}`
-                                    : `${thread.teacherName} • ${thread.className} • ${thread.courseCode}`}
+                                {thread.subtitle}
                             </p>
                         </div>
                     </div>

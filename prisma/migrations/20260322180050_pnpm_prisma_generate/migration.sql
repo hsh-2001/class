@@ -1,0 +1,2 @@
+-- RenameIndex
+ALTER INDEX "message_threads_participant_one_user_id_participant_two_user_id" RENAME TO "message_threads_participant_one_user_id_participant_two_use_key";

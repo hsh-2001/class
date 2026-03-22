@@ -18,17 +18,19 @@ model School {
 }
 
 model User {
-  id           String       @id @default(uuid())
-  schoolId     String       @map("school_id")
-  school       School       @relation(fields: [schoolId], references: [id])
-  username     String       @default("")
-  email        String
-  password     String
-  role         Role
-  profile      UserProfile?
-  student      Student?
-  teacher      Teacher?
-  sentMessages Message[]
+  id                     String          @id @default(uuid())
+  schoolId               String          @map("school_id")
+  school                 School          @relation(fields: [schoolId], references: [id])
+  username               String          @default("")
+  email                  String
+  password               String
+  role                   Role
+  profile                UserProfile?
+  student                Student?
+  teacher                Teacher?
+  sentMessages           Message[]
+  messageThreadsAsFirst  MessageThread[] @relation("MessageThreadParticipantOne")
+  messageThreadsAsSecond MessageThread[] @relation("MessageThreadParticipantTwo")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -177,22 +179,29 @@ model Assignment {
 }
 
 model MessageThread {
-  id        String   @id @default(uuid())
-  classId   String   @map("class_id")
-  teacherId String   @map("teacher_id")
-  studentId String?  @map("student_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                   String   @id @default(uuid())
+  classId              String?  @map("class_id")
+  teacherId            String?  @map("teacher_id")
+  studentId            String?  @map("student_id")
+  participantOneUserId String?  @map("participant_one_user_id")
+  participantTwoUserId String?  @map("participant_two_user_id")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
 
-  class    Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
-  teacher  Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  student  Student?  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  messages Message[]
+  class          Class?   @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher        Teacher? @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student        Student? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  participantOne User?    @relation("MessageThreadParticipantOne", fields: [participantOneUserId], references: [id], onDelete: Cascade)
+  participantTwo User?    @relation("MessageThreadParticipantTwo", fields: [participantTwoUserId], references: [id], onDelete: Cascade)
+  messages       Message[]
 
   @@unique([classId, teacherId, studentId])
+  @@unique([participantOneUserId, participantTwoUserId])
   @@index([teacherId])
   @@index([studentId])
   @@index([classId])
+  @@index([participantOneUserId])
+  @@index([participantTwoUserId])
   @@map("message_threads")
 }
 

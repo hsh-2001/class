@@ -22,6 +22,11 @@ export async function POST(request: NextRequest) {
         return ok(response, "Conversation created successfully", 201);
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to create conversation";
-        return fail(message, message === "UNAUTHORIZED" ? 401 : 500);
+        const status = message === "UNAUTHORIZED"
+            ? 401
+            : message === "MISSING_FIELDS" || message === "INVALID_RECIPIENT"
+                ? 400
+                : 500;
+        return fail(message, status);
     }
 }

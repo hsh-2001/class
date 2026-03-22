@@ -38,6 +38,16 @@ const threadInclude = {
             },
         },
     },
+    participantOne: {
+        include: {
+            profile: true,
+        },
+    },
+    participantTwo: {
+        include: {
+            profile: true,
+        },
+    },
     messages: {
         include: {
             senderUser: {
@@ -55,9 +65,21 @@ const threadInclude = {
 const getThreadsBySchool = async (schoolId: string) => {
     return await prisma.messageThread.findMany({
         where: {
-            class: {
-                schoolId,
-            },
+            OR: [
+                {
+                    class: {
+                        schoolId,
+                    },
+                },
+                {
+                    participantOne: {
+                        schoolId,
+                    },
+                    participantTwo: {
+                        schoolId,
+                    },
+                },
+            ],
         },
         include: threadInclude,
         orderBy: {
@@ -66,24 +88,15 @@ const getThreadsBySchool = async (schoolId: string) => {
     });
 };
 
-const getThreadsByTeacherUserId = async (userId: string) => {
-    return await prisma.messageThread.findMany({
-        where: {
-            teacher: {
-                userId,
-            },
-        },
-        include: threadInclude,
-        orderBy: {
-            updatedAt: "desc",
-        },
-    });
-};
-
-const getThreadsByStudentUserId = async (userId: string) => {
+const getThreadsByUserId = async (userId: string) => {
     return await prisma.messageThread.findMany({
         where: {
             OR: [
+                {
+                    teacher: {
+                        userId,
+                    },
+                },
                 {
                     student: {
                         userId,
@@ -101,6 +114,12 @@ const getThreadsByStudentUserId = async (userId: string) => {
                         },
                     },
                 },
+                {
+                    participantOneUserId: userId,
+                },
+                {
+                    participantTwoUserId: userId,
+                },
             ],
         },
         include: threadInclude,
@@ -110,31 +129,19 @@ const getThreadsByStudentUserId = async (userId: string) => {
     });
 };
 
-const getTeacherClassesWithStudents = async (userId: string) => {
-    return await prisma.class.findMany({
+const getSchoolUsers = async (schoolId: string, excludeUserId: string) => {
+    return await prisma.user.findMany({
         where: {
-            teacher: {
-                userId,
+            schoolId,
+            id: {
+                not: excludeUserId,
             },
         },
         include: {
-            course: true,
-            enrollments: {
-                include: {
-                    student: {
-                        include: {
-                            user: {
-                                include: {
-                                    profile: true,
-                                },
-                            },
-                        },
-                    },
-                },
-            },
+            profile: true,
         },
         orderBy: {
-            startDate: "asc",
+            email: "asc",
         },
     });
 };
@@ -190,6 +197,18 @@ const getThreadByUnique = async (classId: string, teacherId: string, studentId: 
     });
 };
 
+const getDirectThreadByParticipants = async (participantOneUserId: string, participantTwoUserId: string) => {
+    return await prisma.messageThread.findUnique({
+        where: {
+            participantOneUserId_participantTwoUserId: {
+                participantOneUserId,
+                participantTwoUserId,
+            },
+        },
+        include: threadInclude,
+    });
+};
+
 const getThreadById = async (threadId: string) => {
     return await prisma.messageThread.findUnique({
         where: {
@@ -205,6 +224,16 @@ const createThread = async (classId: string, teacherId: string, studentId: strin
             classId,
             teacherId,
             studentId,
+        },
+        include: threadInclude,
+    });
+};
+
+const createDirectThread = async (participantOneUserId: string, participantTwoUserId: string) => {
+    return await prisma.messageThread.create({
+        data: {
+            participantOneUserId,
+            participantTwoUserId,
         },
         include: threadInclude,
     });
@@ -229,6 +258,19 @@ const createGroupThread = async (classId: string, teacherId: string) => {
             studentId: null,
         },
         include: threadInclude,
+    });
+};
+
+const getUserById = async (userId: string) => {
+    return await prisma.user.findUnique({
+        where: {
+            id: userId,
+        },
+        include: {
+            profile: true,
+            student: true,
+            teacher: true,
+        },
     });
 };
 
@@ -264,18 +306,20 @@ const sendMessage = async (threadId: string, senderUserId: string, content: stri
 
 const messageRepo = {
     getThreadsBySchool,
-    getThreadsByTeacherUserId,
-    getThreadsByStudentUserId,
-    getTeacherClassesWithStudents,
+    getThreadsByUserId,
+    getSchoolUsers,
     getTeacherByUserId,
     getStudentByUserId,
     getEnrollmentByClassAndStudent,
     getClassById,
     getThreadByUnique,
+    getDirectThreadByParticipants,
     getThreadById,
     createThread,
+    createDirectThread,
     getGroupThreadByClassAndTeacher,
     createGroupThread,
+    getUserById,
     sendMessage,
 };
 
