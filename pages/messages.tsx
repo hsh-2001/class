@@ -145,6 +145,8 @@ export default function MessagesPage() {
               <MessageConversation
                 currentUserId={currentUserId}
                 thread={selectedThread}
+                autoScrollKey={`${selectedThreadId ?? "none"}:${mobilePane}:${isLoading ? "loading" : "ready"}`}
+                isVisible={mobilePane === "messages"}
                 canSendMessage={canSendMessage}
                 isSendingMessage={isSendingMessage}
                 messageContent={messageContent}

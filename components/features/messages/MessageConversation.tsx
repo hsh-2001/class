@@ -13,6 +13,8 @@ import { useEffect, useRef, useState } from "react";
 interface MessageConversationProps {
     currentUserId: string;
     thread: MessageThreadResponse | null;
+    autoScrollKey?: string;
+    isVisible?: boolean;
     canSendMessage: boolean;
     isSendingMessage: boolean;
     messageContent: string;
@@ -91,6 +93,8 @@ const buildMessageRenderGroups = (messages: MessageThreadResponse["messages"]): 
 export default function MessageConversation({
     currentUserId,
     thread,
+    autoScrollKey,
+    isVisible = true,
     canSendMessage,
     isSendingMessage,
     messageContent,
@@ -103,20 +107,42 @@ export default function MessageConversation({
     onBackToThreads,
 }: MessageConversationProps) {
     const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
+    const messageContainerRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [activeAlbum, setActiveAlbum] = useState<IMessageAttachment[] | null>(null);
     const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
 
     useEffect(() => {
-        if (!thread) {
+        const isDesktopViewport = typeof window !== "undefined"
+            ? window.matchMedia("(min-width: 768px)").matches
+            : true;
+
+        if (!thread || (!isVisible && !isDesktopViewport)) {
             return;
         }
 
-        bottomAnchorRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "end",
+        const container = messageContainerRef.current;
+        if (!container) {
+            return;
+        }
+
+        const scrollToBottom = () => {
+            container.scrollTop = container.scrollHeight;
+        };
+
+        scrollToBottom();
+        const frameId = window.requestAnimationFrame(scrollToBottom);
+        const secondFrameId = window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(scrollToBottom);
         });
-    }, [thread]);
+        const timeoutId = window.setTimeout(scrollToBottom, 180);
+
+        return () => {
+            window.cancelAnimationFrame(frameId);
+            window.cancelAnimationFrame(secondFrameId);
+            window.clearTimeout(timeoutId);
+        };
+    }, [autoScrollKey, isVisible, thread]);
 
     if (!thread) {
         return (
@@ -158,11 +184,14 @@ export default function MessageConversation({
                 </div>
             </div>
 
-            <div className="flex-1 min-h-0 space-y-3 overflow-y-auto bg-black/2 px-3 py-4 scroll-smooth dark:bg-white/2 sm:px-5">
+            <div
+                ref={messageContainerRef}
+                className="flex-1 min-h-0 space-y-2 overflow-y-auto bg-black/2 px-3 py-4 dark:bg-white/2 sm:px-5"
+            >
                 {thread.messages.length === 0 ? (
                     <Empty description="No messages in this conversation yet." />
                 ) : (
-                    <>
+                    <div>
                         <MessageBubbleList
                             currentUserId={currentUserId}
                             messageGroups={messageGroups}
@@ -172,7 +201,7 @@ export default function MessageConversation({
                             }}
                         />
                         <div ref={bottomAnchorRef} />
-                    </>
+                    </div>
                 )}
             </div>
 

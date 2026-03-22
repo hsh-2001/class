@@ -53,6 +53,26 @@ const revokeAttachmentPreviews = (attachments: DraftMessageAttachment[]) => {
     });
 };
 
+const getOutgoingMessagePreview = (content: string, attachments: IMessageAttachment[]) => {
+    const trimmedContent = content.trim();
+
+    if (trimmedContent) {
+        return trimmedContent;
+    }
+
+    if (attachments.length === 1) {
+        return attachments[0]?.kind === "IMAGE"
+            ? "Photo"
+            : `File: ${attachments[0]?.name ?? "Attachment"}`;
+    }
+
+    if (attachments.length > 1) {
+        return `${attachments.length} attachments`;
+    }
+
+    return "No messages yet.";
+};
+
 const uploadAttachments = async (path: string, attachments: DraftMessageAttachment[]) => {
     if (attachments.length === 0) {
         return [];
@@ -156,12 +176,12 @@ export default function useMessages() {
             },
         });
 
-        socket.on("message:page-data", (payload) => {
-            syncPageData(payload);
+        socket.on("message:page-data", () => {
+            void refreshMessages();
         });
 
         socketRef.current = socket;
-    }, [syncPageData]);
+    }, [refreshMessages]);
 
     useEffect(() => {
         void connectMessageSocket();
@@ -247,6 +267,41 @@ export default function useMessages() {
         });
     }, []);
 
+    const appendOutgoingMessage = useCallback((threadId: string, content: string, attachments: IMessageAttachment[]) => {
+        const createdAt = new Date().toISOString();
+
+        setThreads((currentThreads) => {
+            const nextThreads = currentThreads.map((thread) => {
+                if (thread.id !== threadId) {
+                    return thread;
+                }
+
+                return new MessageThreadResponse({
+                    ...thread,
+                    updatedAt: createdAt,
+                    lastMessagePreview: getOutgoingMessagePreview(content, attachments),
+                    messages: [
+                        ...thread.messages,
+                        {
+                            id: `local-${createdAt}`,
+                            senderUserId: currentUserId,
+                            senderName: "",
+                            senderRole: canCreateThread ? "TEACHER" : "STUDENT",
+                            content,
+                            attachments,
+                            createdAt,
+                        },
+                    ],
+                });
+            });
+
+            nextThreads.sort((firstThread, secondThread) =>
+                new Date(secondThread.updatedAt).getTime() - new Date(firstThread.updatedAt).getTime());
+
+            return nextThreads;
+        });
+    }, [canCreateThread, currentUserId]);
+
     const onSelectMessageFiles = useCallback((files: FileList | null) => {
         if (!files?.length) {
             return;
@@ -326,17 +381,19 @@ export default function useMessages() {
             };
             const socketResponse = await emitSocketEvent("message:send", payload);
             if (socketResponse?.success && socketResponse.data) {
+                appendOutgoingMessage(selectedThreadId, messageContent, uploadedAttachments);
                 setMessageContent("");
                 clearSelectedAttachments();
-                await refreshMessages();
+                void refreshMessages();
                 return;
             }
 
             const response = await callSendMessage(payload);
             if (response.data.success) {
+                appendOutgoingMessage(selectedThreadId, messageContent, uploadedAttachments);
                 setMessageContent("");
                 clearSelectedAttachments();
-                await refreshMessages();
+                void refreshMessages();
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to send message."));

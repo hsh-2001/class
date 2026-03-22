@@ -49,7 +49,7 @@ function AlbumPreviewCard({
             type="button"
             onClick={onOpen}
             className={[
-                "mb-2 block w-full rounded-[1.35rem] border p-2.5 text-left shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-transform hover:scale-[1.01]",
+                "mb-2 block w-full rounded-[1.35rem] border p-2 text-left shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-transform hover:scale-[1.01]",
                 isOwnMessage
                     ? "border-white/12 bg-white/10 dark:border-white/8 dark:bg-white/[0.08]"
                     : "border-black/8 bg-white/72 dark:border-white/8 dark:bg-slate-900/72",
@@ -76,7 +76,7 @@ function AlbumPreviewCard({
                     );
                 })}
             </div>
-            <div className="mt-1 flex items-center justify-between gap-3 px-1">
+            <div className="mt-1 flex items-center justify-between gap-2 px-1">
                 <div>
                     <p className="text-[12px] font-semibold tracking-[0.01em]">{attachments.length} photos</p>
                     <p className={`text-[11px] ${textTone}`}>
@@ -105,11 +105,11 @@ export function MessageBubbleList({
                 return (
                     <div
                         key={messageGroup.id}
-                        className={`flex ${isOwnMessage ? "justify-end pl-10" : "justify-start pr-10"}`}
+                        className={isOwnMessage ? "flex justify-end pl-10" : "flex justify-start pr-10"}
                     >
                         <div
                             className={[
-                                "max-w-[82%] rounded-[1.35rem] border px-3.5 py-3 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
+                                "max-w-[82%] rounded-[1.35rem] mt-1 border p-2 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
                                 isOwnMessage
                                     ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
                                     : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
@@ -147,7 +147,7 @@ export function MessageBubbleList({
                                             target="_blank"
                                             rel="noreferrer"
                                             className={[
-                                                "flex items-start gap-2.5 rounded-[1.1rem] border px-3 py-2.5 text-[12px] backdrop-blur-md",
+                                                "flex items-start gap-2 rounded-[1.1rem] border p-2 text-[12px] backdrop-blur-md",
                                                 isOwnMessage
                                                     ? "border-white/10 bg-white/10 text-white dark:border-white/10 dark:bg-white/[0.07] dark:text-slate-100"
                                                     : "border-black/8 bg-black/[0.03] text-slate-700 dark:border-white/8 dark:bg-white/[0.05] dark:text-slate-200",
@@ -168,7 +168,7 @@ export function MessageBubbleList({
                                     ))}
                                 </div>
                             ) : null}
-                            {messageGroup.content ? <p className="text-[13px] leading-6 tracking-[0.01em]">{messageGroup.content}</p> : null}
+                            {messageGroup.content ? <p className="text-[13px] leading-[1.55] tracking-[0.01em]">{messageGroup.content}</p> : null}
                         </div>
                     </div>
                 );
@@ -226,7 +226,7 @@ export function MessageComposer({
                                             height={320}
                                             className="h-full w-full object-cover"
                                         />
-                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent p-2.5">
+                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent p-2">
                                             <p className="max-w-[85%] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-medium text-white">
                                                 {attachment.name}
                                             </p>
@@ -248,9 +248,9 @@ export function MessageComposer({
                                 {selectedFileAttachments.map((attachment) => (
                                     <div
                                         key={attachment.localId}
-                                        className="relative min-w-0 overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]"
+                                        className="relative min-w-0 overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] p-2 dark:border-white/10 dark:bg-white/[0.04]"
                                     >
-                                        <div className="flex items-start gap-2.5 pr-10">
+                                        <div className="flex items-start gap-2 pr-10">
                                             <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 dark:bg-slate-900/60">
                                                 <Paperclip className="h-4 w-4 text-slate-500 dark:text-slate-300" />
                                             </div>
@@ -340,7 +340,7 @@ export function MessageAlbumModal({
     onSelectImage: (index: number) => void;
 }) {
     const modalTitle = (
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2">
             <span>{activeAlbum?.length === 1 ? "Image" : "Album"}</span>
             <button
                 type="button"
@@ -360,8 +360,8 @@ export function MessageAlbumModal({
             title={modalTitle}
         >
             {activeAlbum ? (
-                <div className="space-y-3">
-                    <div className="flex h-[22rem] items-center justify-center overflow-hidden rounded-[1.5rem] border border-black/10 bg-slate-100 p-3 dark:border-white/10 dark:bg-slate-900 sm:h-[28rem]">
+                <div className="space-y-2">
+                    <div className="flex h-[22rem] items-center justify-center overflow-hidden rounded-[1.5rem] border border-black/10 bg-slate-100 p-2 dark:border-white/10 dark:bg-slate-900 sm:h-[28rem]">
                         <Image
                             src={activeAlbum[activeAlbumIndex].url}
                             alt={activeAlbum[activeAlbumIndex].name}
