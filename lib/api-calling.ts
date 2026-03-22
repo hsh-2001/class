@@ -1,3 +1,4 @@
+import { ICreateAssignmentDTO } from "@/types/assignment";
 import { ICreateClassDTO } from "@/types/class";
 import { ILoginDTO } from "@/types/user";
 import api from "./api";
@@ -53,6 +54,14 @@ export const callCreateClass = async (request: ICreateClassDTO) => {
 
 export const callGetClasses = async () => {
   return await api.get("/admin/class");
+}
+
+export const callGetAssignments = async () => {
+  return await api.get("/assignment");
+}
+
+export const callCreateAssignment = async (request: ICreateAssignmentDTO) => {
+  return await api.post("/assignment", request);
 }
 
 export const callGetStudentProfile = async () => {
