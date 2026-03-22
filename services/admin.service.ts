@@ -1,6 +1,9 @@
+import { $Enums } from "@/prisma/generated/browser";
 import adminRepo from "@/repositories/admin.repo";
 import authService from "@/services/auth.service";
 import { IStudentListItem, TCreateStudentDTO } from "@/types/student";
+import { TeacherResponse } from "@/types/teacher";
+import { ICreateUserDTO } from "@/types/user";
 
 const createStudent = async (studentData: TCreateStudentDTO) => {
     if (!studentData.email || !studentData.password || !studentData.firstName || !studentData.lastName || !studentData.gender) {
@@ -33,11 +36,11 @@ const getStudents = async (): Promise<IStudentListItem[]> => {
             id: student.id,
             userId: student.userId,
             email: student.user.email,
-            role: student.user.role,
+            role: student.user.role as $Enums.Role,
             firstName: student.user.profile!.firstName,
             lastName: student.user.profile!.lastName,
             phone: student.user.profile!.phone,
-            gender: student.user.profile!.gender,
+            gender: student.user.profile!.gender as $Enums.Gender,
         }));
 }
 
@@ -49,11 +52,44 @@ const getUserById = async (userId: string) => {
     return await adminRepo.getUserById(userId);
 }
 
+const createTeacher = async (request: ICreateUserDTO) => {
+    const user = await authService.createTeacher({
+        ...request,
+        role: "TEACHER" as $Enums.Role,
+        schoolId: request.schoolId || "school-01",
+    });
+
+    if (!user) {
+        throw new Error("FAILED_CREATE");
+    }
+
+    return await adminRepo.createTeacher(user.id);
+}
+
+const getTeachers = async (): Promise<Partial<TeacherResponse>[]> => {
+    const teachers = await adminRepo.getAllTeachers();
+
+    return teachers.map((teacher) => ({
+        id: teacher.id,
+        userId: teacher.userId,
+        email: teacher.user.email,
+        role: teacher.user.role as $Enums.Role,
+        firstName: teacher.user.profile?.firstName || "",
+        lastName: teacher.user.profile?.lastName || "",
+        phone: teacher.user.profile?.phone || "",
+        schoolId: teacher.user.schoolId,
+        gender: teacher.user.profile?.gender as $Enums.Gender || "OTHER",
+    }));
+}
+
+
 const adminService = {
     createStudent,
     getStudents,
     updateStudent,
     getUserById,
+    createTeacher,
+    getTeachers,
 };
 
 export default adminService;

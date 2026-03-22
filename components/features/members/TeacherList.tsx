@@ -1,12 +1,12 @@
-import { StudentResponse } from "@/types/student";
-import { Table } from "antd";
+import { TeacherResponse } from "@/types/teacher";
+import Table from "antd/es/table/Table";
 
-export default function StudentList({ studentList }: { studentList: StudentResponse[] }) {
+export default function TeacherList({ teacherList }: { teacherList: TeacherResponse[] }) {
     return (
         <div className="w-full overflow-auto">
             <Table
                 pagination={false}
-                dataSource={studentList}
+                dataSource={teacherList}
                 rowKey="id"
                 columns={[
                     {
@@ -18,7 +18,7 @@ export default function StudentList({ studentList }: { studentList: StudentRespo
                         title: "Full Name",
                         key: "name",
                         width: '50%',
-                        render: (_, record) => `${record.firstName} ${record.lastName}`,
+                        render: (_, record) => `${record.firstName} ${record.lastName || ""}`,
                     },
                     {
                         title: "Email",

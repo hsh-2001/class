@@ -1,4 +1,5 @@
 import type { Gender } from "@/prisma/generated/enums";
+import EnumRole from "./enum/enumRole";
 
 export interface IStudent {
     id: string;
@@ -14,6 +15,7 @@ export interface IStudentProfileInput {
 
 export interface ICreateStudentDTO extends IStudentProfileInput {
     schoolId: string;
+    role: string;
     email: string;
     password: string;
     username?: string;

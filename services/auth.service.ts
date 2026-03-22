@@ -73,7 +73,7 @@ const generateRefreshToken = async (user: IUserDTO) => {
     return jwt.sign(payload, secret, options);
 }
 
-const verifyToken = async (token: string) => {
+const verifyToken = (token: string) => {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
         throw new Error("MISSING_SECRET");
@@ -92,9 +92,17 @@ const createStudentUser = async (request: Omit<ICreateUserDTO, "role">) => {
     });
 }
 
+const createTeacher = async (request: ICreateUserDTO) => {
+    return await createUser({
+        ...request,
+        role: Role.TEACHER,
+    });
+}
+
 const authService = {
     createUser,
     createStudentUser,
+    createTeacher,
     getUserByEmail,
     comparePassword,
     login,

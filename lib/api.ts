@@ -1,4 +1,3 @@
-import { AppApiError } from "./api-error";
 import axios from "axios";
 
 const api = axios.create({
@@ -22,7 +21,12 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         const message = error?.response?.data?.message || error?.message || "Something went wrong";
-
+        if (error?.response?.status === 401) {
+            if (typeof window !== "undefined") {
+                window.localStorage.removeItem("token");
+                window.location.href = "/login";
+            }
+        }
         return Promise.reject({
             message,
             status: error?.response?.status,

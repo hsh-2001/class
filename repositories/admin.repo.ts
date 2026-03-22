@@ -96,12 +96,41 @@ const getAllUsers = async () => {
     });
 }
 
+const createTeacher = async (userId: string) => {
+    await prisma.teacher.create({
+        data: { userId },
+        include: {
+            user: {
+                include: {
+                    profile: true,
+                },
+            },
+        },
+    });
+}
+
+const getAllTeachers = async () => {
+    return await prisma.teacher.findMany({
+        include: {
+            user: {
+                include: {
+                    profile: true,
+                },
+            },
+        },
+    });
+
+}
+
+
 const adminRepo = {
     createStudent,
     getStudents,
     updateStudent,
     getUserById,
     getAllUsers,
+    getAllTeachers,
+    createTeacher,
 };
 
 export default adminRepo;

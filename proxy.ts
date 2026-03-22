@@ -7,15 +7,17 @@ export function proxy(request: NextRequest) {
     if (exludedPaths.some(p => request.nextUrl?.pathname.startsWith(p)) || !request.nextUrl.pathname.startsWith('/api')) {
         return NextResponse.next();
     }
-    const token = request.headers.get("Authorization")?.split(" ")[1];
+    const token = request.headers.get("Authorization")?.split(" ")[1]; 
+    console.log("Received request for:", request.nextUrl.pathname);
     if (!token) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const isVerified = authService.verifyToken(token)
-    if (!isVerified) {
-        return NextResponse.json({ message: "Invalid token" }, { status: 401 });
+    let user: jwt.JwtPayload | string;
+    try {
+        user = authService.verifyToken(token);
+    } catch {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const user = jwt.decode(token);
     if (!user) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

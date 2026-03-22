@@ -4,14 +4,18 @@ import { StudentResponse, TCreateStudentDTO } from "@/types/student";
 import dayjs from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import { useState } from "react";
-import { callCreateStudent, callGetStudents } from "@/lib/api-calling";
+import { callCreateStudent, callCreateTeacher, callGetStudents, callGetTeachers } from "@/lib/api-calling";
+import { ICreateTeacherDTO, TeacherResponse } from "@/types/teacher";
 
 
 export default function useMembers() {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [studentList, setStudentList] = useState<StudentResponse[]>([]);
+    const [isActive, setIsActive] = useState("students");
 
     const [form] = useForm<TCreateStudentDTO & { confirmPassword: string }>();
+    const [teacherForm] = useForm<ICreateTeacherDTO & { confirmPassword: string }>();
+    const [teacherList, setTeacherList] = useState<TeacherResponse[]>([]);
 
     const genders = [
         { label: "Male", value: "MALE" },
@@ -94,9 +98,76 @@ export default function useMembers() {
                 { required: true, message: "Please enter the address!" },
             ],
         },
-    ]
+    ];
 
-    const onSubmit = async () => {
+    const teacherFieldItems: IFormItem<ICreateTeacherDTO & { confirmPassword: string }>[] = [
+        {
+            name: "email",
+            label: "Email",
+            rules: [
+                { required: true, message: "Please input the email!" },
+                { type: "email", message: "Please enter a valid email!" },
+            ],
+        },
+        {
+            name: "username",
+            label: "Username",
+            rules: [
+                { required: true, message: "Please enter a username!" },
+            ],
+        },
+        {
+            name: "password",
+            label: "Password",
+            rules: [
+                { required: true, message: "Please enter a password!" },
+                { min: 6, message: "Password must be at least 6 characters!" },
+            ],
+        },
+        {
+            name: "confirmPassword",
+            label: "Confirm Password",
+            rules: [
+                { required: true, message: "Please confirm the password!" },
+            ],
+        },
+        {
+            name: "firstName",
+            label: "First Name",
+            rules: [
+                { required: true, message: "Please enter the first name!" },
+            ],
+        },
+        {
+            name: "lastName",
+            label: "Last Name",
+            rules: [
+                { required: true, message: "Please enter the last name!" },
+            ],
+        },
+        {
+            name: "phone",
+            label: "Phone",
+            rules: [
+                { required: true, message: "Please enter the phone number!" },
+                { pattern: /^\d{10}$/, message: "Please enter a valid 10-digit phone number!" },
+            ],
+        },
+        {
+            name: "gender",
+            label: "Gender",
+        },
+        {
+            name: "address",
+            label: "Address",
+            rules: [
+                { required: true, message: "Please enter the address!" },
+            ],
+        },
+    ];
+
+
+    const handleCreateStudent = async () => {
         const values = form.getFieldsValue();
         const payload = {
             ...values,
@@ -117,6 +188,25 @@ export default function useMembers() {
         }
     }
 
+    const handleCreateTeacher = async () => {
+        const values = teacherForm.getFieldsValue();
+        const payload = {
+            ...values,
+        };
+
+        try {
+            const response = await callCreateTeacher(payload);
+            if (response.data.success) {
+                setIsModalVisible(false);
+                teacherForm.resetFields();
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to create teacher."));
+        }
+    }
+
+    const onSubmit = isActive === "students" ? handleCreateStudent : handleCreateTeacher;
+
     const onGetAllStudents = async () => {
         try {
             const response = await callGetStudents();
@@ -130,6 +220,20 @@ export default function useMembers() {
         }
     }
 
+    const onGetAllTeachers = async () => {
+        try {
+            const response = await callGetTeachers();
+            console.log(response.data);
+            if (response.data.success) {
+                const teachers = response.data.data.map((item: TeacherResponse) => new TeacherResponse(item));
+                setTeacherList(teachers);
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to fetch teachers."));
+        }
+
+    }
+
     return {
         isModalVisible,
         setIsModalVisible,
@@ -139,5 +243,11 @@ export default function useMembers() {
         genders,
         onGetAllStudents,
         studentList,
+        isActive,
+        setIsActive,
+        teacherFieldItems,
+        teacherForm,
+        onGetAllTeachers,
+        teacherList,
     }
 };
