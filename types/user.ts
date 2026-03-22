@@ -9,6 +9,7 @@ export interface IUserProfileDTO {
 
 export interface IUser {
     id: string;
+    schoolId?: string;
     email: string;
     password: string;
     role: Role;

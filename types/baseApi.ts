@@ -1,3 +1,5 @@
+import { NextRequest } from "next/server";
+
 interface IBaseApiResponse<T> {
     data: T;
     success: boolean;
@@ -22,4 +24,18 @@ export class BaseApiResponse<T> implements IBaseApiResponse<T> {
     static error<T>(message = "error"): BaseApiResponse<T> {
         return new BaseApiResponse<T>(undefined, false, message);
     }
-}   
+}
+
+export function getUserFromHeader(req: NextRequest) {
+    const userHeader = req.headers.get("X-User");
+
+    if (!userHeader) {
+        throw new Error("UNAUTHORIZED");
+    };
+
+    try {
+        return JSON.parse(userHeader);
+    } catch {
+        return userHeader;
+    }
+}

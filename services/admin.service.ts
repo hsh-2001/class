@@ -1,6 +1,7 @@
 import { $Enums } from "@/prisma/generated/browser";
 import adminRepo from "@/repositories/admin.repo";
 import authService from "@/services/auth.service";
+import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IStudentListItem, TCreateStudentDTO } from "@/types/student";
 import { ITeacherListItem } from "@/types/teacher";
 import { ICreateUserDTO, IUpdateUserDTO } from "@/types/user";
@@ -91,6 +92,20 @@ const updateTeacher = async (id: string, data: IUpdateUserDTO) => {
 }
 
 
+// Course management
+const createCourse = async (request: ICreateCourseDTO) => {
+    return await adminRepo.createCourse(request);
+}
+
+const getAllCourses = async (schoolId: string) => {
+    return await adminRepo.getAllCourses(schoolId);
+}
+
+const updateCourse = async (request: IUpdateCourseDTO) => {
+    return await adminRepo.updateCourse(request);
+}
+
+
 const adminService = {
     createStudent,
     getStudents,
@@ -99,6 +114,9 @@ const adminService = {
     createTeacher,
     getTeachers,
     updateTeacher,
+    createCourse,
+    getAllCourses,
+    updateCourse,
 };
 
 export default adminService;

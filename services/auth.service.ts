@@ -54,7 +54,7 @@ const generateToken = async (user: IUserDTO) => {
         throw new Error("JWT_SECRET is not defined");
     }
 
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role, schoolId: user.schoolId };
     const options: SignOptions = { expiresIn: "1d" };
 
     return jwt.sign(payload, secret, options);
@@ -67,7 +67,7 @@ const generateRefreshToken = async (user: IUserDTO) => {
         throw new Error("JWT_SECRET is not defined");
     }
 
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role, schoolId: user.schoolId };
     const options: SignOptions = { expiresIn: "7d" };
 
     return jwt.sign(payload, secret, options);

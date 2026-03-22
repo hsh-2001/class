@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IUpdateUserDTO } from "@/types/user";
 
 const createStudent = async (userId: string) => {
@@ -156,6 +157,41 @@ const updateUser = async (userId: string, profileId: string | undefined, data: I
     });
 }
 
+const createCourse = async (request: ICreateCourseDTO) => {
+    return await prisma.course.create({
+        data: {
+            name: request.name,
+            code: request.code,
+            description: request.description,
+            schoolId: request.schoolId,
+        },
+    });
+}
+
+const updateCourse = async (request: IUpdateCourseDTO) => {
+    return await prisma.course.update({
+        where: {
+            id: request.id,
+        },
+        data: {
+            ...(request.name !== undefined ? { name: request.name } : {}),
+            ...(request.code !== undefined ? { code: request.code } : {}),
+            ...(request.description !== undefined ? { description: request.description } : {}),
+        },
+    });
+}
+
+const getAllCourses = async (schoolId: string) => {
+    return await prisma.course.findMany({
+        where: {
+            schoolId: schoolId,
+        },
+        orderBy: {
+            name: "asc",
+        },
+    });
+}
+
 
 const adminRepo = {
     createStudent,
@@ -166,6 +202,9 @@ const adminRepo = {
     getAllTeachers,
     createTeacher,
     updateTeacher,
+    createCourse,
+    getAllCourses,
+    updateCourse,
 };
 
 export default adminRepo;
