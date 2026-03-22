@@ -1,3 +1,4 @@
+import { IClassListItem, ICreateClassDTO } from "@/types/class";
 import prisma from "@/lib/prisma";
 import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IUpdateUserDTO } from "@/types/user";
@@ -194,6 +195,70 @@ const getAllCourses = async (schoolId: string) => {
     });
 }
 
+const createClass = async (schoolId: string, request: ICreateClassDTO) => {
+    return await prisma.class.create({
+        data: {
+            name: request.name,
+            courseId: request.courseId,
+            teacherId: request.teacherId,
+            startDate: new Date(request.startDate),
+            endDate: request.endDate ? new Date(request.endDate) : null,
+            schoolId,
+        },
+        include: {
+            course: true,
+            teacher: {
+                include: {
+                    user: {
+                        include: {
+                            profile: true,
+                        },
+                    },
+                },
+            },
+        },
+    });
+}
+
+const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
+    const classes = await prisma.class.findMany({
+        where: {
+            schoolId,
+        },
+        include: {
+            course: true,
+            teacher: {
+                include: {
+                    user: {
+                        include: {
+                            profile: true,
+                        },
+                    },
+                },
+            },
+        },
+        orderBy: {
+            startDate: "asc",
+        },
+    });
+
+    return classes.map((item) => ({
+        id: item.id,
+        name: item.name,
+        courseId: item.courseId,
+        teacherId: item.teacherId,
+        startDate: item.startDate.toISOString(),
+        endDate: item.endDate?.toISOString() ?? null,
+        schoolId: item.schoolId ?? null,
+        courseName: item.course.name,
+        courseCode: item.course.code,
+        teacherName: [
+            item.teacher.user.profile?.firstName ?? "",
+            item.teacher.user.profile?.lastName ?? "",
+        ].join(" ").trim() || item.teacher.user.username || item.teacher.user.email,
+    }));
+}
+
 
 const adminRepo = {
     createStudent,
@@ -207,6 +272,8 @@ const adminRepo = {
     createCourse,
     getAllCourses,
     updateCourse,
+    createClass,
+    getAllClasses,
 };
 
 export default adminRepo;

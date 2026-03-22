@@ -1,8 +1,11 @@
+import { ICreateClassDTO } from "@/types/class";
 import { ILoginDTO } from "@/types/user";
 import api from "./api";
 import { TCreateStudentDTO, TUpdateStudentDTO } from "@/types/student";
 import { ICreateTeacherDTO, IUpdateTeacherDTO } from "@/types/teacher";
 import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
+import { IEnrollStudentCourseDTO } from "@/types/enrollment";
+import { IUpdateProfileDTO } from "@/types/profile";
 
 export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
@@ -42,4 +45,28 @@ export const callGetCourses = async () => {
 
 export const callUpdateCourse = async (request: IUpdateCourseDTO) => {
   return await api.put("/admin/course", request);
+}
+
+export const callCreateClass = async (request: ICreateClassDTO) => {
+  return await api.post("/admin/class", request);
+}
+
+export const callGetClasses = async () => {
+  return await api.get("/admin/class");
+}
+
+export const callGetStudentProfile = async () => {
+  return await api.get("/student/update-profile");
+}
+
+export const callUpdateStudentProfile = async (request: IUpdateProfileDTO) => {
+  return await api.put("/student/update-profile", request);
+}
+
+export const callGetStudentCourses = async () => {
+  return await api.get("/student/course");
+}
+
+export const callEnrollStudentCourse = async (request: IEnrollStudentCourseDTO) => {
+  return await api.post("/student/course", request);
 }

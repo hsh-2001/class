@@ -1,26 +1,74 @@
 import { getApiErrorMessage } from "@/lib/api-error";
-import { callCreateCourse, callGetCourses, callUpdateCourse } from "@/lib/api-calling";
-import { CourseResponse, ICreateCourseDTO } from "@/types/course";
-import { useRef, useState } from "react";
-import { useForm } from "antd/es/form/Form";
+import {
+    callCreateClass,
+    callCreateCourse,
+    callEnrollStudentCourse,
+    callGetClasses,
+    callGetCourses,
+    callGetStudentCourses,
+    callGetTeachers,
+    callUpdateCourse,
+} from "@/lib/api-calling";
 import { upload } from "@/lib/upload";
+import { ClassResponse, ICreateClassDTO } from "@/types/class";
+import { CourseResponse, ICreateCourseDTO } from "@/types/course";
+import { IStudentCourseEnrollmentItem } from "@/types/enrollment";
+import { TeacherResponse } from "@/types/teacher";
+import { DatePicker } from "antd";
+import { useForm } from "antd/es/form/Form";
+import dayjs, { Dayjs } from "dayjs";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type CourseFormValues = Omit<ICreateCourseDTO, "schoolId">;
+type ClassFormValues = Omit<ICreateClassDTO, "startDate" | "endDate"> & {
+    startDate: Dayjs;
+    endDate?: Dayjs;
+};
+type CurrentUser = {
+    role?: string;
+};
 
 export default function useCourse() {
     const [courseForm] = useForm<CourseFormValues>();
+    const [classForm] = useForm<ClassFormValues>();
     const [courseList, setCourseList] = useState<CourseResponse[]>([]);
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [classList, setClassList] = useState<ClassResponse[]>([]);
+    const [teacherList, setTeacherList] = useState<TeacherResponse[]>([]);
+    const [studentCourseList, setStudentCourseList] = useState<IStudentCourseEnrollmentItem[]>([]);
+    const [isCourseModalVisible, setIsCourseModalVisible] = useState(false);
+    const [isClassModalVisible, setIsClassModalVisible] = useState(false);
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
     const [bannerPreview, setBannerPreview] = useState<string>("");
-    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
+    const [isSubmittingClass, setIsSubmittingClass] = useState(false);
+    const [isPageLoading, setIsPageLoading] = useState(true);
+    const [isUserReady, setIsUserReady] = useState(false);
+    const [enrollingClassId, setEnrollingClassId] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
     const isEditing = editingCourseId !== null;
+    const isStudent = currentUser?.role === "STUDENT";
+    const file = useRef<File | null>(null);
 
-    const file = useRef<File>(null);
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const rawUser = window.localStorage.getItem("user");
+        if (rawUser) {
+            try {
+                setCurrentUser(JSON.parse(rawUser));
+            } catch {
+                setCurrentUser(null);
+            }
+        }
+
+        setIsUserReady(true);
+    }, []);
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         file.current = e.target.files?.[0] || null;
-        console.log("Selected file:", file.current);
         const preview = file.current ? URL.createObjectURL(file.current) : "";
         setBannerPreview(preview);
     };
@@ -34,35 +82,86 @@ export default function useCourse() {
                 return uploadResult.data[0].download_url;
             }
         }
-        return;
-    }
 
-    const onGetAllCourses = async () => {
-        try {
-            const response = await callGetCourses();
-            if (response.data.success) {
-                const courses = response.data.data.map((item: CourseResponse) => new CourseResponse(item));
-                setCourseList(courses);
-            }
-        } catch (error: unknown) {
-            console.error(getApiErrorMessage(error, "Failed to fetch courses."));
-        }
+        return undefined;
     };
 
-    const handleCloseModal = () => {
-        setIsModalVisible(false);
+    const loadAdminData = useCallback(async () => {
+        const [coursesResponse, classesResponse, teachersResponse] = await Promise.all([
+            callGetCourses(),
+            callGetClasses(),
+            callGetTeachers(),
+        ]);
+
+        if (coursesResponse.data.success) {
+            setCourseList(coursesResponse.data.data.map((item: CourseResponse) => new CourseResponse(item)));
+        }
+
+        if (classesResponse.data.success) {
+            setClassList(classesResponse.data.data.map((item: ClassResponse) => new ClassResponse(item)));
+        }
+
+        if (teachersResponse.data.success) {
+            setTeacherList(teachersResponse.data.data.map((item: TeacherResponse) => new TeacherResponse(item)));
+        }
+    }, []);
+
+    const onLoadCourses = useCallback(async () => {
+        try {
+            setIsPageLoading(true);
+
+            if (isStudent) {
+                const response = await callGetStudentCourses();
+                if (response.data.success) {
+                    setStudentCourseList(response.data.data);
+                }
+                return;
+            }
+
+            await loadAdminData();
+        } catch (error: unknown) {
+            console.error(
+                getApiErrorMessage(
+                    error,
+                    isStudent ? "Failed to fetch available enrollments." : "Failed to fetch course data.",
+                ),
+            );
+        } finally {
+            setIsPageLoading(false);
+        }
+    }, [isStudent, loadAdminData]);
+
+    useEffect(() => {
+        if (!isUserReady) {
+            return;
+        }
+
+        void onLoadCourses();
+    }, [isUserReady, onLoadCourses]);
+
+    const handleCloseCourseModal = () => {
+        setIsCourseModalVisible(false);
         setEditingCourseId(null);
+        setBannerPreview("");
+        file.current = null;
         courseForm.resetFields();
     };
 
-    const onSubmit = async () => {
+    const handleCloseClassModal = () => {
+        setIsClassModalVisible(false);
+        classForm.resetFields();
+    };
+
+    const onSubmitCourse = async () => {
         const values = courseForm.getFieldsValue();
-        setIsLoading(true);
+        setIsSubmittingCourse(true);
+
         try {
             const bannerUrl = await handleSaveBanner();
             if (bannerUrl) {
                 values.courseBanner = bannerUrl;
             }
+
             if (isEditing && editingCourseId) {
                 const response = await callUpdateCourse({
                     id: editingCourseId,
@@ -73,22 +172,47 @@ export default function useCourse() {
                 });
 
                 if (response.data.success) {
-                    handleCloseModal();
-                    onGetAllCourses();
+                    handleCloseCourseModal();
+                    await onLoadCourses();
                 }
                 return;
             }
+
             const response = await callCreateCourse(values);
             if (response.data.success) {
-                handleCloseModal();
-                onGetAllCourses();
+                handleCloseCourseModal();
+                await onLoadCourses();
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, isEditing ? "Failed to update course." : "Failed to create course."));
         } finally {
             setBannerPreview("");
             file.current = null;
-            setIsLoading(false);
+            setIsSubmittingCourse(false);
+        }
+    };
+
+    const onSubmitClass = async () => {
+        const values = classForm.getFieldsValue();
+        setIsSubmittingClass(true);
+
+        try {
+            const response = await callCreateClass({
+                name: values.name,
+                courseId: values.courseId,
+                teacherId: values.teacherId,
+                startDate: values.startDate.toISOString(),
+                endDate: values.endDate ? values.endDate.toISOString() : null,
+            });
+
+            if (response.data.success) {
+                handleCloseClassModal();
+                await onLoadCourses();
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to create class."));
+        } finally {
+            setIsSubmittingClass(false);
         }
     };
 
@@ -100,21 +224,51 @@ export default function useCourse() {
             description: course.description,
             courseBanner: course.courseBanner,
         });
-        setIsModalVisible(true);
+        setIsCourseModalVisible(true);
+    };
+
+    const onEnrollCourse = async (classId: string) => {
+        try {
+            setEnrollingClassId(classId);
+            const response = await callEnrollStudentCourse({ classId });
+            if (response.data.success) {
+                setStudentCourseList(response.data.data);
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to enroll in course."));
+        } finally {
+            setEnrollingClassId(null);
+        }
     };
 
     return {
+        DatePicker,
+        bannerPreview,
+        classForm,
+        classList,
         courseForm,
         courseList,
-        isModalVisible,
-        setIsModalVisible,
-        handleCloseModal,
-        onSubmit,
-        onClickEdit,
-        isEditing,
-        onGetAllCourses,
+        enrollingClassId,
+        handleCloseClassModal,
+        handleCloseCourseModal,
         handleFileChange,
-        bannerPreview,
-        isLoading,
+        isClassModalVisible,
+        isCourseModalVisible,
+        isEditing,
+        isPageLoading,
+        isStudent,
+        isSubmittingClass,
+        isSubmittingCourse,
+        isUserReady,
+        onClickEdit,
+        onEnrollCourse,
+        onLoadCourses,
+        onSubmitClass,
+        onSubmitCourse,
+        setIsClassModalVisible,
+        setIsCourseModalVisible,
+        studentCourseList,
+        teacherList,
+        disabledPastDate: (current: Dayjs) => current && current < dayjs().startOf("minute"),
     };
 }

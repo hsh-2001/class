@@ -1,12 +1,28 @@
 import { sidebarItems } from "@/lib/sidebar-items";
+import { getUserRoleFromStorage } from "@/lib/role-access";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import { useSyncExternalStore } from "react";
+
+function useIsClient() {
+    return useSyncExternalStore(
+        () => () => undefined,
+        () => true,
+        () => false,
+    );
+}
 
 export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
     const router = useRouter();
+    const isClient = useIsClient();
+    const role = isClient ? getUserRoleFromStorage() : undefined;
+
     const handleClickItem = () => {
         onToggleSidebar();
     }
+
+    const visibleSidebarItems = sidebarItems.filter((item) => role ? item.roles.includes(role) : false);
+
     return (
         <aside className="sidebar h-[calc(100vh-5rem)] w-65 shrink-0 border-r border-black/10 bg-white/90 p-4 text-slate-900 backdrop-blur dark:border-white/10 dark:bg-black/85 dark:text-slate-100">
             <div className="flex h-full flex-col">
@@ -21,7 +37,7 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
 
                 <nav aria-label="Sidebar navigation" className="flex-1 overflow-y-auto">
                     <ul className="space-y-1.5">
-                        {sidebarItems.map(({ href, icon: Icon, label }) => {
+                        {visibleSidebarItems.map(({ href, icon: Icon, label }) => {
                             const isActive = router.pathname === href;
 
                             return (

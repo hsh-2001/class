@@ -1,6 +1,7 @@
 import { $Enums } from "@/prisma/generated/browser";
 import adminRepo from "@/repositories/admin.repo";
 import authService from "@/services/auth.service";
+import { IClassListItem, ICreateClassDTO } from "@/types/class";
 import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IStudentListItem, TCreateStudentDTO } from "@/types/student";
 import { ITeacherListItem } from "@/types/teacher";
@@ -105,6 +106,18 @@ const updateCourse = async (request: IUpdateCourseDTO) => {
     return await adminRepo.updateCourse(request);
 }
 
+const createClass = async (schoolId: string, request: ICreateClassDTO) => {
+    if (!request.name || !request.courseId || !request.teacherId || !request.startDate) {
+        throw new Error("MISSING_FIELDS");
+    }
+
+    return await adminRepo.createClass(schoolId, request);
+}
+
+const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
+    return await adminRepo.getAllClasses(schoolId);
+}
+
 
 const adminService = {
     createStudent,
@@ -117,6 +130,8 @@ const adminService = {
     createCourse,
     getAllCourses,
     updateCourse,
+    createClass,
+    getAllClasses,
 };
 
 export default adminService;
