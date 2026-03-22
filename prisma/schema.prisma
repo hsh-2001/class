@@ -54,6 +54,7 @@ model UserProfile {
   lastName  String  @map("last_name")
   phone     String?
   gender    Gender
+  profile_url String? @map("profile_url")
 
   user User @relation(fields: [userId], references: [id])
 

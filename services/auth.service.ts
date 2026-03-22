@@ -34,8 +34,14 @@ const login = async (
 
     const token = await generateToken(user);
     const refreshToken = await generateRefreshToken(user);
-    const { password: _, ...safeUser } = user;
-    return { ...safeUser, token, refreshToken };
+    const filterUser = {
+        email: user.email,
+        username: user.username,
+        id: user.id,
+        role: user.role,
+        schoolId: user.schoolId,
+    }
+    return { ...filterUser, token, refreshToken };
 }
 
 const getPasswordHash = async (password: string) => {

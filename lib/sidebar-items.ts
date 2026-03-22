@@ -7,6 +7,7 @@ import {
   Settings,
   Users,
   Video,
+  User
 } from "lucide-react";
 
 export const sidebarItems = [
@@ -18,4 +19,5 @@ export const sidebarItems = [
   { label: "Assignments", href: "/assignments", icon: ClipboardCheck },
   { label: "Messages", href: "/messages", icon: MessageSquare },
   { label: "Settings", href: "/settings", icon: Settings },
+  { label: "Profile", href: "/profile", icon: User },
 ] as const;

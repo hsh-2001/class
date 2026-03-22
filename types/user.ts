@@ -10,6 +10,7 @@ export interface IUserProfileDTO {
 export interface IUser {
     id: string;
     schoolId?: string;
+    username?: string;
     email: string;
     password: string;
     role: Role;

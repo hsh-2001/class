@@ -1,5 +1,4 @@
 import { callLogin } from "@/lib/api-calling";
-import { getApiErrorMessage } from "@/lib/api-error";
 import { ILoginDTO } from "@/types/user";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -21,7 +20,8 @@ export default function useAthentication() {
             const response = await callLogin(loginModel);
             if (response?.data?.success) {
                 localStorage.setItem("token", response.data.data.token);
-                router.push("/home");
+                localStorage.setItem("user", JSON.stringify(response.data.data));
+                router.push("/");
             }
         } catch (error: unknown) {
             console.log("Login failed:", error);
@@ -30,11 +30,20 @@ export default function useAthentication() {
         }
     }
 
+    const handleLogout = () => {
+        localStorage.clear();
+        router.push("/login");
+        setTimeout(() => {
+            router.reload();
+        }, 500);
+    }
+
     return {
         errorMessage,
         isSubmitting,
         loginModel,
         setLoginModel,
         handleSubmit,
+        handleLogout,
     }
 }

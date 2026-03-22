@@ -27,7 +27,6 @@ export default function useCourse() {
 
     const handleSaveBanner = async (): Promise<string | undefined> => {
         if (file.current) {
-            console.log("Uploading file:", file.current);
             const uploadResult = await upload("class/courses", file.current);
             if (uploadResult) {
                 courseForm.setFieldValue("courseBanner", uploadResult.data[0].download_url);
