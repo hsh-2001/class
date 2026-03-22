@@ -1,3 +1,4 @@
+import { ICreateMessageThreadDTO, ISendMessageDTO } from "@/types/message";
 import { ICreateAssignmentDTO } from "@/types/assignment";
 import { ICreateClassDTO } from "@/types/class";
 import { ILoginDTO } from "@/types/user";
@@ -66,6 +67,18 @@ export const callCreateAssignment = async (request: ICreateAssignmentDTO) => {
 
 export const callGetLiveClasses = async () => {
   return await api.get("/live-class");
+}
+
+export const callGetMessages = async () => {
+  return await api.get("/message");
+}
+
+export const callCreateMessageThread = async (request: ICreateMessageThreadDTO) => {
+  return await api.post("/message", request);
+}
+
+export const callSendMessage = async (request: ISendMessageDTO) => {
+  return await api.post("/message/send", request);
 }
 
 export const callGetStudentProfile = async () => {
