@@ -4,11 +4,6 @@
 @source "../../pages";
 @custom-variant dark (&:where(.dark, .dark *));
 
-
-button {
-  @apply cursor-pointer;
-}
-
 .header {
   left: 0;
 }

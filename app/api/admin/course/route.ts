@@ -19,13 +19,13 @@ export async function POST(request: NextRequest) {
     const user = getUserFromHeader(request);
     const schoolId = user?.schoolId || "school-01";
     const body = await request.json();
-    const { name, code, description } = body;
+    const { name, code, description, courseBanner } = body;
     if (!name || !code || !description) {
         return fail("Missing required fields", 400);
     }
 
     try {
-        const response = await adminService.createCourse({ schoolId, name, code, description });
+        const response = await adminService.createCourse({ schoolId, name, code, description, courseBanner });
         return ok(response, 'Course created successfully');
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to create course";
@@ -38,13 +38,13 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
     try {
         const body = await request.json();
-        const { id, name, code, description } = body;
+        const { id, name, code, description, courseBanner } = body;
 
         if (!id) {
             return fail("Missing course ID", 400);
         }
 
-        const response = await adminService.updateCourse({ id, name, code, description });
+        const response = await adminService.updateCourse({ id, name, code, description, courseBanner });
         return ok(response, "Course updated successfully");
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to update course";

@@ -1,9 +1,10 @@
+import CourseList from "@/components/features/courses/CourseList";
 import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
 import SModal from "@/components/ui/SModal";
 import useCourse from "@/hooks/useCourse";
-import { Form, Table } from "antd";
-import { Edit } from "lucide-react";
+import { Form } from "antd";
+import Image from "next/image";
 import { useEffect } from "react";
 
 export default function CoursesPage() {
@@ -17,6 +18,9 @@ export default function CoursesPage() {
     onClickEdit,
     isEditing,
     onGetAllCourses,
+    handleFileChange,
+    bannerPreview,
+    isLoading,
   } = useCourse();
 
   useEffect(() => {
@@ -53,39 +57,7 @@ export default function CoursesPage() {
             </p>
           </div>
 
-          <Table
-            rowKey="id"
-            pagination={false}
-            dataSource={courseList}
-            columns={[
-              {
-                title: "Name",
-                dataIndex: "name",
-                key: "name",
-              },
-              {
-                title: "Code",
-                dataIndex: "code",
-                key: "code",
-                width: 180,
-              },
-              {
-                title: "Description",
-                dataIndex: "description",
-                key: "description",
-              },
-              {
-                title: "Actions",
-                key: "actions",
-                width: 100,
-                render: (_, record) => (
-                  <button onClick={() => onClickEdit(record)}>
-                    <Edit className="h-4 w-4 cursor-pointer text-black/90 dark:text-slate-50" />
-                  </button>
-                ),
-              },
-            ]}
-          />
+          <CourseList courseList={courseList} onClickEdit={onClickEdit} />
         </div>
       </section>
 
@@ -119,13 +91,29 @@ export default function CoursesPage() {
             >
               <SInput placeholder="Enter course description" />
             </Form.Item>
+            <Form.Item
+              name="courseBanner"
+              label="Course Banner"
+              rules={[{ required: true, message: "Please enter the course banner!" }]}
+            >
+              <div className="relative w-full md:w-60">
+                <input className="opacity-0 inset-0 z-10 absolute w-full h-full" type="file" onChange={handleFileChange} />
+                <div className="border border-dashed z-0 border-gray-300 rounded-md p-4 min-h-60 flex flex-col items-center justify-center cursor-pointer w-full md:w-60">
+                  {bannerPreview.length > 0
+                  ? <Image src={bannerPreview} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
+                  : courseForm.getFieldValue('courseBanner')
+                  ? <Image src={courseForm.getFieldValue('courseBanner')} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
+                  : <p className="text-sm text-slate-500 dark:text-slate-400">Click to upload a banner</p>}
+                </div>
+              </div>
+            </Form.Item>
           </div>
 
           <div className="flex justify-end gap-2">
             <SButton type="button" color="secondary" onClick={handleCloseModal}>
               Cancel
             </SButton>
-            <SButton type="submit" color="primary">
+            <SButton type="submit" color="primary" loading={isLoading}>
               {isEditing ? "Update" : "Submit"}
             </SButton>
           </div>

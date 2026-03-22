@@ -49,7 +49,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }: { onToggleSid
             </button>
           )}
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
-            Class System
+            System Class
           </p>
         </div>
         <SToggleButton

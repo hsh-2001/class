@@ -163,6 +163,7 @@ const createCourse = async (request: ICreateCourseDTO) => {
             name: request.name,
             code: request.code,
             description: request.description,
+            courseBanner: request.courseBanner,
             schoolId: request.schoolId,
         },
     });
@@ -176,6 +177,7 @@ const updateCourse = async (request: IUpdateCourseDTO) => {
         data: {
             ...(request.name !== undefined ? { name: request.name } : {}),
             ...(request.code !== undefined ? { code: request.code } : {}),
+            ...(request.courseBanner !== undefined ? { courseBanner: request.courseBanner } : {}),
             ...(request.description !== undefined ? { description: request.description } : {}),
         },
     });

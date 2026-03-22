@@ -1,11 +1,14 @@
+import { Loader } from "lucide-react";
+
 interface SButtonProps {
     children: React.ReactNode;
     onClick?: () => void;
     type: "button" | "submit" | "reset";
     color: "primary" | "secondary" | "danger";
+    loading?: boolean;
 }
 
-export default function SButton({ children, onClick, type, color }: SButtonProps) {
+export default function SButton({ children, onClick, type, color, loading }: SButtonProps) {
     const styleMapping = (color: SButtonProps["color"]) => {
         switch (color) {
             case "primary":
@@ -22,10 +25,11 @@ export default function SButton({ children, onClick, type, color }: SButtonProps
     return (
         <button
             type={type}
-            className={`rounded-full px-4 h-8 text-sm font-medium transition-colors ${styleMapping(color)}`}
+            className={`rounded-full px-4 h-8 text-sm font-medium transition-colors ${styleMapping(color)} ${loading ? "cursor-not-allowed opacity-50" : " cursor-pointer"}`}
             onClick={onClick}
+            disabled={loading}
         >
-            {children}
+            {loading ? (<div className="flex items-center gap-2"> <Loader className="animate-spin h-4 w-4" /> {children} </div>) : children}
         </button>
     );
 };
