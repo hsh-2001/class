@@ -2,7 +2,7 @@ import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
 import { IMessageAttachment } from "@/types/message";
 import { FileText, Paperclip, X } from "lucide-react";
-import { Input, Typography } from "antd";
+import { Avatar, Input, Popover, Typography } from "antd";
 import Image from "next/image";
 import { RefObject } from "react";
 
@@ -14,6 +14,10 @@ export type DraftMessageAttachment = IMessageAttachment & {
 export type MessageRenderGroup = {
     id: string;
     senderUserId: string;
+    senderName: string;
+    senderUsername: string;
+    senderEmail: string;
+    senderProfileUrl?: string;
     content: string;
     imageAttachments: IMessageAttachment[];
     fileAttachments: IMessageAttachment[];
@@ -90,85 +94,137 @@ function AlbumPreviewCard({
 
 export function MessageBubbleList({
     currentUserId,
+    isGroupThread,
     messageGroups,
     onOpenAlbum,
 }: {
     currentUserId: string;
+    isGroupThread: boolean;
     messageGroups: MessageRenderGroup[];
     onOpenAlbum: (attachments: IMessageAttachment[]) => void;
 }) {
     return (
         <>
-            {messageGroups.map((messageGroup) => {
+            {messageGroups.map((messageGroup, index) => {
                 const isOwnMessage = messageGroup.senderUserId === currentUserId;
+                const showSenderMeta = isGroupThread && !isOwnMessage;
+                const nextMessageGroup = messageGroups[index + 1];
+                const showsAvatarOnThisRow = showSenderMeta
+                    && nextMessageGroup?.senderUserId !== messageGroup.senderUserId;
+                const initials = messageGroup.senderName
+                    .split(" ")
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((part) => part[0]?.toUpperCase() ?? "")
+                    .join("");
 
                 return (
                     <div
                         key={messageGroup.id}
                         className={isOwnMessage ? "flex justify-end pl-10" : "flex justify-start pr-10"}
                     >
-                        <div
-                            className={[
-                                "max-w-[82%] rounded-[1.35rem] mt-1 border p-2 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
-                                isOwnMessage
-                                    ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
-                                    : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
-                            ].join(" ")}
-                        >
-                            {messageGroup.imageAttachments.length > 1 ? (
-                                <AlbumPreviewCard
-                                    attachments={messageGroup.imageAttachments}
-                                    isOwnMessage={isOwnMessage}
-                                    onOpen={() => onOpenAlbum(messageGroup.imageAttachments)}
-                                />
-                            ) : messageGroup.imageAttachments.length === 1 ? (
-                                <div className="mb-2 max-w-md">
-                                    <button
-                                        type="button"
-                                        onClick={() => onOpenAlbum(messageGroup.imageAttachments)}
-                                        className="block overflow-hidden rounded-[1.15rem] border border-white/10 bg-black/5 shadow-sm dark:border-white/10 dark:bg-white/5"
-                                    >
-                                        <Image
-                                            src={messageGroup.imageAttachments[0].url}
-                                            alt={messageGroup.imageAttachments[0].name}
-                                            width={280}
-                                            height={220}
-                                            className="h-auto max-h-72 w-full object-cover"
-                                        />
-                                    </button>
-                                </div>
-                            ) : null}
-                            {messageGroup.fileAttachments.length > 0 ? (
-                                <div className="mb-2 grid gap-2">
-                                    {messageGroup.fileAttachments.map((attachment) => (
-                                        <a
-                                            key={attachment.url}
-                                            href={attachment.url}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className={[
-                                                "flex items-start gap-2 rounded-[1.1rem] border p-2 text-[12px] backdrop-blur-md",
-                                                isOwnMessage
-                                                    ? "border-white/10 bg-white/10 text-white dark:border-white/10 dark:bg-white/[0.07] dark:text-slate-100"
-                                                    : "border-black/8 bg-black/[0.03] text-slate-700 dark:border-white/8 dark:bg-white/[0.05] dark:text-slate-200",
-                                            ].join(" ")}
-                                        >
-                                            <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isOwnMessage ? "bg-white/10 dark:bg-black/10" : "bg-black/[0.05] dark:bg-white/[0.06]"}`}>
-                                                <FileText className="h-4 w-4" />
-                                            </span>
-                                            <div className="min-w-0 flex-1">
-                                                <p className="overflow-hidden break-all text-[12px] font-medium leading-4">
-                                                    {attachment.name}
+                        <div className={`flex max-w-[82%] gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}>
+                            {showsAvatarOnThisRow ? (
+                                <Popover
+                                    trigger="hover"
+                                    placement="topLeft"
+                                    content={(
+                                        <div className="min-w-52 space-y-2">
+                                            <div>
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                                    Username
                                                 </p>
-                                                <p className="mt-1 text-[11px] opacity-70">
-                                                    {formatAttachmentSize(attachment.size)}
+                                                <p className="text-[13px] font-medium text-slate-900">
+                                                    {messageGroup.senderUsername || "-"}
                                                 </p>
                                             </div>
-                                        </a>
-                                    ))}
-                                </div>
+                                            <div>
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                                    Email
+                                                </p>
+                                                <p className="break-all text-[13px] font-medium text-slate-900">
+                                                    {messageGroup.senderEmail}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+                                >
+                                    <Avatar
+                                        size={32}
+                                        src={messageGroup.senderProfileUrl}
+                                        className="mt-auto shrink-0 cursor-pointer bg-slate-900 text-[11px] font-semibold text-white dark:bg-white dark:text-black"
+                                    >
+                                        {initials || "U"}
+                                    </Avatar>
+                                </Popover>
+                            ) : showSenderMeta ? (
+                                <div className="w-8 shrink-0" />
                             ) : null}
-                            {messageGroup.content ? <p className="text-[13px] leading-[1.55] tracking-[0.01em]">{messageGroup.content}</p> : null}
+                            <div className="min-w-0 flex-1">
+                                <div
+                                    className={[
+                                        "rounded-[1.35rem] mt-1 border p-2 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
+                                        isOwnMessage
+                                            ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
+                                            : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
+                                    ].join(" ")}
+                                >
+                                    {messageGroup.imageAttachments.length > 1 ? (
+                                        <AlbumPreviewCard
+                                            attachments={messageGroup.imageAttachments}
+                                            isOwnMessage={isOwnMessage}
+                                            onOpen={() => onOpenAlbum(messageGroup.imageAttachments)}
+                                        />
+                                    ) : messageGroup.imageAttachments.length === 1 ? (
+                                        <div className="mb-2 max-w-md">
+                                            <button
+                                                type="button"
+                                                onClick={() => onOpenAlbum(messageGroup.imageAttachments)}
+                                                className="block overflow-hidden rounded-[1.15rem] border border-white/10 bg-black/5 shadow-sm dark:border-white/10 dark:bg-white/5"
+                                            >
+                                                <Image
+                                                    src={messageGroup.imageAttachments[0].url}
+                                                    alt={messageGroup.imageAttachments[0].name}
+                                                    width={280}
+                                                    height={220}
+                                                    className="h-auto max-h-72 w-full object-cover"
+                                                />
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                    {messageGroup.fileAttachments.length > 0 ? (
+                                        <div className="mb-2 grid gap-2">
+                                            {messageGroup.fileAttachments.map((attachment) => (
+                                                <a
+                                                    key={attachment.url}
+                                                    href={attachment.url}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className={[
+                                                        "flex items-start gap-2 rounded-[1.1rem] border p-2 text-[12px] backdrop-blur-md",
+                                                        isOwnMessage
+                                                            ? "border-white/10 bg-white/10 text-white dark:border-white/10 dark:bg-white/[0.07] dark:text-slate-100"
+                                                            : "border-black/8 bg-black/[0.03] text-slate-700 dark:border-white/8 dark:bg-white/[0.05] dark:text-slate-200",
+                                                    ].join(" ")}
+                                                >
+                                                    <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isOwnMessage ? "bg-white/10 dark:bg-black/10" : "bg-black/[0.05] dark:bg-white/[0.06]"}`}>
+                                                        <FileText className="h-4 w-4" />
+                                                    </span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="overflow-hidden break-all text-[12px] font-medium leading-4">
+                                                            {attachment.name}
+                                                        </p>
+                                                        <p className="mt-1 text-[11px] opacity-70">
+                                                            {formatAttachmentSize(attachment.size)}
+                                                        </p>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                    {messageGroup.content ? <p className="text-[13px] leading-[1.55] tracking-[0.01em]">{messageGroup.content}</p> : null}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 );

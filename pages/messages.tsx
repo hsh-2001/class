@@ -1,41 +1,29 @@
 import MessageConversation from "@/components/features/messages/MessageConversation";
 import MessageThreadList from "@/components/features/messages/MessageThreadList";
-import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
-import SModal from "@/components/ui/SModal";
 import useMessages from "@/hooks/useMessages";
 import { ArrowLeftRight } from "lucide-react";
-import { Empty, Form, Select, Skeleton, Typography } from "antd";
+import { Empty, Skeleton, Typography } from "antd";
 import { useState } from "react";
 
 export default function MessagesPage() {
   const [searchValue, setSearchValue] = useState("");
   const [mobilePane, setMobilePane] = useState<"threads" | "messages">("threads");
   const {
-    canCreateThread,
     canSendMessage,
-    classOptions,
     currentUserId,
-    form,
-    handleCloseModal,
-    isCreatingThread,
     isLoading,
-    isModalVisible,
     isSendingMessage,
     messageContent,
     onSelectMessageFiles,
-    onCreateThread,
     onSendMessage,
     removeSelectedAttachment,
     selectedAttachments,
     selectedAttachmentAccept,
     selectedThread,
     selectedThreadId,
-    setSelectedClassId,
-    setIsModalVisible,
     setMessageContent,
     setSelectedThreadId,
-    studentOptions,
     threads,
   } = useMessages();
 
@@ -79,11 +67,6 @@ export default function MessagesPage() {
                 value={searchValue}
                 onChange={(value) => setSearchValue(String(value))}
               />
-              {canCreateThread ? (
-                <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
-                  New Conversation
-                </SButton>
-              ) : null}
             </div>
           </div>
         </div>
@@ -120,7 +103,7 @@ export default function MessagesPage() {
               {isLoading ? (
                 <Skeleton active paragraph={{ rows: 8 }} />
               ) : filteredThreads.length === 0 ? (
-                <Empty description={threads.length === 0 ? "No direct class conversations yet." : "No conversations match your search."} />
+                <Empty description={threads.length === 0 ? "No class conversations yet." : "No conversations match your search."} />
               ) : (
                 <MessageThreadList
                   selectedThreadId={selectedThreadId}
@@ -162,57 +145,6 @@ export default function MessagesPage() {
           </section>
         </div>
       </section>
-
-      {canCreateThread ? (
-        <SModal
-          isOpen={isModalVisible}
-          onClose={handleCloseModal}
-          title="Start direct class conversation"
-        >
-          <Form layout="vertical" form={form} onSubmitCapture={onCreateThread}>
-            <div className="grid gap-4">
-              <Form.Item
-                name="classId"
-                label="Class"
-                rules={[{ required: true, message: "Please select a class." }]}
-              >
-                <Select
-                  placeholder="Select class"
-                  options={classOptions.map((item) => ({
-                    value: item.value,
-                    label: item.label,
-                  }))}
-                  onChange={(value) => {
-                    setSelectedClassId(value);
-                    form.setFieldValue("studentId", undefined);
-                  }}
-                />
-              </Form.Item>
-
-              <Form.Item
-                name="studentId"
-                label="Student"
-                rules={[{ required: true, message: "Please select a student." }]}
-              >
-                <Select
-                  placeholder="Select student"
-                  options={studentOptions}
-                  disabled={studentOptions.length === 0}
-                />
-              </Form.Item>
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <SButton type="button" color="secondary" onClick={handleCloseModal}>
-                Cancel
-              </SButton>
-              <SButton type="submit" color="primary" loading={isCreatingThread}>
-                Create Thread
-              </SButton>
-            </div>
-          </Form>
-        </SModal>
-      ) : null}
     </>
   );
 }

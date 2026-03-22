@@ -5,6 +5,19 @@ const threadInclude = {
     class: {
         include: {
             course: true,
+            enrollments: {
+                include: {
+                    student: {
+                        include: {
+                            user: {
+                                include: {
+                                    profile: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         },
     },
     teacher: {
@@ -70,9 +83,25 @@ const getThreadsByTeacherUserId = async (userId: string) => {
 const getThreadsByStudentUserId = async (userId: string) => {
     return await prisma.messageThread.findMany({
         where: {
-            student: {
-                userId,
-            },
+            OR: [
+                {
+                    student: {
+                        userId,
+                    },
+                },
+                {
+                    studentId: null,
+                    class: {
+                        enrollments: {
+                            some: {
+                                student: {
+                                    userId,
+                                },
+                            },
+                        },
+                    },
+                },
+            ],
         },
         include: threadInclude,
         orderBy: {
@@ -181,6 +210,28 @@ const createThread = async (classId: string, teacherId: string, studentId: strin
     });
 };
 
+const getGroupThreadByClassAndTeacher = async (classId: string, teacherId: string) => {
+    return await prisma.messageThread.findFirst({
+        where: {
+            classId,
+            teacherId,
+            studentId: null,
+        },
+        include: threadInclude,
+    });
+};
+
+const createGroupThread = async (classId: string, teacherId: string) => {
+    return await prisma.messageThread.create({
+        data: {
+            classId,
+            teacherId,
+            studentId: null,
+        },
+        include: threadInclude,
+    });
+};
+
 const sendMessage = async (threadId: string, senderUserId: string, content: string, imageUrl?: string, attachments?: unknown) => {
     return await prisma.$transaction(async (tx) => {
         await tx.message.create({
@@ -223,6 +274,8 @@ const messageRepo = {
     getThreadByUnique,
     getThreadById,
     createThread,
+    getGroupThreadByClassAndTeacher,
+    createGroupThread,
     sendMessage,
 };
 

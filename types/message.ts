@@ -2,6 +2,9 @@ export interface IMessageItem {
     id: string;
     senderUserId: string;
     senderName: string;
+    senderUsername: string;
+    senderEmail: string;
+    senderProfileUrl?: string;
     senderRole: "ADMIN" | "STUDENT" | "TEACHER";
     content: string;
     attachments: IMessageAttachment[];
@@ -27,8 +30,10 @@ export interface IMessageThreadItem {
     courseCode: string;
     teacherId: string;
     teacherName: string;
-    studentId: string;
+    studentId: string | null;
     studentName: string;
+    isGroup: boolean;
+    memberCount: number;
     updatedAt: string;
     lastMessagePreview: string;
     messages: IMessageItem[];
@@ -102,8 +107,10 @@ export class MessageThreadResponse implements IMessageThreadItem {
     courseCode: string;
     teacherId: string;
     teacherName: string;
-    studentId: string;
+    studentId: string | null;
     studentName: string;
+    isGroup: boolean;
+    memberCount: number;
     updatedAt: string;
     lastMessagePreview: string;
     messages: IMessageItem[];
@@ -118,6 +125,8 @@ export class MessageThreadResponse implements IMessageThreadItem {
         this.teacherName = data.teacherName;
         this.studentId = data.studentId;
         this.studentName = data.studentName;
+        this.isGroup = data.isGroup;
+        this.memberCount = data.memberCount;
         this.updatedAt = data.updatedAt;
         this.lastMessagePreview = data.lastMessagePreview;
         this.messages = (data.messages ?? []).map((message) => ({

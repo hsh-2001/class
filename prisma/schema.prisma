@@ -18,16 +18,16 @@ model School {
 }
 
 model User {
-  id       String       @id @default(uuid())
-  schoolId String       @map("school_id")
-  school   School       @relation(fields: [schoolId], references: [id])
-  username String       @default("")
-  email    String
-  password String
-  role     Role
-  profile  UserProfile?
-  student  Student?
-  teacher  Teacher?
+  id           String       @id @default(uuid())
+  schoolId     String       @map("school_id")
+  school       School       @relation(fields: [schoolId], references: [id])
+  username     String       @default("")
+  email        String
+  password     String
+  role         Role
+  profile      UserProfile?
+  student      Student?
+  teacher      Teacher?
   sentMessages Message[]
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -49,12 +49,12 @@ enum Gender {
 }
 
 model UserProfile {
-  id        String  @id @default(uuid())
-  userId    String  @unique @map("user_id")
-  firstName String  @map("first_name")
-  lastName  String  @map("last_name")
-  phone     String?
-  gender    Gender
+  id          String  @id @default(uuid())
+  userId      String  @unique @map("user_id")
+  firstName   String  @map("first_name")
+  lastName    String  @map("last_name")
+  phone       String?
+  gender      Gender
   profile_url String? @map("profile_url")
 
   user User @relation(fields: [userId], references: [id])
@@ -68,7 +68,7 @@ model Student {
 
   user User @relation(fields: [userId], references: [id])
 
-  enrollments Enrollment[]
+  enrollments    Enrollment[]
   messageThreads MessageThread[]
 
   @@map("students")
@@ -80,7 +80,7 @@ model Teacher {
 
   user User @relation(fields: [userId], references: [id])
 
-  classes Class[]
+  classes        Class[]
   messageThreads MessageThread[]
 
   @@map("teachers")
@@ -125,12 +125,12 @@ model Class {
   course  Course  @relation(fields: [courseId], references: [id])
   teacher Teacher @relation(fields: [teacherId], references: [id])
 
-  enrollments Enrollment[]
-  lessons     Lesson[]
-  assignments Assignment[]
+  enrollments    Enrollment[]
+  lessons        Lesson[]
+  assignments    Assignment[]
   messageThreads MessageThread[]
-  school      School?      @relation(fields: [schoolId], references: [id])
-  schoolId    String?
+  school         School?         @relation(fields: [schoolId], references: [id])
+  schoolId       String?
 
   @@map("classes")
 }
@@ -143,7 +143,7 @@ model Enrollment {
   createdAt DateTime @default(now()) @map("created_at")
 
   student Student @relation(fields: [studentId], references: [id])
-  class   Class   @relation(fields: [classId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, classId])
   @@index([studentId])
@@ -159,7 +159,7 @@ model Lesson {
   videoUrl  String?  @map("video_url")
   createdAt DateTime @default(now()) @map("created_at")
 
-  class Class @relation(fields: [classId], references: [id])
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@map("lessons")
 }
@@ -171,7 +171,7 @@ model Assignment {
   dueDate   DateTime @map("due_date")
   createdAt DateTime @default(now()) @map("created_at")
 
-  class Class @relation(fields: [classId], references: [id])
+  class Class @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@map("assignments")
 }
@@ -180,13 +180,13 @@ model MessageThread {
   id        String   @id @default(uuid())
   classId   String   @map("class_id")
   teacherId String   @map("teacher_id")
-  studentId String   @map("student_id")
+  studentId String?  @map("student_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  class    Class    @relation(fields: [classId], references: [id])
-  teacher  Teacher  @relation(fields: [teacherId], references: [id])
-  student  Student  @relation(fields: [studentId], references: [id])
+  class    Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacher  Teacher   @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  student  Student?  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   messages Message[]
 
   @@unique([classId, teacherId, studentId])
@@ -197,16 +197,16 @@ model MessageThread {
 }
 
 model Message {
-  id           String        @id @default(uuid())
-  threadId     String        @map("thread_id")
-  senderUserId String        @map("sender_user_id")
-  content      String        @default("")
-  imageUrl     String?       @map("image_url")
-  attachments  Json?         @map("attachments")
-  createdAt    DateTime      @default(now()) @map("created_at")
+  id           String   @id @default(uuid())
+  threadId     String   @map("thread_id")
+  senderUserId String   @map("sender_user_id")
+  content      String   @default("")
+  imageUrl     String?  @map("image_url")
+  attachments  Json?    @map("attachments")
+  createdAt    DateTime @default(now()) @map("created_at")
 
-  thread     MessageThread @relation(fields: [threadId], references: [id])
-  senderUser User          @relation(fields: [senderUserId], references: [id])
+  thread     MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  senderUser User          @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
 
   @@index([threadId])
   @@index([senderUserId])

@@ -1,5 +1,6 @@
 import studentRepo from "@/repositories/student.repo";
 import type { Gender } from "@/prisma/generated/enums";
+import messageService from "@/services/message.service";
 import { IStudentCourseEnrollmentItem } from "@/types/enrollment";
 import { IProfile, IUpdateProfileDTO } from "@/types/profile";
 
@@ -68,6 +69,8 @@ const enrollInCourse = async (userId: string, classId: string) => {
     }
 
     await studentRepo.createEnrollment(student.id, classId);
+    const groupThread = await messageService.ensureClassGroupThreadForClass(classId);
+    await messageService.notifyRealtimeParticipants(groupThread.id);
     return await studentRepo.getAvailableCourseEnrollments(student.id, student.user.schoolId);
 }
 

@@ -4,7 +4,6 @@ import messageRepo from "@/repositories/message.repo";
 import {
     ICreateMessageThreadDTO,
     IMessageAttachment,
-    IMessageClassOption,
     IMessageItem,
     IMessagePageData,
     IMessageSocketUser,
@@ -111,6 +110,9 @@ const mapMessageItem = (
         id: item.id,
         senderUserId: item.senderUserId,
         senderName: getDisplayName(item.senderUser),
+        senderUsername: item.senderUser.username,
+        senderEmail: item.senderUser.email,
+        senderProfileUrl: item.senderUser.profile?.profile_url ?? undefined,
         senderRole: item.senderUser.role,
         content: item.content,
         attachments,
@@ -124,6 +126,8 @@ const mapThreadItem = (
 ) => {
     const messages = item.messages.map(mapMessageItem);
     const lastMessage = messages[messages.length - 1];
+    const isGroup = !item.studentId;
+    const memberCount = item.class.enrollments.length + 1;
 
     return {
         id: item.id,
@@ -134,24 +138,14 @@ const mapThreadItem = (
         teacherId: item.teacherId,
         teacherName: getDisplayName(item.teacher.user),
         studentId: item.studentId,
-        studentName: getDisplayName(item.student.user),
+        studentName: isGroup ? "Class Group" : getDisplayName(item.student!.user),
+        isGroup,
+        memberCount,
         updatedAt: item.updatedAt.toISOString(),
         lastMessagePreview: getLastMessagePreview(lastMessage),
         messages,
     };
 };
-
-const mapTeacherClassOptions = (
-    items: Awaited<ReturnType<typeof messageRepo.getTeacherClassesWithStudents>>,
-): IMessageClassOption[] =>
-    items.map((item) => ({
-        value: item.id,
-        label: `${item.name} - ${item.course.name} (${item.course.code})`,
-        students: item.enrollments.map((enrollment) => ({
-            value: enrollment.student.id,
-            label: getDisplayName(enrollment.student.user),
-        })),
-    }));
 
 const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePageData> => {
     if (user.role === "ADMIN") {
@@ -166,16 +160,13 @@ const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePag
     }
 
     if (user.role === "TEACHER") {
-        const [threads, classOptions] = await Promise.all([
-            messageRepo.getThreadsByTeacherUserId(user.id),
-            messageRepo.getTeacherClassesWithStudents(user.id),
-        ]);
+        const threads = await messageRepo.getThreadsByTeacherUserId(user.id);
 
         return {
             currentUserId: user.id,
-            canCreateThread: true,
+            canCreateThread: false,
             canSendMessage: true,
-            classOptions: mapTeacherClassOptions(classOptions),
+            classOptions: [],
             threads: threads.map(mapThreadItem),
         };
     }
@@ -203,12 +194,38 @@ const notifyRealtimeParticipants = async (threadId: string) => {
     });
     emitMessagePageDataToUser(thread.teacher.userId, teacherPageData);
 
-    const studentPageData = await getMessagePageData({
-        id: thread.student.userId,
-        role: thread.student.user.role,
-        schoolId: thread.student.user.schoolId,
-    });
-    emitMessagePageDataToUser(thread.student.userId, studentPageData);
+    if (thread.student) {
+        const studentPageData = await getMessagePageData({
+            id: thread.student.userId,
+            role: thread.student.user.role,
+            schoolId: thread.student.user.schoolId,
+        });
+        emitMessagePageDataToUser(thread.student.userId, studentPageData);
+        return;
+    }
+
+    await Promise.all(thread.class.enrollments.map(async (enrollment) => {
+        const studentPageData = await getMessagePageData({
+            id: enrollment.student.userId,
+            role: enrollment.student.user.role,
+            schoolId: enrollment.student.user.schoolId,
+        });
+        emitMessagePageDataToUser(enrollment.student.userId, studentPageData);
+    }));
+};
+
+const ensureClassGroupThreadForClass = async (classId: string) => {
+    const classItem = await messageRepo.getClassById(classId);
+    if (!classItem) {
+        throw new Error("CLASS_NOT_FOUND");
+    }
+
+    const existingThread = await messageRepo.getGroupThreadByClassAndTeacher(classItem.id, classItem.teacherId);
+    if (existingThread) {
+        return existingThread;
+    }
+
+    return await messageRepo.createGroupThread(classItem.id, classItem.teacherId);
 };
 
 const createThreadForTeacher = async (user: MessageUserContext, request: ICreateMessageThreadDTO) => {
@@ -284,8 +301,17 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         throw new Error("UNAUTHORIZED");
     }
 
-    if (user.role === "STUDENT" && thread.student.userId !== user.id) {
-        throw new Error("UNAUTHORIZED");
+    if (user.role === "STUDENT") {
+        if (thread.student && thread.student.userId !== user.id) {
+            throw new Error("UNAUTHORIZED");
+        }
+
+        if (!thread.student) {
+            const isEnrolled = thread.class.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+            if (!isEnrolled) {
+                throw new Error("UNAUTHORIZED");
+            }
+        }
     }
 
     await messageRepo.sendMessage(request.threadId, user.id, content, imageUrl, attachments);
@@ -298,6 +324,7 @@ const messageService = {
     createThreadForTeacher,
     mapUserContext,
     notifyRealtimeParticipants,
+    ensureClassGroupThreadForClass,
     sendMessageForUser,
 };
 

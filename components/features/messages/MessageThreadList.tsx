@@ -21,7 +21,9 @@ export default function MessageThreadList({
         <div className="space-y-1.5">
             {threads.map((thread) => {
                 const isActive = thread.id === selectedThreadId;
-                const initials = `${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase();
+                const initials = thread.isGroup
+                    ? thread.className.slice(0, 2).toUpperCase()
+                    : `${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase();
 
                 return (
                     <button
@@ -44,10 +46,12 @@ export default function MessageThreadList({
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
                                         <h3 className="truncate text-[13px] font-semibold text-slate-950 dark:text-slate-50">
-                                            {thread.studentName}
+                                            {thread.isGroup ? thread.className : thread.studentName}
                                         </h3>
                                         <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                            {thread.teacherName} • {thread.courseCode}
+                                            {thread.isGroup
+                                                ? `${thread.memberCount} members • ${thread.courseCode}`
+                                                : `${thread.teacherName} • ${thread.courseCode}`}
                                         </p>
                                     </div>
                                     <span className="shrink-0 text-[11px] text-slate-400 dark:text-slate-500">

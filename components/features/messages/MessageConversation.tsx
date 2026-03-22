@@ -27,8 +27,6 @@ interface MessageConversationProps {
     onBackToThreads?: () => void;
 }
 
-const MESSAGE_ALBUM_WINDOW_MS = 60 * 1000;
-
 const buildMessageRenderGroups = (messages: MessageThreadResponse["messages"]): MessageRenderGroup[] => {
     const groups: MessageRenderGroup[] = [];
 
@@ -48,43 +46,18 @@ const buildMessageRenderGroups = (messages: MessageThreadResponse["messages"]): 
                 }]
                 : [];
         const fileAttachments = attachments.filter((attachment) => attachment.kind === "FILE");
-        const isImageOnlyMessage = normalizedImageAttachments.length > 0 && fileAttachments.length === 0 && !content.trim();
-        const previousGroup = groups[groups.length - 1];
-
-        if (!isImageOnlyMessage || !previousGroup) {
             groups.push({
                 id: message.id,
                 senderUserId: message.senderUserId,
+                senderName: message.senderName,
+                senderUsername: message.senderUsername,
+                senderEmail: message.senderEmail,
+                senderProfileUrl: message.senderProfileUrl,
                 content,
                 imageAttachments: normalizedImageAttachments,
                 fileAttachments,
-                latestCreatedAt: message.createdAt,
-            });
-            return;
-        }
-
-        const createdAtDiff = Math.abs(
-            new Date(message.createdAt).getTime() - new Date(previousGroup.latestCreatedAt).getTime(),
-        );
-        const canAppendToAlbum = previousGroup.senderUserId === message.senderUserId
-            && previousGroup.fileAttachments.length === 0
-            && !previousGroup.content.trim()
-            && createdAtDiff <= MESSAGE_ALBUM_WINDOW_MS;
-
-        if (!canAppendToAlbum) {
-            groups.push({
-                id: message.id,
-                senderUserId: message.senderUserId,
-                content,
-                imageAttachments: normalizedImageAttachments,
-                fileAttachments,
-                latestCreatedAt: message.createdAt,
-            });
-            return;
-        }
-
-        previousGroup.imageAttachments.push(...normalizedImageAttachments);
-        previousGroup.latestCreatedAt = message.createdAt;
+            latestCreatedAt: message.createdAt,
+        });
     });
 
     return groups;
@@ -160,14 +133,18 @@ export default function MessageConversation({
                 <div className="flex items-center justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                         <Avatar size={40} className="bg-slate-900 text-sm text-white dark:bg-white dark:text-black">
-                            {`${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase()}
+                            {thread.isGroup
+                                ? thread.className.slice(0, 2).toUpperCase()
+                                : `${thread.teacherName[0] ?? ""}${thread.studentName[0] ?? ""}`.toUpperCase()}
                         </Avatar>
                         <div className="min-w-0">
                             <h2 className="truncate text-[15px] font-semibold text-slate-950 dark:text-slate-50">
-                                {thread.studentName}
+                                {thread.isGroup ? thread.className : thread.studentName}
                             </h2>
                             <p className="truncate text-[12px] text-slate-500 dark:text-slate-400">
-                                {thread.teacherName} • {thread.className} • {thread.courseCode}
+                                {thread.isGroup
+                                    ? `${thread.memberCount} members • ${thread.courseName} • ${thread.courseCode}`
+                                    : `${thread.teacherName} • ${thread.className} • ${thread.courseCode}`}
                             </p>
                         </div>
                     </div>
@@ -194,6 +171,7 @@ export default function MessageConversation({
                     <div>
                         <MessageBubbleList
                             currentUserId={currentUserId}
+                            isGroupThread={thread.isGroup}
                             messageGroups={messageGroups}
                             onOpenAlbum={(attachments) => {
                                 setActiveAlbum(attachments);
