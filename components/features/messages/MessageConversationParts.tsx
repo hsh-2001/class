@@ -204,47 +204,77 @@ export function MessageComposer({
         return null;
     }
 
+    const selectedImageAttachments = selectedAttachments.filter((attachment) => attachment.kind === "IMAGE" && attachment.previewUrl);
+    const selectedFileAttachments = selectedAttachments.filter((attachment) => attachment.kind === "FILE" || !attachment.previewUrl);
+
     return (
         <div className="border-t border-black/10 bg-white/80 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
             <div className="grid gap-2">
                 {selectedAttachments.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {selectedAttachments.map((attachment) => (
-                            <div
-                                key={attachment.localId}
-                                className="relative min-w-0 overflow-hidden rounded-2xl border border-black/10 bg-black/[0.03] p-2 dark:border-white/10 dark:bg-white/[0.04]"
-                            >
-                                {attachment.kind === "IMAGE" && attachment.previewUrl ? (
-                                    <Image
-                                        src={attachment.previewUrl}
-                                        alt={attachment.name}
-                                        width={160}
-                                        height={160}
-                                        className="mb-2 h-28 w-full rounded-[1rem] object-cover sm:h-auto sm:max-h-40"
-                                    />
-                                ) : (
-                                    <div className="mb-2 flex h-28 items-center justify-center rounded-[1rem] bg-white/70 dark:bg-slate-950/40 sm:h-24">
-                                        <Paperclip className="h-5 w-5 text-slate-500 dark:text-slate-300" />
+                    <div className="grid gap-2">
+                        {selectedImageAttachments.length > 0 ? (
+                            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                                {selectedImageAttachments.map((attachment) => (
+                                    <div
+                                        key={attachment.localId}
+                                        className="relative h-36 w-32 shrink-0 overflow-hidden rounded-[1.25rem] border border-black/10 bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.04] sm:h-40 sm:w-36"
+                                    >
+                                        <Image
+                                            src={attachment.previewUrl ?? ""}
+                                            alt={attachment.name}
+                                            width={320}
+                                            height={320}
+                                            className="h-full w-full object-cover"
+                                        />
+                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent p-2.5">
+                                            <p className="max-w-[85%] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] font-medium text-white">
+                                                {attachment.name}
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemoveSelectedAttachment(attachment.localId)}
+                                            className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-sm"
+                                            aria-label={`Remove ${attachment.name}`}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
                                     </div>
-                                )}
-                                <div className="min-w-0 pr-8">
-                                    <p className="overflow-hidden break-all text-[12px] font-medium leading-4 text-slate-800 dark:text-slate-100">
-                                        {attachment.name}
-                                    </p>
-                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                        {formatAttachmentSize(attachment.size)}
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => onRemoveSelectedAttachment(attachment.localId)}
-                                    className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
-                                    aria-label={`Remove ${attachment.name}`}
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+                                ))}
                             </div>
-                        ))}
+                        ) : null}
+                        {selectedFileAttachments.length > 0 ? (
+                            <div className="grid gap-2">
+                                {selectedFileAttachments.map((attachment) => (
+                                    <div
+                                        key={attachment.localId}
+                                        className="relative min-w-0 overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] px-3 py-2.5 dark:border-white/10 dark:bg-white/[0.04]"
+                                    >
+                                        <div className="flex items-start gap-2.5 pr-10">
+                                            <div className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/80 dark:bg-slate-900/60">
+                                                <Paperclip className="h-4 w-4 text-slate-500 dark:text-slate-300" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="overflow-hidden break-all text-[12px] font-medium leading-4 text-slate-800 dark:text-slate-100">
+                                                    {attachment.name}
+                                                </p>
+                                                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    {formatAttachmentSize(attachment.size)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => onRemoveSelectedAttachment(attachment.localId)}
+                                            className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                                            aria-label={`Remove ${attachment.name}`}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : null}
                     </div>
                 ) : null}
                 <div className="flex items-end gap-2">

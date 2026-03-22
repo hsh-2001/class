@@ -17,7 +17,11 @@ const postUpload = async (formData: FormData) => {
         });
         return uploadResponse.data;
     } catch (error) {
-        console.error("Error uploading file:", error);
+        if (axios.isAxiosError(error)) {
+            throw new Error(error.response?.data?.error || error.message || "Upload request failed.");
+        }
+
+        throw new Error("Upload request failed.");
     }
 };
 
@@ -35,7 +39,7 @@ export const uploadMany = async (path: string, files: File[]) => {
 
     const formData = new FormData();
     files.forEach((file) => {
-        formData.append("files", file);
+        formData.append("file", file);
     });
     formData.append("path", path);
 
