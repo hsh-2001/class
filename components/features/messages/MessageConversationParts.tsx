@@ -259,20 +259,20 @@ export function MessageBubbleList({
                                     trigger="hover"
                                     placement="topLeft"
                                     content={(
-                                        <div className="min-w-52 space-y-2">
+                                        <div className="min-w-52 space-y-2 rounded-[0.9rem] border border-black/10 bg-white/95 p-3 text-slate-900 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-100">
                                             <div>
-                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
                                                     Username
                                                 </p>
-                                                <p className="text-[13px] font-medium text-slate-900">
+                                                <p className="text-[13px] font-medium text-slate-900 dark:text-slate-100">
                                                     {messageGroup.senderUsername || "-"}
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
                                                     Email
                                                 </p>
-                                                <p className="break-all text-[13px] font-medium text-slate-900">
+                                                <p className="break-all text-[13px] font-medium text-slate-900 dark:text-slate-100">
                                                     {messageGroup.senderEmail}
                                                 </p>
                                             </div>
