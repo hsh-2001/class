@@ -50,6 +50,15 @@ const threadInclude = {
     },
     messages: {
         include: {
+            replyToMessage: {
+                include: {
+                    senderUser: {
+                        include: {
+                            profile: true,
+                        },
+                    },
+                },
+            },
             senderUser: {
                 include: {
                     profile: true,
@@ -274,12 +283,20 @@ const getUserById = async (userId: string) => {
     });
 };
 
-const sendMessage = async (threadId: string, senderUserId: string, content: string, imageUrl?: string, attachments?: unknown) => {
+const sendMessage = async (
+    threadId: string,
+    senderUserId: string,
+    content: string,
+    imageUrl?: string,
+    attachments?: unknown,
+    replyToMessageId?: string,
+) => {
     return await prisma.$transaction(async (tx) => {
         await tx.message.create({
             data: {
                 threadId,
                 senderUserId,
+                replyToMessageId,
                 content,
                 imageUrl,
                 attachments: attachments as Prisma.InputJsonValue | undefined,

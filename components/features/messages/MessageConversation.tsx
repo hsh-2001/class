@@ -5,7 +5,7 @@ import {
     MessageComposer,
     MessageRenderGroup,
 } from "@/components/features/messages/MessageConversationParts";
-import { IMessageAttachment, MessageThreadResponse } from "@/types/message";
+import { IMessageAttachment, IMessageReplyPreview, MessageThreadResponse } from "@/types/message";
 import { ArrowLeftRight } from "lucide-react";
 import { Avatar, Empty } from "antd";
 import { useEffect, useRef, useState } from "react";
@@ -18,9 +18,12 @@ interface MessageConversationProps {
     canSendMessage: boolean;
     isSendingMessage: boolean;
     messageContent: string;
+    replyTargetMessage: IMessageReplyPreview | null;
     selectedAttachments: DraftMessageAttachment[];
     selectedAttachmentAccept: string;
     onChangeMessageContent: (value: string) => void;
+    onReplyToMessage: (message: IMessageReplyPreview) => void;
+    onCancelReply: () => void;
     onRemoveSelectedAttachment: (localId: string) => void;
     onSelectMessageFiles: (files: FileList | null) => void;
     onSendMessage: () => void;
@@ -46,16 +49,17 @@ const buildMessageRenderGroups = (messages: MessageThreadResponse["messages"]): 
                 }]
                 : [];
         const fileAttachments = attachments.filter((attachment) => attachment.kind === "FILE");
-            groups.push({
-                id: message.id,
-                senderUserId: message.senderUserId,
-                senderName: message.senderName,
-                senderUsername: message.senderUsername,
-                senderEmail: message.senderEmail,
-                senderProfileUrl: message.senderProfileUrl,
-                content,
-                imageAttachments: normalizedImageAttachments,
-                fileAttachments,
+        groups.push({
+            id: message.id,
+            senderUserId: message.senderUserId,
+            senderName: message.senderName,
+            senderUsername: message.senderUsername,
+            senderEmail: message.senderEmail,
+            senderProfileUrl: message.senderProfileUrl,
+            content,
+            imageAttachments: normalizedImageAttachments,
+            fileAttachments,
+            replyToMessage: message.replyToMessage,
             latestCreatedAt: message.createdAt,
         });
     });
@@ -71,9 +75,12 @@ export default function MessageConversation({
     canSendMessage,
     isSendingMessage,
     messageContent,
+    replyTargetMessage,
     selectedAttachments,
     selectedAttachmentAccept,
     onChangeMessageContent,
+    onReplyToMessage,
+    onCancelReply,
     onRemoveSelectedAttachment,
     onSelectMessageFiles,
     onSendMessage,
@@ -84,6 +91,7 @@ export default function MessageConversation({
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [activeAlbum, setActiveAlbum] = useState<IMessageAttachment[] | null>(null);
     const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
+    const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
     useEffect(() => {
         const isDesktopViewport = typeof window !== "undefined"
@@ -116,6 +124,35 @@ export default function MessageConversation({
             window.clearTimeout(timeoutId);
         };
     }, [autoScrollKey, isVisible, thread]);
+
+    useEffect(() => {
+        if (!highlightedMessageId) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setHighlightedMessageId((current) => current === highlightedMessageId ? null : current);
+        }, 1800);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [highlightedMessageId]);
+
+    const handleJumpToMessage = (messageId: string) => {
+        const container = messageContainerRef.current;
+        const target = document.getElementById(`message-${messageId}`);
+
+        if (!container || !target) {
+            return;
+        }
+
+        target.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+        });
+        setHighlightedMessageId(messageId);
+    };
 
     if (!thread) {
         return (
@@ -173,6 +210,9 @@ export default function MessageConversation({
                             currentUserId={currentUserId}
                             isGroupThread={thread.isGroup}
                             messageGroups={messageGroups}
+                            highlightedMessageId={highlightedMessageId}
+                            onJumpToMessage={handleJumpToMessage}
+                            onReplyToMessage={onReplyToMessage}
                             onOpenAlbum={(attachments) => {
                                 setActiveAlbum(attachments);
                                 setActiveAlbumIndex(0);
@@ -188,6 +228,8 @@ export default function MessageConversation({
                 fileInputRef={fileInputRef}
                 isSendingMessage={isSendingMessage}
                 messageContent={messageContent}
+                replyTargetMessage={replyTargetMessage}
+                onCancelReply={onCancelReply}
                 onChangeMessageContent={onChangeMessageContent}
                 onRemoveSelectedAttachment={onRemoveSelectedAttachment}
                 onSelectMessageFiles={onSelectMessageFiles}

@@ -26,6 +26,7 @@ export default function MessagesPage() {
     onCreateThread,
     onSelectMessageFiles,
     onSendMessage,
+    replyTargetMessage,
     removeSelectedAttachment,
     selectedAttachments,
     selectedAttachmentAccept,
@@ -33,6 +34,7 @@ export default function MessagesPage() {
     selectedThreadId,
     setIsModalVisible,
     setMessageContent,
+    setReplyTargetMessage,
     setSelectedThreadId,
     threads,
   } = useMessages();
@@ -148,9 +150,12 @@ export default function MessagesPage() {
                 canSendMessage={canSendMessage}
                 isSendingMessage={isSendingMessage}
                 messageContent={messageContent}
+                replyTargetMessage={replyTargetMessage}
                 selectedAttachments={selectedAttachments}
                 selectedAttachmentAccept={selectedAttachmentAccept}
                 onChangeMessageContent={setMessageContent}
+                onReplyToMessage={setReplyTargetMessage}
+                onCancelReply={() => setReplyTargetMessage(null)}
                 onRemoveSelectedAttachment={removeSelectedAttachment}
                 onSelectMessageFiles={onSelectMessageFiles}
                 onSendMessage={onSendMessage}

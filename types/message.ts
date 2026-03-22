@@ -9,7 +9,16 @@ export interface IMessageItem {
     content: string;
     attachments: IMessageAttachment[];
     imageUrl?: string;
+    replyToMessage?: IMessageReplyPreview;
     createdAt: string;
+}
+
+export interface IMessageReplyPreview {
+    id: string;
+    senderUserId: string;
+    senderName: string;
+    content: string;
+    attachments: IMessageAttachment[];
 }
 
 export interface IMessageMemberOption {
@@ -81,6 +90,7 @@ export interface ISendMessageDTO {
     threadId: string;
     content: string;
     attachments?: IMessageAttachment[];
+    replyToMessageId?: string;
 }
 
 export const MESSAGE_ATTACHMENT_MAX_SIZE = 3 * 1024 * 1024;
@@ -158,6 +168,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
             content: message.content ?? "",
             attachments: Array.isArray(message.attachments) ? message.attachments : [],
             imageUrl: message.imageUrl ?? undefined,
+            replyToMessage: message.replyToMessage,
         }));
     }
 }

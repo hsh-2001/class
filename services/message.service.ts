@@ -106,6 +106,15 @@ const mapMessageItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number]["messages"][number],
 ): IMessageItem => {
     const attachments = normalizeAttachments(item.attachments, item.imageUrl);
+    const replyToMessage = item.replyToMessage
+        ? {
+            id: item.replyToMessage.id,
+            senderUserId: item.replyToMessage.senderUserId,
+            senderName: getDisplayName(item.replyToMessage.senderUser),
+            content: item.replyToMessage.content,
+            attachments: normalizeAttachments(item.replyToMessage.attachments, item.replyToMessage.imageUrl),
+        }
+        : undefined;
 
     return {
         id: item.id,
@@ -118,6 +127,7 @@ const mapMessageItem = (
         content: item.content,
         attachments,
         imageUrl: item.imageUrl ?? undefined,
+        replyToMessage,
         createdAt: item.createdAt.toISOString(),
     };
 };
@@ -367,6 +377,13 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         throw new Error("THREAD_NOT_FOUND");
     }
 
+    if (request.replyToMessageId) {
+        const replyTarget = thread.messages.find((message) => message.id === request.replyToMessageId);
+        if (!replyTarget) {
+            throw new Error("REPLY_TARGET_NOT_FOUND");
+        }
+    }
+
     if (thread.participantOneUserId || thread.participantTwoUserId) {
         if (thread.participantOneUserId !== user.id && thread.participantTwoUserId !== user.id) {
             throw new Error("UNAUTHORIZED");
@@ -390,7 +407,14 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         }
     }
 
-    await messageRepo.sendMessage(request.threadId, user.id, content, imageUrl, attachments);
+    await messageRepo.sendMessage(
+        request.threadId,
+        user.id,
+        content,
+        imageUrl,
+        attachments,
+        request.replyToMessageId,
+    );
     await notifyRealtimeParticipants(request.threadId);
     return await getMessagePageData(user);
 };

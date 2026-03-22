@@ -6,6 +6,7 @@ import {
     ICreateMessageThreadDTO,
     IMessageAttachment,
     IMessageMemberOption,
+    IMessageReplyPreview,
     IMessagePageData,
     MESSAGE_ATTACHMENT_ACCEPT,
     MESSAGE_ATTACHMENT_MAX_SIZE,
@@ -76,6 +77,7 @@ export default function useMessages() {
     const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
     const [messageContent, setMessageContent] = useState("");
     const [selectedAttachments, setSelectedAttachments] = useState<DraftMessageAttachment[]>([]);
+    const [replyTargetMessage, setReplyTargetMessage] = useState<IMessageReplyPreview | null>(null);
     const [canCreateThread, setCanCreateThread] = useState(false);
     const [canSendMessage, setCanSendMessage] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -173,6 +175,17 @@ export default function useMessages() {
         () => threads.find((item) => item.id === selectedThreadId) ?? null,
         [selectedThreadId, threads],
     );
+
+    useEffect(() => {
+        if (!selectedThread) {
+            setReplyTargetMessage(null);
+            return;
+        }
+
+        if (replyTargetMessage && !selectedThread.messages.some((message) => message.id === replyTargetMessage.id)) {
+            setReplyTargetMessage(null);
+        }
+    }, [replyTargetMessage, selectedThread]);
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
@@ -296,11 +309,13 @@ export default function useMessages() {
                 threadId: selectedThreadId,
                 content: messageContent,
                 attachments: uploadedAttachments,
+                replyToMessageId: replyTargetMessage?.id,
             };
             const response = await callSendMessage(payload);
             if (response.data.success) {
                 syncPageData(response.data.data as IMessagePageData);
                 setMessageContent("");
+                setReplyTargetMessage(null);
                 clearSelectedAttachments();
             }
         } catch (error: unknown) {
@@ -324,6 +339,7 @@ export default function useMessages() {
         isSendingMessage,
         memberOptions,
         messageContent,
+        replyTargetMessage,
         clearSelectedAttachments,
         onSelectMessageFiles,
         onCreateThread,
@@ -335,6 +351,7 @@ export default function useMessages() {
         selectedThreadId,
         setIsModalVisible,
         setMessageContent,
+        setReplyTargetMessage,
         setSelectedThreadId,
         threads,
     };

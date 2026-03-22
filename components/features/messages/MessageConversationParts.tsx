@@ -1,10 +1,10 @@
 import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
-import { IMessageAttachment } from "@/types/message";
-import { FileText, Paperclip, X } from "lucide-react";
+import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
+import { CornerUpLeft, FileText, Paperclip, X } from "lucide-react";
 import { Avatar, Input, Popover, Typography } from "antd";
 import Image from "next/image";
-import { RefObject } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 export type DraftMessageAttachment = IMessageAttachment & {
     localId: string;
@@ -21,8 +21,61 @@ export type MessageRenderGroup = {
     content: string;
     imageAttachments: IMessageAttachment[];
     fileAttachments: IMessageAttachment[];
+    replyToMessage?: IMessageReplyPreview;
     latestCreatedAt: string;
 };
+
+const getReplyPreviewText = (replyToMessage?: IMessageReplyPreview) => {
+    if (!replyToMessage) {
+        return "";
+    }
+
+    if (replyToMessage.content.trim()) {
+        return replyToMessage.content;
+    }
+
+    if (replyToMessage.attachments.length === 1) {
+        return replyToMessage.attachments[0]?.kind === "IMAGE"
+            ? "Photo"
+            : `File: ${replyToMessage.attachments[0]?.name ?? "Attachment"}`;
+    }
+
+    if (replyToMessage.attachments.length > 1) {
+        return `${replyToMessage.attachments.length} attachments`;
+    }
+
+    return "Message";
+};
+
+function ReplyPreviewCard({
+    replyToMessage,
+    isOwnMessage,
+    onClick,
+}: {
+    replyToMessage: IMessageReplyPreview;
+    isOwnMessage: boolean;
+    onClick?: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className={[
+                "mb-2 block min-w-0 w-full overflow-hidden rounded-[1rem] border-l-4 px-3 py-2 text-left transition-colors",
+                isOwnMessage
+                    ? "border-l-amber-300 border-r-white/10 border-y-white/10 bg-white/10 text-white/90 hover:bg-white/[0.16] dark:border-r-white/10 dark:border-y-white/10 dark:bg-white/[0.08] dark:hover:bg-white/[0.14]"
+                    : "border-l-sky-500 border-r-black/8 border-y-black/8 bg-black/[0.03] text-slate-700 hover:bg-black/[0.06] dark:border-r-white/8 dark:border-y-white/8 dark:bg-white/[0.05] dark:text-slate-200 dark:hover:bg-white/[0.09]",
+            ].join(" ")}
+        >
+            <p className="truncate text-[11px] font-semibold tracking-[0.03em]">
+                {replyToMessage.senderName}
+            </p>
+            <p className="mt-1 line-clamp-2 break-words text-[12px] leading-5 opacity-80">
+                {getReplyPreviewText(replyToMessage)}
+            </p>
+        </button>
+    );
+}
 
 export const formatAttachmentSize = (size: number) => {
     if (size >= 1024 * 1024) {
@@ -96,13 +149,49 @@ export function MessageBubbleList({
     currentUserId,
     isGroupThread,
     messageGroups,
+    highlightedMessageId,
+    onJumpToMessage,
+    onReplyToMessage,
     onOpenAlbum,
 }: {
     currentUserId: string;
     isGroupThread: boolean;
     messageGroups: MessageRenderGroup[];
+    highlightedMessageId?: string | null;
+    onJumpToMessage: (messageId: string) => void;
+    onReplyToMessage: (message: IMessageReplyPreview) => void;
     onOpenAlbum: (attachments: IMessageAttachment[]) => void;
 }) {
+    const [menuState, setMenuState] = useState<{ messageId: string; placement: "left" | "right" } | null>(null);
+    const longPressTimerRef = useRef<number | null>(null);
+
+    useEffect(() => {
+        const closeMenu = () => setMenuState(null);
+        window.addEventListener("click", closeMenu);
+        window.addEventListener("scroll", closeMenu, true);
+        window.addEventListener("resize", closeMenu);
+
+        return () => {
+            window.removeEventListener("click", closeMenu);
+            window.removeEventListener("scroll", closeMenu, true);
+            window.removeEventListener("resize", closeMenu);
+            if (longPressTimerRef.current) {
+                window.clearTimeout(longPressTimerRef.current);
+            }
+        };
+    }, []);
+
+    const openReplyMenu = (messageId: string, placement: "left" | "right") => {
+        setMenuState({ messageId, placement });
+    };
+
+    const clearLongPressTimer = () => {
+        if (longPressTimerRef.current) {
+            window.clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+        }
+    };
+
     return (
         <>
             {messageGroups.map((messageGroup, index) => {
@@ -117,10 +206,18 @@ export function MessageBubbleList({
                     .slice(0, 2)
                     .map((part) => part[0]?.toUpperCase() ?? "")
                     .join("");
+                const replyPreview: IMessageReplyPreview = {
+                    id: messageGroup.id,
+                    senderUserId: messageGroup.senderUserId,
+                    senderName: messageGroup.senderName,
+                    content: messageGroup.content,
+                    attachments: [...messageGroup.imageAttachments, ...messageGroup.fileAttachments],
+                };
 
                 return (
                     <div
                         key={messageGroup.id}
+                        id={`message-${messageGroup.id}`}
                         className={isOwnMessage ? "flex justify-end pl-10" : "flex justify-start pr-10"}
                     >
                         <div className={`flex max-w-[82%] gap-2 ${isOwnMessage ? "flex-row-reverse" : "flex-row"}`}>
@@ -160,15 +257,43 @@ export function MessageBubbleList({
                             ) : showSenderMeta ? (
                                 <div className="w-8 shrink-0" />
                             ) : null}
-                            <div className="min-w-0 flex-1">
+                            <div className="relative min-w-0 flex-1">
                                 <div
                                     className={[
-                                        "rounded-[1.35rem] mt-1 border p-2 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
+                                        "mt-1 min-w-0 overflow-hidden rounded-[1.35rem] border p-2 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl transition-all duration-500",
+                                        highlightedMessageId === messageGroup.id
+                                            ? "ring-2 ring-amber-400/90 ring-offset-2 ring-offset-transparent"
+                                            : "",
                                         isOwnMessage
                                             ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
                                             : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
                                     ].join(" ")}
+                                    onContextMenu={(event) => {
+                                        event.preventDefault();
+                                        openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left");
+                                    }}
+                                    onTouchStart={(event) => {
+                                        const touch = event.touches[0];
+                                        if (!touch) {
+                                            return;
+                                        }
+
+                                        clearLongPressTimer();
+                                        longPressTimerRef.current = window.setTimeout(() => {
+                                            openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left");
+                                        }, 450);
+                                    }}
+                                    onTouchEnd={clearLongPressTimer}
+                                    onTouchMove={clearLongPressTimer}
+                                    onTouchCancel={clearLongPressTimer}
                                 >
+                                    {messageGroup.replyToMessage ? (
+                                        <ReplyPreviewCard
+                                            replyToMessage={messageGroup.replyToMessage}
+                                            isOwnMessage={isOwnMessage}
+                                            onClick={() => onJumpToMessage(messageGroup.replyToMessage!.id)}
+                                        />
+                                    ) : null}
                                     {messageGroup.imageAttachments.length > 1 ? (
                                         <AlbumPreviewCard
                                             attachments={messageGroup.imageAttachments}
@@ -222,8 +347,32 @@ export function MessageBubbleList({
                                             ))}
                                         </div>
                                     ) : null}
-                                    {messageGroup.content ? <p className="text-[13px] leading-[1.55] tracking-[0.01em]">{messageGroup.content}</p> : null}
+                                    {messageGroup.content ? (
+                                        <p className="break-words text-[13px] leading-[1.55] tracking-[0.01em]">
+                                            {messageGroup.content}
+                                        </p>
+                                    ) : null}
                                 </div>
+                                {menuState?.messageId === messageGroup.id ? (
+                                    <div
+                                        className={[
+                                            "absolute top-full z-50 mt-2 min-w-36 rounded-[1rem] border border-black/10 bg-white/95 p-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95",
+                                            menuState.placement === "right" ? "right-0" : "left-0",
+                                        ].join(" ")}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                onReplyToMessage(replyPreview);
+                                                setMenuState(null);
+                                            }}
+                                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
+                                        >
+                                            <CornerUpLeft className="h-4 w-4" />
+                                            Reply
+                                        </button>
+                                    </div>
+                                ) : null}
                             </div>
                         </div>
                     </div>
@@ -238,6 +387,8 @@ export function MessageComposer({
     fileInputRef,
     isSendingMessage,
     messageContent,
+    replyTargetMessage,
+    onCancelReply,
     onChangeMessageContent,
     onRemoveSelectedAttachment,
     onSelectMessageFiles,
@@ -249,6 +400,8 @@ export function MessageComposer({
     fileInputRef: RefObject<HTMLInputElement | null>;
     isSendingMessage: boolean;
     messageContent: string;
+    replyTargetMessage: IMessageReplyPreview | null;
+    onCancelReply: () => void;
     onChangeMessageContent: (value: string) => void;
     onRemoveSelectedAttachment: (localId: string) => void;
     onSelectMessageFiles: (files: FileList | null) => void;
@@ -266,6 +419,24 @@ export function MessageComposer({
     return (
         <div className="border-t border-black/10 bg-white/80 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
             <div className="grid gap-2">
+                {replyTargetMessage ? (
+                    <div className="relative overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
+                        <p className="pr-8 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+                            Replying to {replyTargetMessage.senderName}
+                        </p>
+                        <p className="mt-1 line-clamp-2 pr-8 text-[12px] text-slate-700 dark:text-slate-200">
+                            {getReplyPreviewText(replyTargetMessage)}
+                        </p>
+                        <button
+                            type="button"
+                            onClick={onCancelReply}
+                            className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                            aria-label="Cancel reply"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                ) : null}
                 {selectedAttachments.length > 0 ? (
                     <div className="grid gap-2">
                         {selectedImageAttachments.length > 0 ? (
@@ -376,9 +547,6 @@ export function MessageComposer({
                         </SButton>
                     </div>
                 </div>
-                <Typography.Text className="!text-[11px] text-slate-500 dark:!text-slate-400">
-                    Press Enter to send, Shift+Enter for a new line. Images and documents up to 3 MB each.
-                </Typography.Text>
             </div>
         </div>
     );

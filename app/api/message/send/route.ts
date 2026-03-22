@@ -15,9 +15,11 @@ export async function POST(request: NextRequest) {
             ? 401
             : message === "THREAD_NOT_FOUND"
                 ? 404
-                : message === "MISSING_FIELDS" || message === "INVALID_ATTACHMENTS" || message === "ATTACHMENT_TOO_LARGE"
-                    ? 400
-                    : 500;
+                : message === "REPLY_TARGET_NOT_FOUND"
+                    ? 404
+                    : message === "MISSING_FIELDS" || message === "INVALID_ATTACHMENTS" || message === "ATTACHMENT_TOO_LARGE"
+                        ? 400
+                        : 500;
         return fail(message, status);
     }
 }
