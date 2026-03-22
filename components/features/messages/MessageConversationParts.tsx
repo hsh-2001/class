@@ -4,6 +4,7 @@ import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
 import { CornerUpLeft, FileText, Paperclip, X } from "lucide-react";
 import { Avatar, Input, Popover, Typography } from "antd";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { RefObject, useEffect, useRef, useState } from "react";
 
 export type DraftMessageAttachment = IMessageAttachment & {
@@ -162,17 +163,28 @@ export function MessageBubbleList({
     onReplyToMessage: (message: IMessageReplyPreview) => void;
     onOpenAlbum: (attachments: IMessageAttachment[]) => void;
 }) {
-    const [menuState, setMenuState] = useState<{ messageId: string; placement: "left" | "right" } | null>(null);
+    const [menuState, setMenuState] = useState<{
+        messageId: string;
+        left: number;
+        top: number;
+    } | null>(null);
     const longPressTimerRef = useRef<number | null>(null);
 
     useEffect(() => {
         const closeMenu = () => setMenuState(null);
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                closeMenu();
+            }
+        };
         window.addEventListener("click", closeMenu);
+        window.addEventListener("keydown", handleKeyDown);
         window.addEventListener("scroll", closeMenu, true);
         window.addEventListener("resize", closeMenu);
 
         return () => {
             window.removeEventListener("click", closeMenu);
+            window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("scroll", closeMenu, true);
             window.removeEventListener("resize", closeMenu);
             if (longPressTimerRef.current) {
@@ -181,8 +193,24 @@ export function MessageBubbleList({
         };
     }, []);
 
-    const openReplyMenu = (messageId: string, placement: "left" | "right") => {
-        setMenuState({ messageId, placement });
+    const openReplyMenu = (
+        messageId: string,
+        horizontalPlacement: "left" | "right",
+        bubbleElement: HTMLDivElement,
+    ) => {
+        const bubbleRect = bubbleElement.getBoundingClientRect();
+        const estimatedMenuHeight = 96;
+        const estimatedMenuWidth = 176;
+        const spaceBelow = window.innerHeight - bubbleRect.bottom;
+        const verticalPlacement = spaceBelow < estimatedMenuHeight ? "top" : "bottom";
+        const left = horizontalPlacement === "right"
+            ? Math.max(12, bubbleRect.right - estimatedMenuWidth)
+            : Math.min(window.innerWidth - estimatedMenuWidth - 12, bubbleRect.left);
+        const top = verticalPlacement === "top"
+            ? Math.max(12, bubbleRect.top - estimatedMenuHeight - 8)
+            : Math.min(window.innerHeight - estimatedMenuHeight - 12, bubbleRect.bottom + 8);
+
+        setMenuState({ messageId, left, top });
     };
 
     const clearLongPressTimer = () => {
@@ -270,7 +298,7 @@ export function MessageBubbleList({
                                     ].join(" ")}
                                     onContextMenu={(event) => {
                                         event.preventDefault();
-                                        openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left");
+                                        openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left", event.currentTarget);
                                     }}
                                     onTouchStart={(event) => {
                                         const touch = event.touches[0];
@@ -280,7 +308,7 @@ export function MessageBubbleList({
 
                                         clearLongPressTimer();
                                         longPressTimerRef.current = window.setTimeout(() => {
-                                            openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left");
+                                            openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left", event.currentTarget);
                                         }, 450);
                                     }}
                                     onTouchEnd={clearLongPressTimer}
@@ -353,28 +381,32 @@ export function MessageBubbleList({
                                         </p>
                                     ) : null}
                                 </div>
-                                {menuState?.messageId === messageGroup.id ? (
-                                    <div
-                                        className={[
-                                            "absolute top-full z-50 mt-2 min-w-36 rounded-[1rem] border border-black/10 bg-white/95 p-1 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95",
-                                            menuState.placement === "right" ? "right-0" : "left-0",
-                                        ].join(" ")}
-                                    >
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                onReplyToMessage(replyPreview);
-                                                setMenuState(null);
-                                            }}
-                                            className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
-                                        >
-                                            <CornerUpLeft className="h-4 w-4" />
-                                            Reply
-                                        </button>
-                                    </div>
-                                ) : null}
                             </div>
                         </div>
+                        {menuState?.messageId === messageGroup.id && typeof document !== "undefined"
+                            ? createPortal(
+                                <div
+                                    className="fixed z-[80] min-w-40 rounded-[1rem] border border-black/10 bg-white/95 p-1.5 shadow-xl backdrop-blur dark:border-white/10 dark:bg-slate-950/95"
+                                    style={{ left: menuState.left, top: menuState.top }}
+                                >
+                                    <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                                        Message actions
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            onReplyToMessage(replyPreview);
+                                            setMenuState(null);
+                                        }}
+                                        className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
+                                    >
+                                        <CornerUpLeft className="h-4 w-4" />
+                                        Reply
+                                    </button>
+                                </div>,
+                                document.body,
+                            )
+                            : null}
                     </div>
                 );
             })}
