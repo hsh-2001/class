@@ -24,7 +24,7 @@ export default function AddTeacherForm(
                 form={form}
                 onSubmitCapture={onSubmit}
             >
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
                     {fieldItem.map((field) => {
                         let inputComponent;
                         if (field.name === "gender") {
@@ -57,7 +57,7 @@ export default function AddTeacherForm(
                         );
                     })}
                 </div>
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end mt-2 gap-2">
                     <SButton type="button" color="secondary" onClick={onCancel}>
                         Cancel
                     </SButton>
