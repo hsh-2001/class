@@ -328,11 +328,10 @@ export function MessageBubbleList({
                                         />
                                     ) : null}
                                     {messageGroup.isForwarded ? (
-                                        <div className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${
-                                            isOwnMessage
+                                        <div className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${isOwnMessage
                                                 ? "bg-white/12 text-white/80 dark:bg-white/[0.12] dark:text-slate-200"
                                                 : "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"
-                                        }`}>
+                                            }`}>
                                             <Forward className="h-3.5 w-3.5" />
                                             Forwarded
                                         </div>
@@ -414,10 +413,10 @@ export function MessageBubbleList({
                                             setMenuState(null);
                                         }}
                                         className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
-                                        >
-                                            <CornerUpLeft className="h-4 w-4" />
-                                            Reply
-                                        </button>
+                                    >
+                                        <CornerUpLeft className="h-4 w-4" />
+                                        Reply
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => {

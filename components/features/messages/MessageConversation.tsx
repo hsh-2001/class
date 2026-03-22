@@ -100,21 +100,35 @@ export default function MessageConversation({
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const previousScrollHeightRef = useRef<number | null>(null);
     const previousMessageCountRef = useRef(0);
+    const previousThreadIdRef = useRef<string | null>(null);
+    const previousLatestMessageIdRef = useRef<string | null>(null);
     const [activeAlbum, setActiveAlbum] = useState<IMessageAttachment[] | null>(null);
     const [activeAlbumIndex, setActiveAlbumIndex] = useState(0);
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+    const threadId = thread?.id ?? null;
+    const latestMessageId = thread?.messages[thread.messages.length - 1]?.id ?? null;
 
     useEffect(() => {
         const isDesktopViewport = typeof window !== "undefined"
             ? window.matchMedia("(min-width: 768px)").matches
             : true;
 
-        if (!thread || (!isVisible && !isDesktopViewport)) {
+        if (!threadId || (!isVisible && !isDesktopViewport)) {
             return;
         }
 
         const container = messageContainerRef.current;
         if (!container) {
+            return;
+        }
+
+        const isThreadChanged = previousThreadIdRef.current !== threadId;
+        const hasNewLatestMessage = previousLatestMessageIdRef.current !== latestMessageId;
+
+        previousThreadIdRef.current = threadId;
+        previousLatestMessageIdRef.current = latestMessageId;
+
+        if (!isThreadChanged && !hasNewLatestMessage) {
             return;
         }
 
@@ -134,7 +148,7 @@ export default function MessageConversation({
             window.cancelAnimationFrame(secondFrameId);
             window.clearTimeout(timeoutId);
         };
-    }, [autoScrollKey, isVisible, thread]);
+    }, [autoScrollKey, isVisible, threadId, latestMessageId]);
 
     useEffect(() => {
         if (!highlightedMessageId) {
