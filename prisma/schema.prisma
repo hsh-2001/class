@@ -198,13 +198,15 @@ model MessageThread {
 
 model Message {
   id           String        @id @default(uuid())
-  threadId      String        @map("thread_id")
-  senderUserId  String        @map("sender_user_id")
-  content       String
-  createdAt     DateTime      @default(now()) @map("created_at")
+  threadId     String        @map("thread_id")
+  senderUserId String        @map("sender_user_id")
+  content      String        @default("")
+  imageUrl     String?       @map("image_url")
+  attachments  Json?         @map("attachments")
+  createdAt    DateTime      @default(now()) @map("created_at")
 
-  thread        MessageThread @relation(fields: [threadId], references: [id])
-  senderUser    User          @relation(fields: [senderUserId], references: [id])
+  thread     MessageThread @relation(fields: [threadId], references: [id])
+  senderUser User          @relation(fields: [senderUserId], references: [id])
 
   @@index([threadId])
   @@index([senderUserId])

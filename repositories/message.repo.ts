@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { Prisma } from "@/prisma/generated/client";
 
 const threadInclude = {
     class: {
@@ -180,13 +181,15 @@ const createThread = async (classId: string, teacherId: string, studentId: strin
     });
 };
 
-const sendMessage = async (threadId: string, senderUserId: string, content: string) => {
+const sendMessage = async (threadId: string, senderUserId: string, content: string, imageUrl?: string, attachments?: unknown) => {
     return await prisma.$transaction(async (tx) => {
         await tx.message.create({
             data: {
                 threadId,
                 senderUserId,
                 content,
+                imageUrl,
+                attachments: attachments as Prisma.InputJsonValue | undefined,
             },
         });
 

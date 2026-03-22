@@ -76,10 +76,11 @@ export default function useCourse() {
     const handleSaveBanner = async (): Promise<string | undefined> => {
         if (file.current) {
             const uploadResult = await upload("class/courses", file.current);
-            if (uploadResult) {
-                courseForm.setFieldValue("courseBanner", uploadResult.data[0].download_url);
-                setBannerPreview(uploadResult?.data?.[0]?.download_url || "");
-                return uploadResult.data[0].download_url;
+            const uploadedUrl = uploadResult?.data?.[0]?.download_url;
+            if (uploadedUrl) {
+                courseForm.setFieldValue("courseBanner", uploadedUrl);
+                setBannerPreview(uploadedUrl);
+                return uploadedUrl;
             }
         }
 

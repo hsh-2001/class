@@ -1,0 +1,378 @@
+import SButton from "@/components/ui/SButton";
+import SModal from "@/components/ui/SModal";
+import { IMessageAttachment } from "@/types/message";
+import { FileText, Paperclip, X } from "lucide-react";
+import { Input, Typography } from "antd";
+import Image from "next/image";
+import { RefObject } from "react";
+
+export type DraftMessageAttachment = IMessageAttachment & {
+    localId: string;
+    previewUrl?: string;
+};
+
+export type MessageRenderGroup = {
+    id: string;
+    senderUserId: string;
+    content: string;
+    imageAttachments: IMessageAttachment[];
+    fileAttachments: IMessageAttachment[];
+    latestCreatedAt: string;
+};
+
+export const formatAttachmentSize = (size: number) => {
+    if (size >= 1024 * 1024) {
+        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    if (size >= 1024) {
+        return `${Math.round(size / 1024)} KB`;
+    }
+
+    return `${size} B`;
+};
+
+function AlbumPreviewCard({
+    attachments,
+    isOwnMessage,
+    onOpen,
+}: {
+    attachments: IMessageAttachment[];
+    isOwnMessage: boolean;
+    onOpen: () => void;
+}) {
+    const previewAttachments = attachments.slice(0, 3);
+    const textTone = isOwnMessage ? "text-white/80 dark:text-slate-300" : "text-slate-500 dark:text-slate-400";
+
+    return (
+        <button
+            type="button"
+            onClick={onOpen}
+            className={[
+                "mb-2 block w-full rounded-[1.35rem] border p-2.5 text-left shadow-[0_12px_30px_-18px_rgba(15,23,42,0.45)] backdrop-blur-xl transition-transform hover:scale-[1.01]",
+                isOwnMessage
+                    ? "border-white/12 bg-white/10 dark:border-white/8 dark:bg-white/[0.08]"
+                    : "border-black/8 bg-white/72 dark:border-white/8 dark:bg-slate-900/72",
+            ].join(" ")}
+        >
+            <div className="relative h-40 w-full overflow-hidden rounded-[1.15rem]">
+                {previewAttachments.map((attachment, index) => {
+                    const rotationClass = index === 0 ? "-rotate-[7deg]" : index === 1 ? "rotate-0" : "rotate-[7deg]";
+                    const offsetClass = index === 0 ? "left-2 top-4" : index === 1 ? "left-1/2 top-2 -translate-x-1/2" : "right-2 top-4";
+
+                    return (
+                        <div
+                            key={attachment.url}
+                            className={`absolute ${offsetClass} ${rotationClass} h-32 w-24 overflow-hidden rounded-[1rem] border border-white/30 shadow-lg shadow-black/10 sm:h-36 sm:w-28`}
+                        >
+                            <Image
+                                src={attachment.url}
+                                alt={attachment.name}
+                                fill
+                                sizes="160px"
+                                className="object-cover"
+                            />
+                        </div>
+                    );
+                })}
+            </div>
+            <div className="mt-1 flex items-center justify-between gap-3 px-1">
+                <div>
+                    <p className="text-[12px] font-semibold tracking-[0.01em]">{attachments.length} photos</p>
+                    <p className={`text-[11px] ${textTone}`}>
+                        Tap to view album
+                    </p>
+                </div>
+            </div>
+        </button>
+    );
+}
+
+export function MessageBubbleList({
+    currentUserId,
+    messageGroups,
+    onOpenAlbum,
+}: {
+    currentUserId: string;
+    messageGroups: MessageRenderGroup[];
+    onOpenAlbum: (attachments: IMessageAttachment[]) => void;
+}) {
+    return (
+        <>
+            {messageGroups.map((messageGroup) => {
+                const isOwnMessage = messageGroup.senderUserId === currentUserId;
+
+                return (
+                    <div
+                        key={messageGroup.id}
+                        className={`flex ${isOwnMessage ? "justify-end pl-10" : "justify-start pr-10"}`}
+                    >
+                        <div
+                            className={[
+                                "max-w-[82%] rounded-[1.35rem] border px-3.5 py-3 shadow-[0_16px_40px_-24px_rgba(15,23,42,0.4)] backdrop-blur-xl",
+                                isOwnMessage
+                                    ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
+                                    : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
+                            ].join(" ")}
+                        >
+                            {messageGroup.imageAttachments.length > 1 ? (
+                                <AlbumPreviewCard
+                                    attachments={messageGroup.imageAttachments}
+                                    isOwnMessage={isOwnMessage}
+                                    onOpen={() => onOpenAlbum(messageGroup.imageAttachments)}
+                                />
+                            ) : messageGroup.imageAttachments.length === 1 ? (
+                                <div className="mb-2 max-w-md">
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenAlbum(messageGroup.imageAttachments)}
+                                        className="block overflow-hidden rounded-[1.15rem] border border-white/10 bg-black/5 shadow-sm dark:border-white/10 dark:bg-white/5"
+                                    >
+                                        <Image
+                                            src={messageGroup.imageAttachments[0].url}
+                                            alt={messageGroup.imageAttachments[0].name}
+                                            width={280}
+                                            height={220}
+                                            className="h-auto max-h-72 w-full object-cover"
+                                        />
+                                    </button>
+                                </div>
+                            ) : null}
+                            {messageGroup.fileAttachments.length > 0 ? (
+                                <div className="mb-2 grid gap-2">
+                                    {messageGroup.fileAttachments.map((attachment) => (
+                                        <a
+                                            key={attachment.url}
+                                            href={attachment.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className={[
+                                                "flex items-start gap-2.5 rounded-[1.1rem] border px-3 py-2.5 text-[12px] backdrop-blur-md",
+                                                isOwnMessage
+                                                    ? "border-white/10 bg-white/10 text-white dark:border-white/10 dark:bg-white/[0.07] dark:text-slate-100"
+                                                    : "border-black/8 bg-black/[0.03] text-slate-700 dark:border-white/8 dark:bg-white/[0.05] dark:text-slate-200",
+                                            ].join(" ")}
+                                        >
+                                            <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isOwnMessage ? "bg-white/10 dark:bg-black/10" : "bg-black/[0.05] dark:bg-white/[0.06]"}`}>
+                                                <FileText className="h-4 w-4" />
+                                            </span>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="overflow-hidden break-all text-[12px] font-medium leading-4">
+                                                    {attachment.name}
+                                                </p>
+                                                <p className="mt-1 text-[11px] opacity-70">
+                                                    {formatAttachmentSize(attachment.size)}
+                                                </p>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            ) : null}
+                            {messageGroup.content ? <p className="text-[13px] leading-6 tracking-[0.01em]">{messageGroup.content}</p> : null}
+                        </div>
+                    </div>
+                );
+            })}
+        </>
+    );
+}
+
+export function MessageComposer({
+    canSendMessage,
+    fileInputRef,
+    isSendingMessage,
+    messageContent,
+    onChangeMessageContent,
+    onRemoveSelectedAttachment,
+    onSelectMessageFiles,
+    onSendMessage,
+    selectedAttachmentAccept,
+    selectedAttachments,
+}: {
+    canSendMessage: boolean;
+    fileInputRef: RefObject<HTMLInputElement | null>;
+    isSendingMessage: boolean;
+    messageContent: string;
+    onChangeMessageContent: (value: string) => void;
+    onRemoveSelectedAttachment: (localId: string) => void;
+    onSelectMessageFiles: (files: FileList | null) => void;
+    onSendMessage: () => void;
+    selectedAttachmentAccept: string;
+    selectedAttachments: DraftMessageAttachment[];
+}) {
+    if (!canSendMessage) {
+        return null;
+    }
+
+    return (
+        <div className="border-t border-black/10 bg-white/80 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
+            <div className="grid gap-2">
+                {selectedAttachments.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        {selectedAttachments.map((attachment) => (
+                            <div
+                                key={attachment.localId}
+                                className="relative min-w-0 overflow-hidden rounded-2xl border border-black/10 bg-black/[0.03] p-2 dark:border-white/10 dark:bg-white/[0.04]"
+                            >
+                                {attachment.kind === "IMAGE" && attachment.previewUrl ? (
+                                    <Image
+                                        src={attachment.previewUrl}
+                                        alt={attachment.name}
+                                        width={160}
+                                        height={160}
+                                        className="mb-2 h-28 w-full rounded-[1rem] object-cover sm:h-auto sm:max-h-40"
+                                    />
+                                ) : (
+                                    <div className="mb-2 flex h-28 items-center justify-center rounded-[1rem] bg-white/70 dark:bg-slate-950/40 sm:h-24">
+                                        <Paperclip className="h-5 w-5 text-slate-500 dark:text-slate-300" />
+                                    </div>
+                                )}
+                                <div className="min-w-0 pr-8">
+                                    <p className="overflow-hidden break-all text-[12px] font-medium leading-4 text-slate-800 dark:text-slate-100">
+                                        {attachment.name}
+                                    </p>
+                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                                        {formatAttachmentSize(attachment.size)}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => onRemoveSelectedAttachment(attachment.localId)}
+                                    className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
+                                    aria-label={`Remove ${attachment.name}`}
+                                >
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : null}
+                <div className="flex items-end gap-2">
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept={selectedAttachmentAccept}
+                        multiple
+                        className="hidden"
+                        onChange={(event) => {
+                            onSelectMessageFiles(event.target.files);
+                            event.target.value = "";
+                        }}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-600 transition-colors hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]"
+                        aria-label="Upload file"
+                    >
+                        <FileText className="h-4 w-4" />
+                    </button>
+                    <div className="min-w-0 flex-1">
+                        <Input.TextArea
+                            autoSize={{ minRows: 1, maxRows: 4 }}
+                            value={messageContent}
+                            onChange={(event) => onChangeMessageContent(event.target.value)}
+                            onKeyDown={(event) => {
+                                if (event.key === "Enter" && !event.shiftKey) {
+                                    event.preventDefault();
+                                    if (!isSendingMessage) {
+                                        onSendMessage();
+                                    }
+                                }
+                            }}
+                            placeholder="Write a message"
+                            className="rounded-[1.25rem]"
+                        />
+                    </div>
+                    <div className="shrink-0">
+                        <SButton type="button" color="primary" onClick={onSendMessage} loading={isSendingMessage}>
+                            Send
+                        </SButton>
+                    </div>
+                </div>
+                <Typography.Text className="!text-[11px] text-slate-500 dark:!text-slate-400">
+                    Press Enter to send, Shift+Enter for a new line. Images and documents up to 3 MB each.
+                </Typography.Text>
+            </div>
+        </div>
+    );
+}
+
+export function MessageAlbumModal({
+    activeAlbum,
+    activeAlbumIndex,
+    onClose,
+    onSelectImage,
+}: {
+    activeAlbum: IMessageAttachment[] | null;
+    activeAlbumIndex: number;
+    onClose: () => void;
+    onSelectImage: (index: number) => void;
+}) {
+    const modalTitle = (
+        <div className="flex items-center justify-between gap-3">
+            <span>{activeAlbum?.length === 1 ? "Image" : "Album"}</span>
+            <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-700 transition-colors hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
+                aria-label="Close image viewer"
+            >
+                <X className="h-4 w-4" />
+            </button>
+        </div>
+    );
+
+    return (
+        <SModal
+            isOpen={Boolean(activeAlbum)}
+            onClose={onClose}
+            title={modalTitle}
+        >
+            {activeAlbum ? (
+                <div className="space-y-3">
+                    <div className="flex h-[22rem] items-center justify-center overflow-hidden rounded-[1.5rem] border border-black/10 bg-slate-100 p-3 dark:border-white/10 dark:bg-slate-900 sm:h-[28rem]">
+                        <Image
+                            src={activeAlbum[activeAlbumIndex].url}
+                            alt={activeAlbum[activeAlbumIndex].name}
+                            width={1200}
+                            height={900}
+                            className="max-h-full w-auto max-w-full object-contain"
+                        />
+                    </div>
+                    {activeAlbum.length > 1 ? (
+                        <>
+                            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                                {activeAlbum.map((attachment, index) => (
+                                    <button
+                                        key={attachment.url}
+                                        type="button"
+                                        onClick={() => onSelectImage(index)}
+                                        className={[
+                                            "relative aspect-square min-w-0 overflow-hidden rounded-[1rem] border-2",
+                                            index === activeAlbumIndex
+                                                ? "border-sky-500"
+                                                : "border-transparent",
+                                        ].join(" ")}
+                                        aria-label={`View image ${index + 1}`}
+                                    >
+                                        <Image
+                                            src={attachment.url}
+                                            alt={attachment.name}
+                                            fill
+                                            sizes="80px"
+                                            className="object-cover"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                            <Typography.Text className="!text-xs text-slate-500 dark:!text-slate-400">
+                                {activeAlbumIndex + 1} of {activeAlbum.length}
+                            </Typography.Text>
+                        </>
+                    ) : null}
+                </div>
+            ) : null}
+        </SModal>
+    );
+}

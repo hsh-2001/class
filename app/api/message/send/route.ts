@@ -11,6 +11,13 @@ export async function POST(request: NextRequest) {
         return ok(response, "Message sent successfully");
     } catch (error) {
         const message = error instanceof Error ? error.message : "Failed to send message";
-        return fail(message, message === "UNAUTHORIZED" ? 401 : 500);
+        const status = message === "UNAUTHORIZED"
+            ? 401
+            : message === "THREAD_NOT_FOUND"
+                ? 404
+                : message === "MISSING_FIELDS" || message === "INVALID_ATTACHMENTS" || message === "ATTACHMENT_TOO_LARGE"
+                    ? 400
+                    : 500;
+        return fail(message, status);
     }
 }

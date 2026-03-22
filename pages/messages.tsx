@@ -23,8 +23,12 @@ export default function MessagesPage() {
     isModalVisible,
     isSendingMessage,
     messageContent,
+    onSelectMessageFiles,
     onCreateThread,
     onSendMessage,
+    removeSelectedAttachment,
+    selectedAttachments,
+    selectedAttachmentAccept,
     selectedThread,
     selectedThreadId,
     setSelectedClassId,
@@ -144,7 +148,11 @@ export default function MessagesPage() {
                 canSendMessage={canSendMessage}
                 isSendingMessage={isSendingMessage}
                 messageContent={messageContent}
+                selectedAttachments={selectedAttachments}
+                selectedAttachmentAccept={selectedAttachmentAccept}
                 onChangeMessageContent={setMessageContent}
+                onRemoveSelectedAttachment={removeSelectedAttachment}
+                onSelectMessageFiles={onSelectMessageFiles}
                 onSendMessage={onSendMessage}
                 onBackToThreads={() => setMobilePane("threads")}
               />

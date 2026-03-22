@@ -6,10 +6,10 @@ import { createPortal } from "react-dom";
 interface SModalProps {
     isOpen: boolean;
     onClose: () => void;
-    title?: string;
+    title?: React.ReactNode;
     children: React.ReactNode;
 }
-export default function SModal({ isOpen, onClose, title = 'Confirm', children }: SModalProps) {
+export default function SModal({ isOpen, onClose, title = "Confirm", children }: SModalProps) {
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";

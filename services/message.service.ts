@@ -1,7 +1,16 @@
 import { emitMessagePageDataToUser } from "@/lib/socket-server";
 import type { Role } from "@/prisma/generated/enums";
 import messageRepo from "@/repositories/message.repo";
-import { ICreateMessageThreadDTO, IMessageClassOption, IMessageItem, IMessagePageData, IMessageSocketUser, IMessageThreadItem, ISendMessageDTO } from "@/types/message";
+import {
+    ICreateMessageThreadDTO,
+    IMessageAttachment,
+    IMessageClassOption,
+    IMessageItem,
+    IMessagePageData,
+    IMessageSocketUser,
+    ISendMessageDTO,
+    MESSAGE_ATTACHMENT_MAX_SIZE,
+} from "@/types/message";
 
 type MessageUserContext = {
     id: string;
@@ -23,33 +32,114 @@ const getDisplayName = (
     },
 ) => [user.profile?.firstName ?? "", user.profile?.lastName ?? ""].join(" ").trim() || user.username || user.email;
 
+const normalizeAttachments = (
+    attachments: unknown,
+    legacyImageUrl?: string | null,
+): IMessageAttachment[] => {
+    const normalized = Array.isArray(attachments)
+        ? attachments.flatMap((item) => {
+            if (!item || typeof item !== "object") {
+                return [];
+            }
+
+            const candidate = item as Partial<IMessageAttachment>;
+            if (
+                typeof candidate.url !== "string"
+                || typeof candidate.name !== "string"
+                || typeof candidate.mimeType !== "string"
+                || typeof candidate.size !== "number"
+                || (candidate.kind !== "IMAGE" && candidate.kind !== "FILE")
+            ) {
+                return [];
+            }
+
+            return [{
+                url: candidate.url,
+                name: candidate.name,
+                mimeType: candidate.mimeType,
+                size: candidate.size,
+                kind: candidate.kind,
+            }];
+        })
+        : [];
+
+    if (normalized.length > 0) {
+        return normalized;
+    }
+
+    if (!legacyImageUrl) {
+        return [];
+    }
+
+    return [{
+        url: legacyImageUrl,
+        name: "Photo",
+        mimeType: "image/*",
+        size: 0,
+        kind: "IMAGE",
+    }];
+};
+
+const getLastMessagePreview = (message?: { content: string; attachments: IMessageAttachment[] }) => {
+    if (!message) {
+        return "No messages yet.";
+    }
+
+    if (message.content) {
+        return message.content;
+    }
+
+    if (message.attachments.length === 1) {
+        return message.attachments[0]?.kind === "IMAGE"
+            ? "Photo"
+            : `File: ${message.attachments[0]?.name ?? "Attachment"}`;
+    }
+
+    if (message.attachments.length > 1) {
+        return `${message.attachments.length} attachments`;
+    }
+
+    return "No messages yet.";
+};
+
 const mapMessageItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number]["messages"][number],
-): IMessageItem => ({
-    id: item.id,
-    senderUserId: item.senderUserId,
-    senderName: getDisplayName(item.senderUser),
-    senderRole: item.senderUser.role,
-    content: item.content,
-    createdAt: item.createdAt.toISOString(),
-});
+): IMessageItem => {
+    const attachments = normalizeAttachments(item.attachments, item.imageUrl);
+
+    return {
+        id: item.id,
+        senderUserId: item.senderUserId,
+        senderName: getDisplayName(item.senderUser),
+        senderRole: item.senderUser.role,
+        content: item.content,
+        attachments,
+        imageUrl: item.imageUrl ?? undefined,
+        createdAt: item.createdAt.toISOString(),
+    };
+};
 
 const mapThreadItem = (
     item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number],
-): IMessageThreadItem => ({
-    id: item.id,
-    classId: item.classId,
-    className: item.class.name,
-    courseName: item.class.course.name,
-    courseCode: item.class.course.code,
-    teacherId: item.teacherId,
-    teacherName: getDisplayName(item.teacher.user),
-    studentId: item.studentId,
-    studentName: getDisplayName(item.student.user),
-    updatedAt: item.updatedAt.toISOString(),
-    lastMessagePreview: item.messages[item.messages.length - 1]?.content ?? "No messages yet.",
-    messages: item.messages.map(mapMessageItem),
-});
+) => {
+    const messages = item.messages.map(mapMessageItem);
+    const lastMessage = messages[messages.length - 1];
+
+    return {
+        id: item.id,
+        classId: item.classId,
+        className: item.class.name,
+        courseName: item.class.course.name,
+        courseCode: item.class.course.code,
+        teacherId: item.teacherId,
+        teacherName: getDisplayName(item.teacher.user),
+        studentId: item.studentId,
+        studentName: getDisplayName(item.student.user),
+        updatedAt: item.updatedAt.toISOString(),
+        lastMessagePreview: getLastMessagePreview(lastMessage),
+        messages,
+    };
+};
 
 const mapTeacherClassOptions = (
     items: Awaited<ReturnType<typeof messageRepo.getTeacherClassesWithStudents>>,
@@ -153,8 +243,32 @@ const createThreadForTeacher = async (user: MessageUserContext, request: ICreate
 };
 
 const sendMessageForUser = async (user: MessageUserContext, request: ISendMessageDTO) => {
-    if (!request.threadId || !request.content?.trim()) {
+    const content = request.content?.trim() ?? "";
+    const attachments = (request.attachments ?? []).filter(
+        (attachment): attachment is IMessageAttachment =>
+            Boolean(attachment)
+            && typeof attachment.url === "string"
+            && attachment.url.trim().length > 0
+            && typeof attachment.name === "string"
+            && attachment.name.trim().length > 0
+            && typeof attachment.mimeType === "string"
+            && attachment.mimeType.trim().length > 0
+            && typeof attachment.size === "number"
+            && attachment.size >= 0
+            && (attachment.kind === "IMAGE" || attachment.kind === "FILE"),
+    );
+    const imageUrl = attachments.find((attachment) => attachment.kind === "IMAGE")?.url;
+
+    if (!request.threadId || (!content && attachments.length === 0)) {
         throw new Error("MISSING_FIELDS");
+    }
+
+    if (attachments.length !== (request.attachments ?? []).length) {
+        throw new Error("INVALID_ATTACHMENTS");
+    }
+
+    if (attachments.some((attachment) => attachment.size > MESSAGE_ATTACHMENT_MAX_SIZE)) {
+        throw new Error("ATTACHMENT_TOO_LARGE");
     }
 
     if (user.role === "ADMIN") {
@@ -174,7 +288,7 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
         throw new Error("UNAUTHORIZED");
     }
 
-    await messageRepo.sendMessage(request.threadId, user.id, request.content.trim());
+    await messageRepo.sendMessage(request.threadId, user.id, content, imageUrl, attachments);
     await notifyRealtimeParticipants(request.threadId);
     return await getMessagePageData(user);
 };

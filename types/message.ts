@@ -4,7 +4,19 @@ export interface IMessageItem {
     senderName: string;
     senderRole: "ADMIN" | "STUDENT" | "TEACHER";
     content: string;
+    attachments: IMessageAttachment[];
+    imageUrl?: string;
     createdAt: string;
+}
+
+export type MessageAttachmentKind = "IMAGE" | "FILE";
+
+export interface IMessageAttachment {
+    url: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    kind: MessageAttachmentKind;
 }
 
 export interface IMessageThreadItem {
@@ -49,7 +61,11 @@ export interface ICreateMessageThreadDTO {
 export interface ISendMessageDTO {
     threadId: string;
     content: string;
+    attachments?: IMessageAttachment[];
 }
+
+export const MESSAGE_ATTACHMENT_MAX_SIZE = 3 * 1024 * 1024;
+export const MESSAGE_ATTACHMENT_ACCEPT = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt";
 
 export interface IMessageSocketUser {
     id: string;
@@ -104,6 +120,11 @@ export class MessageThreadResponse implements IMessageThreadItem {
         this.studentName = data.studentName;
         this.updatedAt = data.updatedAt;
         this.lastMessagePreview = data.lastMessagePreview;
-        this.messages = data.messages;
+        this.messages = (data.messages ?? []).map((message) => ({
+            ...message,
+            content: message.content ?? "",
+            attachments: Array.isArray(message.attachments) ? message.attachments : [],
+            imageUrl: message.imageUrl ?? undefined,
+        }));
     }
 }
