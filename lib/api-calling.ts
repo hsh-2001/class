@@ -64,6 +64,10 @@ export const callCreateAssignment = async (request: ICreateAssignmentDTO) => {
   return await api.post("/assignment", request);
 }
 
+export const callGetLiveClasses = async () => {
+  return await api.get("/live-class");
+}
+
 export const callGetStudentProfile = async () => {
   return await api.get("/student/update-profile");
 }
