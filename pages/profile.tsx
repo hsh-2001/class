@@ -4,8 +4,9 @@ import useAthentication from "@/hooks/useAthentication";
 import useProfile from "@/hooks/useProfile";
 import { Gender } from "@/prisma/generated/enums";
 import { useEffect } from "react";
-import { Alert, Avatar, Card, Col, Form, Row, Select, Skeleton, Space, Statistic, Typography } from "antd";
+import { Alert, Card, Col, Form, Row, Select, Skeleton, Space, Statistic, Typography } from "antd";
 import { useTranslation } from "react-i18next";
+import Image from "next/image";
 
 export default function Profile() {
     const { t } = useTranslation();
@@ -22,13 +23,13 @@ export default function Profile() {
         fetchProfile,
         setProfileField,
         updateProfile,
+        uploadProfilePicture,
     } = useProfile();
 
     useEffect(() => {
         void fetchProfile();
     }, [fetchProfile]);
 
-    const initials = `${profile?.firstName?.[0] ?? ""}${profile?.lastName?.[0] ?? ""}`.trim() || t("profile.defaultInitials");
     const displayName = `${profile?.firstName || t("profile.studentFallback")} ${profile?.lastName || ""}`.trim();
     const profileCompletion = [
         profile?.username,
@@ -99,13 +100,24 @@ export default function Profile() {
                                     }}
                                 >
                                     <div className="mb-6 flex items-center gap-4">
-                                        <Avatar
-                                            size={64}
-                                            src={profile?.profileUrl || undefined}
-                                            className="bg-slate-900 text-white dark:bg-white dark:text-black"
-                                        >
-                                            {initials}
-                                        </Avatar>
+                                        <div className="relative w-20 h-20 rounded-full">
+                                            <input type="file"
+                                                className=" absolute w-full h-full opacity-0"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        uploadProfilePicture(e.target.files[0]);
+                                                    }
+                                                }} />
+                                            {profile?.profileUrl && (
+                                                <Image
+                                                    src={profile?.profileUrl}
+                                                    alt="Profile Picture"
+                                                    width={80}
+                                                    height={80}
+                                                    className="rounded-full object-cover w-20 h-20"
+                                                />
+                                            )}
+                                        </div>
                                         <div>
                                             <Typography.Title copyable level={4} className="!mb-1 text-slate-950! dark:!text-slate-50">
                                                 {displayName}

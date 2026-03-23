@@ -15,6 +15,20 @@ export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
 };
 
+export const callUploadFiles = async (formData: FormData) => {
+  return await api.post("/storage", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
+
+export const callGetFile = async (fileName: string) => {
+  return await api.get("/storage", {
+    params: { file: fileName },
+  });
+}
+
 export const callCreateStudent = async (request: TCreateStudentDTO) => {
   return await api.post("/admin/student", request);
 }
