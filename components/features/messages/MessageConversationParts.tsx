@@ -1,8 +1,10 @@
 import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
+import { callGetLinkPreview } from "@/lib/api-calling";
 import i18n from "@/lib/i18n";
 import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
-import { Copy, CornerUpLeft, FileText, Forward, Paperclip, Trash2, X } from "lucide-react";
+import { Copy, CornerUpLeft, ExternalLink, FileText, Forward, Paperclip, Play, Trash2, X } from "lucide-react";
+import { ILinkPreviewItem } from "@/types/link-preview";
 import { Avatar, Input, Popover, Typography, message as antMessage } from "antd";
 import Image from "next/image";
 import { createPortal } from "react-dom";
@@ -51,6 +53,335 @@ const getReplyPreviewText = (replyToMessage?: IMessageReplyPreview) => {
     return i18n.t("messages.message");
 };
 
+const urlPattern = /(?:https?:\/\/|www\.)[^\s<]+/gi;
+const trailingUrlPunctuation = new Set([")", ",", ".", "!", "?", ";", ":", "]", "}"]);
+
+const normalizeUrl = (value: string) => {
+    const normalizedValue = value.trim();
+
+    return normalizedValue.startsWith("http://") || normalizedValue.startsWith("https://")
+        ? normalizedValue
+        : `https://${normalizedValue}`;
+};
+
+const splitLinkSuffix = (value: string) => {
+    let url = value;
+    let trailing = "";
+
+    while (url.length > 0) {
+        const lastCharacter = url[url.length - 1];
+        if (!lastCharacter || !trailingUrlPunctuation.has(lastCharacter)) {
+            break;
+        }
+
+        if (lastCharacter === ")") {
+            const openingParentheses = (url.match(/\(/g) ?? []).length;
+            const closingParentheses = (url.match(/\)/g) ?? []).length;
+
+            if (closingParentheses <= openingParentheses) {
+                break;
+            }
+        }
+
+        trailing = `${lastCharacter}${trailing}`;
+        url = url.slice(0, -1);
+    }
+
+    return { url, trailing };
+};
+
+const extractUrls = (text: string) => {
+    return Array.from(text.matchAll(urlPattern), (match) => splitLinkSuffix(match[0]).url).filter(Boolean);
+};
+
+const getYoutubeVideoId = (value: string) => {
+    try {
+        const normalizedUrl = new URL(normalizeUrl(value));
+        const hostname = normalizedUrl.hostname.replace(/^www\./, "");
+
+        if (hostname === "youtu.be") {
+            const videoId = normalizedUrl.pathname.split("/").filter(Boolean)[0];
+            return videoId || null;
+        }
+
+        if (hostname === "youtube.com" || hostname === "m.youtube.com") {
+            if (normalizedUrl.pathname === "/watch") {
+                return normalizedUrl.searchParams.get("v");
+            }
+
+            if (normalizedUrl.pathname.startsWith("/shorts/") || normalizedUrl.pathname.startsWith("/embed/")) {
+                const videoId = normalizedUrl.pathname.split("/").filter(Boolean)[1];
+                return videoId || null;
+            }
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+};
+
+const getYoutubePreview = (text: string) => {
+    for (const url of extractUrls(text)) {
+        const videoId = getYoutubeVideoId(url);
+
+        if (videoId) {
+            return {
+                thumbnailUrl: `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
+                url: normalizeUrl(url),
+                videoId,
+            };
+        }
+    }
+
+    return null;
+};
+
+const linkPreviewCache = new Map<string, ILinkPreviewItem | null>();
+
+const useLinkPreview = (url: string) => {
+    const [preview, setPreview] = useState<ILinkPreviewItem | null>(() => linkPreviewCache.get(url) ?? null);
+
+    useEffect(() => {
+        let isActive = true;
+
+        if (linkPreviewCache.has(url)) {
+            return;
+        }
+
+        const loadPreview = async () => {
+            try {
+                const response = await callGetLinkPreview(url);
+                const nextPreview = response.data?.data ?? null;
+                linkPreviewCache.set(url, nextPreview);
+
+                if (isActive) {
+                    setPreview(nextPreview);
+                }
+            } catch {
+                linkPreviewCache.set(url, null);
+
+                if (isActive) {
+                    setPreview(null);
+                }
+            }
+        };
+
+        void loadPreview();
+
+        return () => {
+            isActive = false;
+        };
+    }, [url]);
+
+    return preview;
+};
+
+function renderTextWithLinks(text: string, className: string) {
+    const segments: React.ReactNode[] = [];
+    let currentIndex = 0;
+
+    for (const match of text.matchAll(urlPattern)) {
+        const rawMatch = match[0];
+        const matchIndex = match.index ?? 0;
+
+        if (matchIndex > currentIndex) {
+            segments.push(
+                <span key={`text-${currentIndex}`}>
+                    {text.slice(currentIndex, matchIndex)}
+                </span>,
+            );
+        }
+
+        const { url, trailing } = splitLinkSuffix(rawMatch);
+
+        if (url) {
+            segments.push(
+                <a
+                    key={`link-${matchIndex}`}
+                    href={normalizeUrl(url)}
+                    target="_blank"
+                    rel="noopener noreferrer nofollow ugc"
+                    className="underline underline-offset-2 break-all text-inherit opacity-95 hover:opacity-100"
+                >
+                    {url}
+                </a>,
+            );
+        }
+
+        if (trailing) {
+            segments.push(
+                <span key={`trailing-${matchIndex}`}>
+                    {trailing}
+                </span>,
+            );
+        }
+
+        currentIndex = matchIndex + rawMatch.length;
+    }
+
+    if (currentIndex < text.length) {
+        segments.push(
+            <span key={`text-${currentIndex}`}>
+                {text.slice(currentIndex)}
+            </span>,
+        );
+    }
+
+    return (
+        <span className={className}>
+            {segments}
+        </span>
+    );
+}
+
+function YoutubePreviewCard({
+    isOwnMessage,
+    preview,
+}: {
+    isOwnMessage: boolean;
+    preview: {
+        thumbnailUrl: string;
+        url: string;
+        videoId: string;
+    };
+}) {
+    const metadata = useLinkPreview(preview.url);
+    const title = metadata?.title?.trim() || "YouTube";
+    const description = metadata?.description?.trim() || `youtube.com/watch?v=${preview.videoId}`;
+    const channelName = metadata?.authorName?.trim();
+    const [isPlaying, setIsPlaying] = useState(false);
+    const embedUrl = `https://www.youtube-nocookie.com/embed/${preview.videoId}?autoplay=1&rel=0&modestbranding=1`;
+
+    return (
+        <div
+            className={[
+                "mb-2 block overflow-hidden rounded-[1.15rem] border text-left shadow-[0_16px_40px_-24px_rgba(15,23,42,0.42)] transition-transform hover:scale-[1.01]",
+                isOwnMessage
+                    ? "border-white/12 bg-white/10 dark:border-white/10 dark:bg-white/[0.08]"
+                    : "border-black/8 bg-white/80 dark:border-white/8 dark:bg-slate-900/76",
+            ].join(" ")}
+        >
+            <div className="relative aspect-video w-full overflow-hidden bg-black/10">
+                {isPlaying ? (
+                    <iframe
+                        src={embedUrl}
+                        title={title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                        className="absolute inset-0 h-full w-full border-0"
+                    />
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => setIsPlaying(true)}
+                        className="absolute inset-0 block h-full w-full"
+                        aria-label={`Play ${title}`}
+                    >
+                        <Image
+                            src={preview.thumbnailUrl}
+                            alt="YouTube video preview"
+                            fill
+                            sizes="(max-width: 768px) 80vw, 420px"
+                            className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-sm">
+                                <Play className="ml-1 h-6 w-6 fill-current" />
+                            </span>
+                        </div>
+                    </button>
+                )}
+            </div>
+            <div className="px-3 py-2.5">
+                <div className="min-w-0">
+                    <p className="truncate text-[12px] font-semibold">{title}</p>
+                    <p className={`line-clamp-2 text-[11px] leading-5 ${isOwnMessage ? "text-white/75 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                        {description}
+                    </p>
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                    <p className={`truncate text-[10px] font-semibold uppercase tracking-[0.08em] ${isOwnMessage ? "text-white/70 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                        {channelName || "YouTube Channel"}
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${isOwnMessage ? "bg-white/12 text-white/80 dark:bg-white/[0.12] dark:text-slate-200" : "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300"}`}>
+                            {metadata?.providerName || "YouTube"}
+                        </span>
+                        <a
+                            href={preview.url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow ugc"
+                            className={`inline-flex h-7 w-7 items-center justify-center rounded-full border ${isOwnMessage ? "border-white/12 text-white/80 dark:border-white/10 dark:text-slate-200" : "border-black/10 text-slate-600 dark:border-white/10 dark:text-slate-300"}`}
+                            aria-label="Open video in new tab"
+                        >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function GenericLinkPreviewCard({
+    isOwnMessage,
+    url,
+}: {
+    isOwnMessage: boolean;
+    url: string;
+}) {
+    const preview = useLinkPreview(url);
+
+    if (!preview) {
+        return null;
+    }
+
+    return (
+        <a
+            href={preview.canonicalUrl}
+            target="_blank"
+            rel="noopener noreferrer nofollow ugc"
+            className={[
+                "mb-2 block overflow-hidden rounded-[1.15rem] border text-left shadow-[0_16px_40px_-24px_rgba(15,23,42,0.42)] transition-transform hover:scale-[1.01]",
+                isOwnMessage
+                    ? "border-white/12 bg-white/10 dark:border-white/10 dark:bg-white/[0.08]"
+                    : "border-black/8 bg-white/80 dark:border-white/8 dark:bg-slate-900/76",
+            ].join(" ")}
+        >
+            {preview.imageUrl ? (
+                <div className="relative aspect-[1.91/1] w-full overflow-hidden bg-black/10">
+                    <Image
+                        src={preview.imageUrl}
+                        alt={preview.title}
+                        fill
+                        sizes="(max-width: 768px) 80vw, 420px"
+                        className="object-cover"
+                    />
+                </div>
+            ) : null}
+            <div className="space-y-1 px-3 py-2.5">
+                <p className="text-[12px] font-semibold">
+                    {preview.title}
+                </p>
+                <p className={`line-clamp-2 text-[11px] leading-5 ${isOwnMessage ? "text-white/75 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                    {preview.description}
+                </p>
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                    <p className={`truncate text-[10px] font-semibold uppercase tracking-[0.08em] ${isOwnMessage ? "text-white/70 dark:text-slate-300" : "text-slate-500 dark:text-slate-400"}`}>
+                        {preview.providerName}
+                    </p>
+                    <p className={`truncate text-[10px] ${isOwnMessage ? "text-white/60 dark:text-slate-400" : "text-slate-400 dark:text-slate-500"}`}>
+                        {preview.hostname}
+                    </p>
+                </div>
+            </div>
+        </a>
+    );
+}
+
 function ReplyPreviewCard({
     replyToMessage,
     isOwnMessage,
@@ -74,9 +405,9 @@ function ReplyPreviewCard({
             <p className="truncate text-[11px] font-semibold tracking-[0.03em]">
                 {replyToMessage.senderName}
             </p>
-            <p className="mt-1 line-clamp-2 break-words text-[12px] leading-5 opacity-80">
-                {getReplyPreviewText(replyToMessage)}
-            </p>
+            <div className="mt-1 line-clamp-2 break-words text-[12px] leading-5 opacity-80">
+                {renderTextWithLinks(getReplyPreviewText(replyToMessage), "inline")}
+            </div>
         </button>
     );
 }
@@ -237,6 +568,8 @@ export function MessageBubbleList({
         <>
             {messageGroups.map((messageGroup, index) => {
                 const isOwnMessage = messageGroup.senderUserId === currentUserId;
+                const youtubePreview = messageGroup.content ? getYoutubePreview(messageGroup.content) : null;
+                const firstUrl = messageGroup.content ? extractUrls(messageGroup.content)[0] ?? null : null;
                 const showSenderMeta = isGroupThread && !isOwnMessage;
                 const nextMessageGroup = messageGroups[index + 1];
                 const showsAvatarOnThisRow = showSenderMeta
@@ -399,10 +732,23 @@ export function MessageBubbleList({
                                             ))}
                                         </div>
                                     ) : null}
+                                    {youtubePreview ? (
+                                        <YoutubePreviewCard
+                                            isOwnMessage={isOwnMessage}
+                                            preview={youtubePreview}
+                                        />
+                                    ) : firstUrl ? (
+                                        <GenericLinkPreviewCard
+                                            key={firstUrl}
+                                            isOwnMessage={isOwnMessage}
+                                            url={normalizeUrl(firstUrl)}
+                                        />
+                                    ) : null}
                                     {messageGroup.content ? (
-                                        <p className="break-words text-[13px] leading-[1.55] tracking-[0.01em]">
-                                            {messageGroup.content}
-                                        </p>
+                                        renderTextWithLinks(
+                                            messageGroup.content,
+                                            "block break-words whitespace-pre-wrap text-[13px] leading-[1.55] tracking-[0.01em]",
+                                        )
                                     ) : null}
                                 </div>
                             </div>
@@ -524,7 +870,7 @@ export function MessageComposer({
                             {t("messagesParts.replyingTo")} {replyTargetMessage.senderName}
                         </p>
                         <p className="mt-1 line-clamp-2 pr-8 text-[12px] text-slate-700 dark:text-slate-200">
-                            {getReplyPreviewText(replyTargetMessage)}
+                            {renderTextWithLinks(getReplyPreviewText(replyTargetMessage), "inline")}
                         </p>
                         <button
                             type="button"

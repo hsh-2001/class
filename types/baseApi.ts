@@ -6,6 +6,8 @@ interface IBaseApiResponse<T> {
     message?: string;
 }
 
+export type ApiResponseData<T> = BaseApiResponse<T>;
+
 export class BaseApiResponse<T> implements IBaseApiResponse<T> {
     data: T;
     success: boolean;

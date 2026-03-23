@@ -74,10 +74,15 @@ export default function MessagesPage() {
 
   return (
     <>
-      <section className="grid gap-4 page-body">
+      <section
+        className={[
+          "page-body flex min-h-0 flex-col gap-4",
+          mobilePane === "threads" ? "h-[calc(100vh-6.5rem)] md:h-auto" : "",
+        ].join(" ")}
+      >
         <div
           className={[
-            "rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5",
+            "shrink-0 rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5",
             mobilePane === "messages" ? "hidden md:block" : "block",
           ].join(" ")}
         >
@@ -104,10 +109,10 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:flex-none md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
           <section
             className={[
-              "overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5",
+              "min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5 h-full md:h-[40rem]",
               mobilePane === "messages" ? "hidden md:block" : "block",
             ].join(" ")}
           >
@@ -132,7 +137,7 @@ export default function MessagesPage() {
               </div>
             </div>
 
-            <div className="max-h-[40rem] overflow-y-auto p-2">
+            <div className="h-[calc(100%-4.5rem)] overflow-y-auto p-2">
               {isLoading ? (
                 <Skeleton active paragraph={{ rows: 8 }} />
               ) : filteredThreads.length === 0 ? (
@@ -149,7 +154,7 @@ export default function MessagesPage() {
 
           <section
             className={[
-              "min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5 h-[calc(100vh-6.5rem)] md:h-[40rem]",
+              "min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5 h-full md:h-[40rem]",
               mobilePane === "threads" ? "hidden md:block" : "block",
             ].join(" ")}
           >

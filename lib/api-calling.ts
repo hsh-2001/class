@@ -1,6 +1,7 @@
 import { ICreateMessageThreadDTO, IDeleteMessageDTO, ISendMessageDTO } from "@/types/message";
 import { ICreateAssignmentDTO } from "@/types/assignment";
 import { ICreateClassDTO } from "@/types/class";
+import { ILinkPreviewItem } from "@/types/link-preview";
 import { ILoginDTO } from "@/types/user";
 import api from "./api";
 import { TCreateStudentDTO, TUpdateStudentDTO } from "@/types/student";
@@ -8,6 +9,7 @@ import { ICreateTeacherDTO, IUpdateTeacherDTO } from "@/types/teacher";
 import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IEnrollStudentCourseDTO } from "@/types/enrollment";
 import { IUpdateProfileDTO } from "@/types/profile";
+import { ApiResponseData } from "@/types/baseApi";
 
 export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
@@ -92,6 +94,12 @@ export const callSendMessage = async (request: ISendMessageDTO) => {
 
 export const callDeleteMessage = async (request: IDeleteMessageDTO) => {
   return await api.delete("/message", { data: request });
+}
+
+export const callGetLinkPreview = async (url: string) => {
+  return await api.get<ApiResponseData<ILinkPreviewItem>>("/link-preview", {
+    params: { url },
+  });
 }
 
 export const callGetStudentProfile = async () => {
