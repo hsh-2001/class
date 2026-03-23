@@ -5,8 +5,10 @@ import useProfile from "@/hooks/useProfile";
 import { Gender } from "@/prisma/generated/enums";
 import { useEffect } from "react";
 import { Alert, Avatar, Card, Col, Form, Row, Select, Skeleton, Space, Statistic, Typography } from "antd";
+import { useTranslation } from "react-i18next";
 
 export default function Profile() {
+    const { t } = useTranslation();
     const {
         handleLogout,
     } = useAthentication();
@@ -26,8 +28,8 @@ export default function Profile() {
         void fetchProfile();
     }, [fetchProfile]);
 
-    const initials = `${profile?.firstName?.[0] ?? ""}${profile?.lastName?.[0] ?? ""}`.trim() || "ST";
-    const displayName = `${profile?.firstName || "Student"} ${profile?.lastName || ""}`.trim();
+    const initials = `${profile?.firstName?.[0] ?? ""}${profile?.lastName?.[0] ?? ""}`.trim() || t("profile.defaultInitials");
+    const displayName = `${profile?.firstName || t("profile.studentFallback")} ${profile?.lastName || ""}`.trim();
     const profileCompletion = [
         profile?.username,
         profile?.firstName,
@@ -44,40 +46,40 @@ export default function Profile() {
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
                             <Typography.Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                                Student Profile
+                                {t("profile.eyebrow")}
                             </Typography.Text>
                             <Typography.Title level={2} className="!mt-3 mb-2! !text-slate-950 dark:!text-slate-50">
-                                {isLoading ? "Loading profile..." : displayName}
+                                {isLoading ? t("profile.loadingProfile") : displayName}
                             </Typography.Title>
                             <Typography.Paragraph className="!mb-0 max-w-2xl !text-sm !text-slate-600 dark:!text-slate-300">
-                                Keep your personal details current so classmates and teachers see the right account information.
+                                {t("profile.description")}
                             </Typography.Paragraph>
                         </div>
-                        <SButton type="button" color="danger" onClick={handleLogout}>Logout</SButton>
+                        <SButton type="button" color="danger" onClick={handleLogout}>{t("profile.logout")}</SButton>
                     </div>
                 </Card>
 
                 <Row gutter={[16, 16]}>
                     <Col xs={24} md={8}>
                         <Card className="border-black/10 bg-white/75 dark:border-white/10 dark:bg-white/5">
-                            <Statistic title="Account Email" value={profile?.email || "No email available"} valueStyle={{ fontSize: 16 }} />
+                            <Statistic title={t("profile.accountEmail")} value={profile?.email || t("profile.noEmailAvailable")} valueStyle={{ fontSize: 16 }} />
                         </Card>
                     </Col>
                     <Col xs={24} md={8}>
                         <Card className="border-black/10 bg-white/75 dark:border-white/10 dark:bg-white/5">
-                            <Statistic title="Username" value={profile?.username || "--"} />
+                            <Statistic title={t("profile.username")} value={profile?.username || "--"} />
                         </Card>
                     </Col>
                     <Col xs={24} md={8}>
                         <Card className="border-black/10 bg-white/75 dark:border-white/10 dark:bg-white/5">
-                            <Statistic title="Profile Completion" value={Math.round((profileCompletion / 6) * 100)} suffix="%" />
+                            <Statistic title={t("profile.profileCompletion")} value={Math.round((profileCompletion / 6) * 100)} suffix="%" />
                         </Card>
                     </Col>
                 </Row>
 
                 <Row gutter={[24, 24]}>
                     <Col xs={24} xl={16}>
-                        <Card className="border-black/10 bg-white/75 dark:border-white/10 dark:bg-white/5" title="Edit Profile Details">
+                        <Card className="border-black/10 bg-white/75 dark:border-white/10 dark:bg-white/5" title={t("profile.editTitle")}>
                             {isLoading && !profile ? (
                                 <Skeleton active avatar paragraph={{ rows: 6 }} />
                             ) : (
@@ -109,19 +111,19 @@ export default function Profile() {
                                                 {displayName}
                                             </Typography.Title>
                                             <Typography.Text className="!text-sm text-slate-500! dark:!text-slate-400">
-                                                Update the details used across the class system.
+                                                {t("profile.updateDetails")}
                                             </Typography.Text>
                                         </div>
                                     </div>
 
                                     <Row gutter={[16, 0]}>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="Email">
+                                            <Form.Item label={t("profile.email")}>
                                                 <SInput value={profile?.email || ""} disabled />
                                             </Form.Item>
                                         </Col>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="Username">
+                                            <Form.Item label={t("profile.username")}>
                                                 <SInput
                                                     value={profile?.username || ""}
                                                     onChange={(value) => setProfileField("username", String(value))}
@@ -130,7 +132,7 @@ export default function Profile() {
                                             </Form.Item>
                                         </Col>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="First name">
+                                            <Form.Item label={t("profile.firstName")}>
                                                 <SInput
                                                     value={profile?.firstName || ""}
                                                     onChange={(value) => setProfileField("firstName", String(value))}
@@ -139,7 +141,7 @@ export default function Profile() {
                                             </Form.Item>
                                         </Col>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="Last name">
+                                            <Form.Item label={t("profile.lastName")}>
                                                 <SInput
                                                     value={profile?.lastName || ""}
                                                     onChange={(value) => setProfileField("lastName", String(value))}
@@ -148,7 +150,7 @@ export default function Profile() {
                                             </Form.Item>
                                         </Col>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="Phone">
+                                            <Form.Item label={t("profile.phone")}>
                                                 <SInput
                                                     value={profile?.phone || ""}
                                                     onChange={(value) => setProfileField("phone", String(value))}
@@ -157,14 +159,14 @@ export default function Profile() {
                                             </Form.Item>
                                         </Col>
                                         <Col xs={24} md={12}>
-                                            <Form.Item label="Gender">
+                                            <Form.Item label={t("profile.gender")}>
                                                 <Select
                                                     value={profile?.gender || Gender.MALE}
                                                     onChange={(value) => setProfileField("gender", value as Gender)}
                                                     disabled={isLoading}
                                                     options={[
-                                                        { label: "Male", value: Gender.MALE },
-                                                        { label: "Female", value: Gender.FEMALE },
+                                                        { label: t("profile.male"), value: Gender.MALE },
+                                                        { label: t("profile.female"), value: Gender.FEMALE },
                                                     ]}
                                                 />
                                             </Form.Item>
@@ -182,10 +184,10 @@ export default function Profile() {
                                         <Col xs={24}>
                                             <div className="flex justify-end gap-2">
                                                 <SButton type="button" color="secondary" onClick={() => void fetchProfile()}>
-                                                    Reset
+                                                    {t("common.reset")}
                                                 </SButton>
                                                 <SButton type="submit" color="primary" loading={isSubmitting}>
-                                                    Save changes
+                                                    {t("common.saveChanges")}
                                                 </SButton>
                                             </div>
                                         </Col>

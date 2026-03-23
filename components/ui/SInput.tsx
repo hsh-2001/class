@@ -5,10 +5,10 @@ interface IInputProps {
     value?: string | number;
     onChange?: (value: string | number) => void;
     disabled?: boolean;
-    type: 'text' | 'email' | 'password';
+    type?: 'text' | 'email' | 'password';
 }
 
-export default function SInput({ placeholder, value, onChange, disabled, type }: IInputProps) {
+export default function SInput({ placeholder, value, onChange, disabled, type = "text" }: IInputProps) {
     return (
         <>
             {

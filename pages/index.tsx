@@ -1,45 +1,48 @@
 import AppPage from "@/components/features/AppPage";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation();
+
   return (
     <AppPage
-      eyebrow="Dashboard"
-      title="Welcome back to your online class system"
-      description="Track today’s classes, pending assignments, and important updates without leaving the dashboard."
+      eyebrow={t("dashboard.eyebrow")}
+      title={t("dashboard.title")}
+      description={t("dashboard.description")}
       stats={[
-        { label: "Classes Today", value: "4" },
-        { label: "Pending Work", value: "3 tasks" },
-        { label: "Unread Messages", value: "12" },
+        { label: t("dashboard.stats.classesToday"), value: "4" },
+        { label: t("dashboard.stats.pendingWork"), value: t("dashboard.meta.threeTasks") },
+        { label: t("dashboard.stats.unreadMessages"), value: "12" },
       ]}
-      primaryTitle="Today at a glance"
+      primaryTitle={t("dashboard.primaryTitle")}
       primaryItems={[
         {
-          title: "Frontend Engineering",
-          description: "Live session starts at 09:00 AM with screen-sharing enabled.",
-          meta: "In 25 min",
+          title: t("dashboard.primaryItems.frontendTitle"),
+          description: t("dashboard.primaryItems.frontendDescription"),
+          meta: t("dashboard.meta.in25Min"),
         },
         {
-          title: "Database Systems",
-          description: "Review the normalization worksheet before the afternoon class.",
-          meta: "1 file",
+          title: t("dashboard.primaryItems.databaseTitle"),
+          description: t("dashboard.primaryItems.databaseDescription"),
+          meta: t("dashboard.meta.oneFile"),
         },
         {
-          title: "UI Design Critique",
-          description: "Prepare your latest layout draft for peer feedback.",
-          meta: "2:00 PM",
+          title: t("dashboard.primaryItems.designTitle"),
+          description: t("dashboard.primaryItems.designDescription"),
+          meta: t("dashboard.meta.twoPm"),
         },
       ]}
-      secondaryTitle="Recent updates"
+      secondaryTitle={t("dashboard.secondaryTitle")}
       secondaryItems={[
         {
-          title: "Teacher note",
-          description: "Upload your attendance by the end of the day.",
-          meta: "Class admin",
+          title: t("dashboard.secondaryItems.noteTitle"),
+          description: t("dashboard.secondaryItems.noteDescription"),
+          meta: t("dashboard.meta.classAdmin"),
         },
         {
-          title: "System notice",
-          description: "Video rooms are stable and available for all courses.",
-          meta: "Platform",
+          title: t("dashboard.secondaryItems.noticeTitle"),
+          description: t("dashboard.secondaryItems.noticeDescription"),
+          meta: t("dashboard.meta.platform"),
         },
       ]}
     />

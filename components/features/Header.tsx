@@ -1,13 +1,14 @@
 "use client";
 
-import { Menu, Moon, Sun, X } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import SToggleButton from "../ui/SToggleButton";
+import { useTranslation } from "react-i18next";
+import LanguageSelect from "../ui/LanguageSelect";
+import ThemeToggle from "../ui/ThemeToggle";
 
 
 export default function Header({ onToggleSidebar, isSidebarOpen }: { onToggleSidebar: () => void, isSidebarOpen: boolean }) {
-  const { setTheme, resolvedTheme } = useTheme();
+  const { t } = useTranslation();
 
   const [isWidth1000Px, setIsWidth1000Px] = useState(() => {
     if (typeof window === "undefined") {
@@ -49,15 +50,17 @@ export default function Header({ onToggleSidebar, isSidebarOpen }: { onToggleSid
             </button>
           )}
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700">
-            System Class
+            {t("common.systemName")}
           </p>
         </div>
-        <SToggleButton
-          isActive={resolvedTheme === "light"}
-          onChange={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          name={{ option1: "Light", option2: "Dark" }}
-          icon={{ icon1: <Sun />, icon2: <Moon /> }}
-        />
+        <div className="flex items-center gap-2">
+          <div className="hidden md:block">
+            <LanguageSelect className="w-36 [&_.ant-select-selector]:!rounded-full [&_.ant-select-selector]:!shadow-none" />
+          </div>
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
     </header>
   );

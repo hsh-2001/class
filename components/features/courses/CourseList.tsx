@@ -2,8 +2,11 @@ import { ICourse } from "@/types/course";
 import { Table } from "antd";
 import { Edit } from "lucide-react";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 export default function CourseList({ courseList, onClickEdit }: { courseList: ICourse[]; onClickEdit: (record: ICourse) => void }) {
+  const { t } = useTranslation();
+
   return (
     <Table
       rowKey="id"
@@ -11,23 +14,23 @@ export default function CourseList({ courseList, onClickEdit }: { courseList: IC
       dataSource={courseList}
       columns={[
         {
-          title: "Name",
+          title: t("courses.table.name"),
           dataIndex: "name",
           key: "name",
         },
         {
-          title: "Code",
+          title: t("courses.table.code"),
           dataIndex: "code",
           key: "code",
           width: 180,
         },
         {
-          title: "Description",
+          title: t("courses.table.description"),
           dataIndex: "description",
           key: "description",
         },
         {
-          title: "Course Banner",
+          title: t("courses.table.courseBanner"),
           dataIndex: "courseBanner",
           key: "courseBanner",
           width: 150,
@@ -40,12 +43,12 @@ export default function CourseList({ courseList, onClickEdit }: { courseList: IC
                 height={40}
                 className="object-cover rounded-md" />
             ) : (
-              <span className="text-sm text-slate-500 dark:text-slate-400">No banner</span>
+              <span className="text-sm text-slate-500 dark:text-slate-400">{t("courses.table.noBanner")}</span>
             );
           },
         },
         {
-          title: "Actions",
+          title: t("courses.table.actions"),
           key: "actions",
           width: 100,
           render: (_, record) => (

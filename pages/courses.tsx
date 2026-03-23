@@ -7,8 +7,10 @@ import SModal from "@/components/ui/SModal";
 import useCourse from "@/hooks/useCourse";
 import { DatePicker, Form, Select, Skeleton } from "antd";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 export default function CoursesPage() {
+  const { t } = useTranslation();
   const {
     bannerPreview,
     classForm,
@@ -45,25 +47,25 @@ export default function CoursesPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                {isStudent ? "Course Enrollment" : "Course And Class Management"}
+                {isStudent ? t("courses.studentEyebrow") : t("courses.adminEyebrow")}
               </p>
               <h1 className="mt-3 text-3xl font-semibold text-slate-950 dark:text-slate-50">
-                {isStudent ? "Enroll in Courses" : "Courses"}
+                {isStudent ? t("courses.studentTitle") : t("courses.adminTitle")}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
                 {isStudent
-                  ? "Browse available class offerings and enroll in the courses you want to join."
-                  : "Create courses first, then open class offerings so students can enroll and start learning."}
+                  ? t("courses.studentDescription")
+                  : t("courses.adminDescription")}
               </p>
             </div>
 
             {!isStudent ? (
               <div className="flex gap-2">
                 <SButton type="button" color="secondary" onClick={() => setIsClassModalVisible(true)}>
-                  Add Class
+                  {t("courses.addClass")}
                 </SButton>
                 <SButton type="button" color="primary" onClick={() => setIsCourseModalVisible(true)}>
-                  Add Course
+                  {t("courses.addCourse")}
                 </SButton>
               </div>
             ) : null}
@@ -76,9 +78,9 @@ export default function CoursesPage() {
           ) : isStudent ? (
             <>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Available Courses</h2>
+                <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.availableCourses")}</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {studentCourseList.length} option{studentCourseList.length === 1 ? "" : "s"}
+                  {t("courses.optionsCount", { count: studentCourseList.length })}
                 </p>
               </div>
 
@@ -93,9 +95,9 @@ export default function CoursesPage() {
             <div className="grid gap-6">
               <div>
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Course List</h2>
+                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.courseList")}</h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {courseList.length} course{courseList.length === 1 ? "" : "s"}
+                    {t("courses.coursesCount", { count: courseList.length })}
                   </p>
                 </div>
                 <CourseList courseList={courseList} onClickEdit={onClickEdit} />
@@ -103,9 +105,9 @@ export default function CoursesPage() {
 
               <div>
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Class Offerings</h2>
+                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.classOfferings")}</h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {classList.length} class{classList.length === 1 ? "" : "es"}
+                    {t("courses.classesCount", { count: classList.length })}
                   </p>
                 </div>
                 <ClassList classList={classList} />
@@ -120,38 +122,38 @@ export default function CoursesPage() {
           <SModal
             isOpen={isCourseModalVisible}
             onClose={handleCloseCourseModal}
-            title={isEditing ? "Update course" : "Add new course"}
+            title={isEditing ? t("courses.updateCourse") : t("courses.addNewCourse")}
           >
             <Form layout="vertical" form={courseForm} onSubmitCapture={onSubmitCourse}>
               <div className="grid gap-4">
                 <Form.Item
                   name="name"
-                  label="Course Name"
-                  rules={[{ required: true, message: "Please enter the course name!" }]}
+                  label={t("courses.courseName")}
+                  rules={[{ required: true, message: t("courses.validation.courseName") }]}
                 >
-                  <SInput placeholder="Enter course name" />
+                  <SInput placeholder={t("courses.enterCourseName")} />
                 </Form.Item>
 
                 <Form.Item
                   name="code"
-                  label="Course Code"
-                  rules={[{ required: true, message: "Please enter the course code!" }]}
+                  label={t("courses.courseCode")}
+                  rules={[{ required: true, message: t("courses.validation.courseCode") }]}
                 >
-                  <SInput placeholder="Enter course code" />
+                  <SInput placeholder={t("courses.enterCourseCode")} />
                 </Form.Item>
 
                 <Form.Item
                   name="description"
-                  label="Description"
-                  rules={[{ required: true, message: "Please enter the course description!" }]}
+                  label={t("courses.descriptionLabel")}
+                  rules={[{ required: true, message: t("courses.validation.courseDescription") }]}
                 >
-                  <SInput placeholder="Enter course description" />
+                  <SInput placeholder={t("courses.enterCourseDescription")} />
                 </Form.Item>
 
                 <Form.Item
                   name="courseBanner"
-                  label="Course Banner"
-                  rules={[{ required: true, message: "Please enter the course banner!" }]}
+                  label={t("courses.courseBanner")}
+                  rules={[{ required: true, message: t("courses.validation.courseBanner") }]}
                 >
                   <div className="relative w-full md:w-60">
                     <input className="absolute inset-0 z-10 h-full w-full opacity-0" type="file" onChange={handleFileChange} />
@@ -160,7 +162,7 @@ export default function CoursesPage() {
                         ? <Image src={bannerPreview} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
                         : courseForm.getFieldValue("courseBanner")
                         ? <Image src={courseForm.getFieldValue("courseBanner")} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
-                        : <p className="text-sm text-slate-500 dark:text-slate-400">Click to upload a banner</p>}
+                        : <p className="text-sm text-slate-500 dark:text-slate-400">{t("courses.clickToUploadBanner")}</p>}
                     </div>
                   </div>
                 </Form.Item>
@@ -168,10 +170,10 @@ export default function CoursesPage() {
 
               <div className="flex justify-end gap-2">
                 <SButton type="button" color="secondary" onClick={handleCloseCourseModal}>
-                  Cancel
+                  {t("common.cancel")}
                 </SButton>
                 <SButton type="submit" color="primary" loading={isSubmittingCourse}>
-                  {isEditing ? "Update" : "Submit"}
+                  {isEditing ? t("common.update") : t("common.submit")}
                 </SButton>
               </div>
             </Form>
@@ -186,19 +188,19 @@ export default function CoursesPage() {
               <div className="grid gap-4">
                 <Form.Item
                   name="name"
-                  label="Class Name"
-                  rules={[{ required: true, message: "Please enter the class name!" }]}
+                  label={t("courses.className")}
+                  rules={[{ required: true, message: t("courses.validation.className") }]}
                 >
-                  <SInput placeholder="Morning Batch A" />
+                  <SInput placeholder={t("courses.morningBatch")} />
                 </Form.Item>
 
                 <Form.Item
                   name="courseId"
-                  label="Course"
-                  rules={[{ required: true, message: "Please select a course!" }]}
+                  label={t("courses.course")}
+                  rules={[{ required: true, message: t("courses.validation.selectCourse") }]}
                 >
                   <Select
-                    placeholder="Select course"
+                    placeholder={t("courses.selectCourse")}
                     options={courseList.map((course) => ({
                       label: `${course.name} (${course.code})`,
                       value: course.id,
@@ -208,11 +210,11 @@ export default function CoursesPage() {
 
                 <Form.Item
                   name="teacherId"
-                  label="Teacher"
-                  rules={[{ required: true, message: "Please select a teacher!" }]}
+                  label={t("courses.teacher")}
+                  rules={[{ required: true, message: t("courses.validation.selectTeacher") }]}
                 >
                   <Select
-                    placeholder="Select teacher"
+                    placeholder={t("courses.selectTeacher")}
                     options={teacherList.map((teacher) => ({
                       label: `${teacher.firstName} ${teacher.lastName}`.trim() || teacher.username || teacher.email,
                       value: teacher.id,
@@ -222,8 +224,8 @@ export default function CoursesPage() {
 
                 <Form.Item
                   name="startDate"
-                  label="Start Date"
-                  rules={[{ required: true, message: "Please choose a start date!" }]}
+                  label={t("courses.startDate")}
+                  rules={[{ required: true, message: t("courses.validation.selectStartDate") }]}
                 >
                   <DatePicker
                     showTime
@@ -235,7 +237,7 @@ export default function CoursesPage() {
 
                 <Form.Item
                   name="endDate"
-                  label="End Date"
+                  label={t("courses.endDate")}
                 >
                   <DatePicker
                     showTime
@@ -248,10 +250,10 @@ export default function CoursesPage() {
 
               <div className="flex justify-end gap-2">
                 <SButton type="button" color="secondary" onClick={handleCloseClassModal}>
-                  Cancel
+                  {t("common.cancel")}
                 </SButton>
                 <SButton type="submit" color="primary" loading={isSubmittingClass}>
-                  Create Class
+                  {t("courses.createClass")}
                 </SButton>
               </div>
             </Form>

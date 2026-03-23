@@ -3,6 +3,7 @@ import { IStudentCourseEnrollmentItem } from "@/types/enrollment";
 import { Alert, Card, Skeleton, Tag } from "antd";
 import dayjs from "dayjs";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 interface StudentCourseEnrollmentListProps {
     courses: IStudentCourseEnrollmentItem[];
@@ -17,6 +18,8 @@ export default function StudentCourseEnrollmentList({
     enrollingClassId,
     onEnroll,
 }: StudentCourseEnrollmentListProps) {
+    const { t } = useTranslation();
+
     if (isLoading) {
         return (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -34,8 +37,8 @@ export default function StudentCourseEnrollmentList({
             <Alert
                 type="info"
                 showIcon
-                message="No classes are open for enrollment yet."
-                description="Courses will appear here once an available class offering has been created for your school."
+                message={t("courses.enrollment.noClassesTitle")}
+                description={t("courses.enrollment.noClassesDescription")}
             />
         );
     }
@@ -78,12 +81,12 @@ export default function StudentCourseEnrollmentList({
                                     </h3>
                                 </div>
                                 <Tag color={course.isEnrolled ? "green" : "blue"}>
-                                    {course.isEnrolled ? "Enrolled" : "Open"}
+                                    {course.isEnrolled ? t("courses.enrollment.enrolled") : t("courses.enrollment.open")}
                                 </Tag>
                             </div>
 
                             <p className="min-h-12 text-sm text-slate-600 dark:text-slate-300">
-                                {course.courseDescription || "No course description provided yet."}
+                                {course.courseDescription || t("courses.enrollment.noDescription")}
                             </p>
 
                             <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-white/10 dark:bg-white/5">
@@ -91,21 +94,21 @@ export default function StudentCourseEnrollmentList({
                                     {course.className}
                                 </p>
                                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                    Starts {startDate.isValid() ? startDate.format("MMM D, YYYY h:mm A") : "TBD"}
+                                    {t("courses.enrollment.starts")} {startDate.isValid() ? startDate.format("MMM D, YYYY h:mm A") : t("courses.enrollment.tbd")}
                                 </p>
                                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                                    Ends {endDate?.isValid() ? endDate.format("MMM D, YYYY h:mm A") : "Not scheduled"}
+                                    {t("courses.enrollment.ends")} {endDate?.isValid() ? endDate.format("MMM D, YYYY h:mm A") : t("courses.table.notScheduled")}
                                 </p>
                                 {course.enrolledAt ? (
                                     <p className="mt-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                                        Joined {dayjs(course.enrolledAt).format("MMM D, YYYY")}
+                                        {t("courses.enrollment.joined")} {dayjs(course.enrolledAt).format("MMM D, YYYY")}
                                     </p>
                                 ) : null}
                             </div>
 
                             {course.isEnrolled ? (
                                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300">
-                                    You are already enrolled in this class.
+                                    {t("courses.enrollment.alreadyEnrolled")}
                                 </div>
                             ) : (
                                 <SButton
@@ -114,7 +117,7 @@ export default function StudentCourseEnrollmentList({
                                     loading={enrollingClassId === course.classId}
                                     onClick={() => onEnroll(course.classId)}
                                 >
-                                    Enroll Now
+                                    {t("courses.enrollment.enrollNow")}
                                 </SButton>
                             )}
                         </div>

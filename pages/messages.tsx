@@ -7,8 +7,10 @@ import useMessages from "@/hooks/useMessages";
 import { ArrowLeftRight } from "lucide-react";
 import { Empty, Form, Select, Skeleton, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function MessagesPage() {
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState("");
   const [mobilePane, setMobilePane] = useState<"threads" | "messages">("threads");
   const {
@@ -76,21 +78,21 @@ export default function MessagesPage() {
         <div className="rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h1 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Messages</h1>
+              <h1 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("messages.title")}</h1>
               <Typography.Text className="!text-xs text-slate-500 dark:!text-slate-400">
-                Realtime class conversation
+                {t("messages.subtitle")}
               </Typography.Text>
             </div>
 
             <div className="flex flex-col gap-2 sm:min-w-72 sm:flex-row">
               <SInput
-                placeholder="Search conversations"
+                placeholder={t("messages.searchPlaceholder")}
                 value={searchValue}
                 onChange={(value) => setSearchValue(String(value))}
               />
               {canCreateThread ? (
                 <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
-                  New chat
+                  {t("messages.newChat")}
                 </SButton>
               ) : null}
             </div>
@@ -107,9 +109,9 @@ export default function MessagesPage() {
             <div className="border-b border-black/10 px-4 py-3 dark:border-white/10">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold text-slate-950 dark:text-slate-50">Chats</h2>
+                  <h2 className="text-base font-semibold text-slate-950 dark:text-slate-50">{t("messages.chats")}</h2>
                   <Typography.Text className="!text-xs text-slate-500 dark:!text-slate-400">
-                    {filteredThreads.length} of {threads.length} conversation{threads.length === 1 ? "" : "s"}
+                    {t("messages.conversationsCount", { filtered: filteredThreads.length, total: threads.length, count: threads.length })}
                   </Typography.Text>
                 </div>
                 {selectedThread ? (
@@ -117,7 +119,7 @@ export default function MessagesPage() {
                     type="button"
                     onClick={() => setMobilePane("messages")}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-600 transition-transform duration-300 hover:rotate-180 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 md:hidden"
-                    aria-label="Show message pane"
+                    aria-label={t("messages.showMessagePane")}
                   >
                     <ArrowLeftRight className="h-4 w-4" />
                   </button>
@@ -129,7 +131,7 @@ export default function MessagesPage() {
               {isLoading ? (
                 <Skeleton active paragraph={{ rows: 8 }} />
               ) : filteredThreads.length === 0 ? (
-                <Empty description={threads.length === 0 ? "No conversations yet." : "No conversations match your search."} />
+                <Empty description={threads.length === 0 ? t("messages.noConversationsYet") : t("messages.noConversationsMatch")} />
               ) : (
                 <MessageThreadList
                   selectedThreadId={selectedThreadId}
@@ -179,16 +181,16 @@ export default function MessagesPage() {
         </div>
       </section>
 
-      <SModal isOpen={isModalVisible} onClose={handleCloseModal} title="Start a Conversation">
+      <SModal isOpen={isModalVisible} onClose={handleCloseModal} title={t("messages.startConversation")}>
         <Form form={form} layout="vertical">
           <Form.Item
-            label="School Member"
+            label={t("messages.schoolMember")}
             name="recipientUserId"
-            rules={[{ required: true, message: "Please select a member." }]}
+            rules={[{ required: true, message: t("messages.selectMember") }]}
           >
             <Select
               showSearch
-              placeholder="Search by name, username, or email"
+              placeholder={t("messages.memberSearchPlaceholder")}
               optionFilterProp="label"
               options={memberOptions.map((member) => ({
                 value: member.value,
@@ -199,10 +201,10 @@ export default function MessagesPage() {
         </Form>
         <div className="flex justify-end gap-2">
           <SButton type="button" color="secondary" onClick={handleCloseModal}>
-            Cancel
+            {t("common.cancel")}
           </SButton>
           <SButton type="button" color="primary" onClick={onCreateThread} loading={isCreatingThread}>
-            Start chat
+            {t("messages.startChat")}
           </SButton>
         </div>
       </SModal>
@@ -210,19 +212,19 @@ export default function MessagesPage() {
       <SModal
         isOpen={Boolean(pendingDeleteMessageId)}
         onClose={() => setPendingDeleteMessageId(null)}
-        title="Delete Message?"
+        title={t("messages.deleteMessageTitle")}
       >
         <div className="rounded-[1rem] border border-rose-200 bg-rose-50/80 px-4 py-3 dark:border-rose-500/20 dark:bg-rose-500/10">
           <p className="text-[13px] leading-6 text-slate-700 dark:text-slate-200">
-            This action cannot be undone.
+            {t("messages.deleteMessageWarning")}
           </p>
         </div>
         <div className="flex justify-end gap-2">
           <SButton type="button" color="secondary" onClick={() => setPendingDeleteMessageId(null)}>
-            Cancel
+            {t("common.cancel")}
           </SButton>
           <SButton type="button" color="danger" onClick={() => void confirmDeleteMessage()} loading={isSendingMessage}>
-            Delete
+            {t("common.delete")}
           </SButton>
         </div>
       </SModal>
@@ -230,18 +232,18 @@ export default function MessagesPage() {
       <SModal
         isOpen={Boolean(forwardTargetMessage)}
         onClose={() => setForwardTargetMessage(null)}
-        title="Forward Message"
+        title={t("messages.forwardMessage")}
       >
         <div className="space-y-4">
           {forwardTargetMessage ? (
             <div className="rounded-[1rem] border border-black/10 bg-black/[0.03] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
               <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                From {forwardTargetMessage.senderName}
+                {t("messages.from")} {forwardTargetMessage.senderName}
               </p>
               <p className="mt-1 line-clamp-3 break-words text-[13px] text-slate-700 dark:text-slate-200">
                 {forwardTargetMessage.content || (forwardTargetMessage.attachments.length > 0
-                  ? `${forwardTargetMessage.attachments.length} attachment${forwardTargetMessage.attachments.length === 1 ? "" : "s"}`
-                  : "Message")}
+                  ? t("messages.attachmentsCount", { count: forwardTargetMessage.attachments.length })
+                  : t("messages.message"))}
               </p>
             </div>
           ) : null}

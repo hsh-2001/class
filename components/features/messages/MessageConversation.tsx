@@ -9,6 +9,7 @@ import { IMessageAttachment, IMessageReplyPreview, MessageThreadResponse } from 
 import { ArrowLeftRight } from "lucide-react";
 import { Avatar, Empty } from "antd";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface MessageConversationProps {
     currentUserId: string;
@@ -95,6 +96,7 @@ export default function MessageConversation({
     onSendMessage,
     onBackToThreads,
 }: MessageConversationProps) {
+    const { t } = useTranslation();
     const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
     const messageContainerRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -209,7 +211,7 @@ export default function MessageConversation({
     if (!thread) {
         return (
             <div className="flex h-full items-center justify-center p-6">
-                <Empty description="Select a conversation to read messages." />
+                <Empty description={t("messages.selectConversation")} />
             </div>
         );
     }
@@ -242,7 +244,7 @@ export default function MessageConversation({
                             type="button"
                             onClick={onBackToThreads}
                             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-black/3 text-slate-600 transition-transform duration-300 hover:-rotate-180 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 md:hidden"
-                            aria-label="Show thread list"
+                            aria-label={t("messages.showThreadList")}
                         >
                             <ArrowLeftRight className="h-4 w-4" />
                         </button>

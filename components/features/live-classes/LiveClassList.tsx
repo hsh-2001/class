@@ -2,17 +2,12 @@ import { LiveClassResponse } from "@/types/live-class";
 import { Empty, Tag } from "antd";
 import dayjs from "dayjs";
 import { CalendarClock, CircleDot, GraduationCap, Radio, UserRound } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const statusColorMap = {
     LIVE: "red",
     UPCOMING: "blue",
     ENDED: "default",
-} as const;
-
-const statusLabelMap = {
-    LIVE: "Live Now",
-    UPCOMING: "Upcoming",
-    ENDED: "Ended",
 } as const;
 
 const statusPanelMap = {
@@ -22,8 +17,10 @@ const statusPanelMap = {
 } as const;
 
 export default function LiveClassList({ sessions }: { sessions: LiveClassResponse[] }) {
+    const { t } = useTranslation();
+
     if (sessions.length === 0) {
-        return <Empty description="No live class sessions available yet." />;
+        return <Empty description={t("liveClasses.list.empty")} />;
     }
 
     return (
@@ -47,7 +44,11 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
                                 </p>
                             </div>
                             <Tag color={statusColorMap[session.status]}>
-                                {statusLabelMap[session.status]}
+                                {session.status === "LIVE"
+                                    ? t("liveClasses.list.liveNow")
+                                    : session.status === "UPCOMING"
+                                        ? t("liveClasses.list.upcoming")
+                                        : t("liveClasses.list.ended")}
                             </Tag>
                         </div>
                     </div>
@@ -57,7 +58,7 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
                             <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.03]">
                                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     <UserRound className="h-3.5 w-3.5" />
-                                    Instructor
+                                    {t("liveClasses.list.instructor")}
                                 </div>
                                 <p className="mt-3 text-sm font-medium text-slate-900 dark:text-slate-100">
                                     {session.teacherName}
@@ -67,10 +68,14 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
                             <div className="rounded-2xl border border-black/10 bg-black/[0.03] p-4 dark:border-white/10 dark:bg-white/[0.03]">
                                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                     <GraduationCap className="h-3.5 w-3.5" />
-                                    Session Type
+                                    {t("liveClasses.list.sessionType")}
                                 </div>
                                 <p className="mt-3 text-sm font-medium text-slate-900 dark:text-slate-100">
-                                    {session.status === "LIVE" ? "Active teaching window" : session.status === "UPCOMING" ? "Scheduled class" : "Completed session"}
+                                    {session.status === "LIVE"
+                                        ? t("liveClasses.list.activeTeachingWindow")
+                                        : session.status === "UPCOMING"
+                                            ? t("liveClasses.list.scheduledClass")
+                                            : t("liveClasses.list.completedSession")}
                                 </p>
                             </div>
                         </div>
@@ -78,13 +83,13 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
                         <div className="rounded-2xl border border-black/10 bg-white p-4 dark:border-white/10 dark:bg-slate-950">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                                 <CalendarClock className="h-3.5 w-3.5" />
-                                Schedule
+                                {t("liveClasses.list.schedule")}
                             </div>
                             <div className="mt-4 space-y-2">
                                 <div className="flex items-start gap-3">
                                     <CircleDot className="mt-0.5 h-4 w-4 text-sky-600 dark:text-sky-400" />
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Starts</p>
+                                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{t("liveClasses.list.starts")}</p>
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                             {dayjs(session.startDate).format("MMM D, YYYY h:mm A")}
                                         </p>
@@ -93,9 +98,9 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
                                 <div className="flex items-start gap-3">
                                     <Radio className="mt-0.5 h-4 w-4 text-orange-500 dark:text-orange-300" />
                                     <div>
-                                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Ends</p>
+                                        <p className="text-xs uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{t("liveClasses.list.ends")}</p>
                                         <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                                            {session.endDate ? dayjs(session.endDate).format("MMM D, YYYY h:mm A") : "Not scheduled"}
+                                            {session.endDate ? dayjs(session.endDate).format("MMM D, YYYY h:mm A") : t("liveClasses.list.notScheduled")}
                                         </p>
                                     </div>
                                 </div>
@@ -104,10 +109,10 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
 
                         <div className={`rounded-2xl border px-4 py-3 text-sm ${statusPanelMap[session.status]}`}>
                             {session.status === "LIVE"
-                                ? "Session is currently active. Students and teachers should prioritize this room now."
+                                ? t("liveClasses.list.liveStatus")
                                 : session.status === "UPCOMING"
-                                ? "Session is scheduled and will move into the live state automatically once the start time is reached."
-                                : "Session has finished. Use the schedule details for follow-up or attendance review."}
+                                ? t("liveClasses.list.upcomingStatus")
+                                : t("liveClasses.list.endedStatus")}
                         </div>
                     </div>
                 </article>

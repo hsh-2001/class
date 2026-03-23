@@ -13,20 +13,20 @@ import {
 } from "lucide-react";
 
 type SidebarItem = {
-  label: string;
+  labelKey: string;
   href: string;
   icon: ComponentType<{ className?: string }>;
   roles: AppRole[];
 };
 
 export const sidebarItems: SidebarItem[] = [
-  { label: "Home", href: "/", icon: LayoutDashboard, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Members", href: "/members", icon: Users, roles: [APP_ROLES.ADMIN] },
-  { label: "Courses", href: "/courses", icon: BookOpen, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT] },
-  { label: "Live Classes", href: "/live-classes", icon: Video, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Schedule", href: "/schedule", icon: CalendarDays, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Assignments", href: "/assignments", icon: ClipboardCheck, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Messages", href: "/messages", icon: MessageSquare, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Settings", href: "/settings", icon: Settings, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { label: "Profile", href: "/profile", icon: User, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.home", href: "/", icon: LayoutDashboard, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.members", href: "/members", icon: Users, roles: [APP_ROLES.ADMIN] },
+  { labelKey: "sidebar.courses", href: "/courses", icon: BookOpen, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT] },
+  { labelKey: "sidebar.liveClasses", href: "/live-classes", icon: Video, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.schedule", href: "/schedule", icon: CalendarDays, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.assignments", href: "/assignments", icon: ClipboardCheck, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.messages", href: "/messages", icon: MessageSquare, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.settings", href: "/settings", icon: Settings, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  { labelKey: "sidebar.profile", href: "/profile", icon: User, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
 ];

@@ -1,8 +1,11 @@
+import LanguageSelect from "@/components/ui/LanguageSelect";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { sidebarItems } from "@/lib/sidebar-items";
 import { getUserRoleFromStorage } from "@/lib/role-access";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useSyncExternalStore } from "react";
+import { useTranslation } from "react-i18next";
 
 function useIsClient() {
     return useSyncExternalStore(
@@ -16,6 +19,7 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
     const router = useRouter();
     const isClient = useIsClient();
     const role = isClient ? getUserRoleFromStorage() : undefined;
+    const { t } = useTranslation();
 
     const handleClickItem = () => {
         onToggleSidebar();
@@ -28,20 +32,20 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
             <div className="flex h-full flex-col">
                 <div className="px-3 pb-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">
-                        Learning Space
+                        {t("sidebar.learningSpace")}
                     </p>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Deep Work Zone
+                        {t("sidebar.deepWorkZone")}
                     </p>
                 </div>
 
                 <nav aria-label="Sidebar navigation" className="flex-1 overflow-y-auto">
                     <ul className="space-y-1.5">
-                        {visibleSidebarItems.map(({ href, icon: Icon, label }) => {
+                        {visibleSidebarItems.map(({ href, icon: Icon, labelKey }) => {
                             const isActive = router.pathname === href;
 
                             return (
-                                <li key={label}>
+                                <li key={labelKey}>
                                     <Link
                                         href={href}
                                         className={[
@@ -53,7 +57,7 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
                                         onClick={handleClickItem}
                                     >
                                         <Icon className="h-4 w-4" />
-                                        <span>{label}</span>
+                                        <span>{t(labelKey)}</span>
                                     </Link>
                                 </li>
                             );
@@ -61,8 +65,16 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
                     </ul>
                 </nav>
 
-                <div className="mt-4 rounded-lg bg-black/5 px-4 py-3 text-sm text-slate-600 dark:bg-white/10 dark:text-slate-300">
-                    Quick access to your daily class tasks.
+                <div className="mt-4 space-y-3">
+                    <div className="md:hidden">
+                        <LanguageSelect className="w-full [&_.ant-select-selector]:rounded-full! [&_.ant-select-selector]:shadow-none!" />
+                    </div>
+                    <div className="md:hidden w-full">
+                        <ThemeToggle className="w-full [&>button]:w-full" />
+                    </div>
+                    <div className="rounded-lg bg-black/5 px-4 py-3 text-sm text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                        {t("sidebar.quickAccess")}
+                    </div>
                 </div>
             </div>
         </aside>

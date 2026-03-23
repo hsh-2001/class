@@ -1,45 +1,48 @@
 import AppPage from "@/components/features/AppPage";
+import { useTranslation } from "react-i18next";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
+
   return (
     <AppPage
-      eyebrow="Settings"
-      title="Adjust your account and class preferences"
-      description="Manage the basics that affect how you study, receive updates, and use the platform every day."
+      eyebrow={t("settingsPage.eyebrow")}
+      title={t("settingsPage.title")}
+      description={t("settingsPage.description")}
       stats={[
-        { label: "Theme", value: "Manual" },
-        { label: "Notifications", value: "Enabled" },
-        { label: "Account Status", value: "Active" },
+        { label: t("settingsPage.stats.theme"), value: t("settingsPage.stats.manual") },
+        { label: t("settingsPage.stats.notifications"), value: t("settingsPage.stats.enabled") },
+        { label: t("settingsPage.stats.accountStatus"), value: t("settingsPage.stats.active") },
       ]}
-      primaryTitle="Account options"
+      primaryTitle={t("settingsPage.primaryTitle")}
       primaryItems={[
         {
-          title: "Profile details",
-          description: "Update your display name, student ID, and contact email.",
-          meta: "Editable",
+          title: t("settingsPage.primaryItems.profileTitle"),
+          description: t("settingsPage.primaryItems.profileDescription"),
+          meta: t("settingsPage.meta.editable"),
         },
         {
-          title: "Notification rules",
-          description: "Choose which assignment and message alerts should interrupt you.",
-          meta: "Custom",
+          title: t("settingsPage.primaryItems.notificationTitle"),
+          description: t("settingsPage.primaryItems.notificationDescription"),
+          meta: t("settingsPage.meta.custom"),
         },
         {
-          title: "Theme mode",
-          description: "Switch between light and dark mode from the header control.",
-          meta: "Available",
+          title: t("settingsPage.primaryItems.themeTitle"),
+          description: t("settingsPage.primaryItems.themeDescription"),
+          meta: t("settingsPage.meta.available"),
         },
       ]}
-      secondaryTitle="Security reminders"
+      secondaryTitle={t("settingsPage.secondaryTitle")}
       secondaryItems={[
         {
-          title: "Password hygiene",
-          description: "Rotate your password regularly and avoid reuse across apps.",
-          meta: "Recommended",
+          title: t("settingsPage.secondaryItems.passwordTitle"),
+          description: t("settingsPage.secondaryItems.passwordDescription"),
+          meta: t("settingsPage.meta.recommended"),
         },
         {
-          title: "Device access",
-          description: "Review active sessions if you sign in from multiple devices.",
-          meta: "Review monthly",
+          title: t("settingsPage.secondaryItems.deviceTitle"),
+          description: t("settingsPage.secondaryItems.deviceDescription"),
+          meta: t("settingsPage.meta.reviewMonthly"),
         },
       ]}
     />

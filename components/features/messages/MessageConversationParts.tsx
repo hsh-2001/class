@@ -1,11 +1,13 @@
 import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
+import i18n from "@/lib/i18n";
 import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
 import { Copy, CornerUpLeft, FileText, Forward, Paperclip, Trash2, X } from "lucide-react";
 import { Avatar, Input, Popover, Typography, message as antMessage } from "antd";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { RefObject, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export type DraftMessageAttachment = IMessageAttachment & {
     localId: string;
@@ -38,15 +40,15 @@ const getReplyPreviewText = (replyToMessage?: IMessageReplyPreview) => {
 
     if (replyToMessage.attachments.length === 1) {
         return replyToMessage.attachments[0]?.kind === "IMAGE"
-            ? "Photo"
-            : `File: ${replyToMessage.attachments[0]?.name ?? "Attachment"}`;
+            ? i18n.t("messagesParts.photo")
+            : `${i18n.t("messagesParts.filePrefix")}: ${replyToMessage.attachments[0]?.name ?? i18n.t("messagesParts.attachment")}`;
     }
 
     if (replyToMessage.attachments.length > 1) {
-        return `${replyToMessage.attachments.length} attachments`;
+        return i18n.t("messages.attachmentsCount", { count: replyToMessage.attachments.length });
     }
 
-    return "Message";
+    return i18n.t("messages.message");
 };
 
 function ReplyPreviewCard({
@@ -100,6 +102,7 @@ function AlbumPreviewCard({
     isOwnMessage: boolean;
     onOpen: () => void;
 }) {
+    const { t } = useTranslation();
     const previewAttachments = attachments.slice(0, 3);
     const textTone = isOwnMessage ? "text-white/80 dark:text-slate-300" : "text-slate-500 dark:text-slate-400";
 
@@ -139,7 +142,7 @@ function AlbumPreviewCard({
                 <div>
                     <p className="text-[12px] font-semibold tracking-[0.01em]">{attachments.length} photos</p>
                     <p className={`text-[11px] ${textTone}`}>
-                        Tap to view album
+                        {t("messagesParts.tapToViewAlbum")}
                     </p>
                 </div>
             </div>
@@ -168,6 +171,7 @@ export function MessageBubbleList({
     onDeleteMessage: (messageId: string) => void;
     onOpenAlbum: (attachments: IMessageAttachment[]) => void;
 }) {
+    const { t } = useTranslation();
     const [menuState, setMenuState] = useState<{
         messageId: string;
         left: number;
@@ -262,7 +266,7 @@ export function MessageBubbleList({
                                         <div className="min-w-52 space-y-2 rounded-[0.9rem] border border-black/10 bg-white/95 p-3 text-slate-900 dark:border-white/10 dark:bg-slate-950/95 dark:text-slate-100">
                                             <div>
                                                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                                                    Username
+                                                    {t("profile.username")}
                                                 </p>
                                                 <p className="text-[13px] font-medium text-slate-900 dark:text-slate-100">
                                                     {messageGroup.senderUsername || "-"}
@@ -270,7 +274,7 @@ export function MessageBubbleList({
                                             </div>
                                             <div>
                                                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                                                    Email
+                                                    {t("profile.email")}
                                                 </p>
                                                 <p className="break-all text-[13px] font-medium text-slate-900 dark:text-slate-100">
                                                     {messageGroup.senderEmail}
@@ -283,8 +287,8 @@ export function MessageBubbleList({
                                         size={32}
                                         src={messageGroup.senderProfileUrl}
                                         className="mt-auto shrink-0 cursor-pointer bg-slate-900 text-[11px] font-semibold text-white dark:bg-white dark:text-black"
-                                    >
-                                        {initials || "U"}
+                                        >
+                                        {initials || t("messagesParts.userInitial")}
                                     </Avatar>
                                 </Popover>
                             ) : showSenderMeta ? (
@@ -333,7 +337,7 @@ export function MessageBubbleList({
                                             : "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300"
                                             }`}>
                                             <Forward className="h-3.5 w-3.5" />
-                                            Forwarded
+                                            {t("messagesParts.forwarded")}
                                         </div>
                                     ) : null}
                                     {messageGroup.imageAttachments.length > 1 ? (
@@ -404,7 +408,7 @@ export function MessageBubbleList({
                                     style={{ left: menuState.left, top: menuState.top }}
                                 >
                                     <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                                        Message actions
+                                        {t("messagesParts.messageActions")}
                                     </p>
                                     <button
                                         type="button"
@@ -415,7 +419,7 @@ export function MessageBubbleList({
                                         className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
                                     >
                                         <CornerUpLeft className="h-4 w-4" />
-                                        Reply
+                                        {t("messagesParts.reply")}
                                     </button>
                                     <button
                                         type="button"
@@ -426,16 +430,16 @@ export function MessageBubbleList({
                                         className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
                                     >
                                         <Forward className="h-4 w-4" />
-                                        Forward
+                                        {t("messagesParts.forward")}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={async () => {
                                             try {
                                                 await navigator.clipboard.writeText(messageGroup.content || getReplyPreviewText(replyPreview));
-                                                void antMessage.success("Message copied.");
+                                                void antMessage.success(t("messagesParts.messageCopied"));
                                             } catch {
-                                                void antMessage.error("Failed to copy message.");
+                                                void antMessage.error(t("messagesParts.messageCopyFailed"));
                                             } finally {
                                                 setMenuState(null);
                                             }
@@ -443,7 +447,7 @@ export function MessageBubbleList({
                                         className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-slate-800 transition-colors hover:bg-black/[0.05] dark:text-slate-100 dark:hover:bg-white/[0.06]"
                                     >
                                         <Copy className="h-4 w-4" />
-                                        Copy
+                                        {t("messagesParts.copy")}
                                     </button>
                                     {isOwnMessage ? (
                                         <button
@@ -455,7 +459,7 @@ export function MessageBubbleList({
                                             className="flex w-full items-center gap-2 rounded-[0.8rem] px-3 py-2 text-left text-[13px] font-medium text-rose-600 transition-colors hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10"
                                         >
                                             <Trash2 className="h-4 w-4" />
-                                            Delete
+                                            {t("common.delete")}
                                         </button>
                                     ) : null}
                                 </div>,
@@ -496,6 +500,8 @@ export function MessageComposer({
     selectedAttachmentAccept: string;
     selectedAttachments: DraftMessageAttachment[];
 }) {
+    const { t } = useTranslation();
+
     if (!canSendMessage) {
         return null;
     }
@@ -509,7 +515,7 @@ export function MessageComposer({
                 {replyTargetMessage ? (
                     <div className="relative overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
                         <p className="pr-8 text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
-                            Replying to {replyTargetMessage.senderName}
+                            {t("messagesParts.replyingTo")} {replyTargetMessage.senderName}
                         </p>
                         <p className="mt-1 line-clamp-2 pr-8 text-[12px] text-slate-700 dark:text-slate-200">
                             {getReplyPreviewText(replyTargetMessage)}
@@ -518,7 +524,7 @@ export function MessageComposer({
                             type="button"
                             onClick={onCancelReply}
                             className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
-                            aria-label="Cancel reply"
+                            aria-label={t("messagesParts.cancelReply")}
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -549,7 +555,7 @@ export function MessageComposer({
                                             type="button"
                                             onClick={() => onRemoveSelectedAttachment(attachment.localId)}
                                             className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur-sm"
-                                            aria-label={`Remove ${attachment.name}`}
+                                            aria-label={t("messagesParts.removeAttachment", { name: attachment.name })}
                                         >
                                             <X className="h-4 w-4" />
                                         </button>
@@ -581,7 +587,7 @@ export function MessageComposer({
                                             type="button"
                                             onClick={() => onRemoveSelectedAttachment(attachment.localId)}
                                             className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white"
-                                            aria-label={`Remove ${attachment.name}`}
+                                            aria-label={t("messagesParts.removeAttachment", { name: attachment.name })}
                                         >
                                             <X className="h-4 w-4" />
                                         </button>
@@ -607,7 +613,7 @@ export function MessageComposer({
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-600 transition-colors hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]"
-                        aria-label="Upload file"
+                        aria-label={t("messagesParts.uploadFile")}
                     >
                         <FileText className="h-4 w-4" />
                     </button>
@@ -624,13 +630,13 @@ export function MessageComposer({
                                     }
                                 }
                             }}
-                            placeholder="Write a message"
+                            placeholder={t("messagesParts.writeMessage")}
                             className="rounded-[1.25rem]"
                         />
                     </div>
                     <div className="shrink-0">
                         <SButton type="button" color="primary" onClick={onSendMessage} loading={isSendingMessage}>
-                            Send
+                            {t("messagesParts.send")}
                         </SButton>
                     </div>
                 </div>
@@ -650,14 +656,15 @@ export function MessageAlbumModal({
     onClose: () => void;
     onSelectImage: (index: number) => void;
 }) {
+    const { t } = useTranslation();
     const modalTitle = (
         <div className="flex items-center justify-between gap-2">
-            <span>{activeAlbum?.length === 1 ? "Image" : "Album"}</span>
+            <span>{activeAlbum?.length === 1 ? t("messagesParts.image") : t("messagesParts.album")}</span>
             <button
                 type="button"
                 onClick={onClose}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-700 transition-colors hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200 dark:hover:bg-white/[0.08]"
-                aria-label="Close image viewer"
+                aria-label={t("messagesParts.closeImageViewer")}
             >
                 <X className="h-4 w-4" />
             </button>
@@ -695,7 +702,7 @@ export function MessageAlbumModal({
                                                 ? "border-sky-500"
                                                 : "border-transparent",
                                         ].join(" ")}
-                                        aria-label={`View image ${index + 1}`}
+                                        aria-label={t("messagesParts.viewImage", { index: index + 1 })}
                                     >
                                         <Image
                                             src={attachment.url}
@@ -708,7 +715,7 @@ export function MessageAlbumModal({
                                 ))}
                             </div>
                             <Typography.Text className="!text-xs text-slate-500 dark:!text-slate-400">
-                                {activeAlbumIndex + 1} of {activeAlbum.length}
+                                {t("messagesParts.albumPosition", { current: activeAlbumIndex + 1, total: activeAlbum.length })}
                             </Typography.Text>
                         </>
                     ) : null}

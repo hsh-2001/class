@@ -1,6 +1,7 @@
 import { MessageThreadResponse } from "@/types/message";
 import { Avatar, Empty } from "antd";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 interface MessageThreadListProps {
     selectedThreadId: string | null;
@@ -13,8 +14,10 @@ export default function MessageThreadList({
     threads,
     onSelectThread,
 }: MessageThreadListProps) {
+    const { t } = useTranslation();
+
     if (threads.length === 0) {
-        return <Empty description="No conversations yet." />;
+        return <Empty description={t("messages.noConversationsYet")} />;
     }
 
     return (
