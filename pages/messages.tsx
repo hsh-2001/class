@@ -75,7 +75,12 @@ export default function MessagesPage() {
   return (
     <>
       <section className="grid gap-4 page-body">
-        <div className="rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5">
+        <div
+          className={[
+            "rounded-md border border-black/10 bg-white/80 p-4 dark:border-white/10 dark:bg-white/5",
+            mobilePane === "messages" ? "hidden md:block" : "block",
+          ].join(" ")}
+        >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("messages.title")}</h1>
@@ -144,7 +149,7 @@ export default function MessagesPage() {
 
           <section
             className={[
-              "h-[40rem] min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5",
+              "min-h-0 overflow-hidden rounded-md border border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5 h-[calc(100vh-6.5rem)] md:h-[40rem]",
               mobilePane === "threads" ? "hidden md:block" : "block",
             ].join(" ")}
           >

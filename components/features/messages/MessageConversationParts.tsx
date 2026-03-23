@@ -205,8 +205,12 @@ export function MessageBubbleList({
     const openReplyMenu = (
         messageId: string,
         horizontalPlacement: "left" | "right",
-        bubbleElement: HTMLDivElement,
+        bubbleElement: HTMLDivElement | null,
     ) => {
+        if (!bubbleElement) {
+            return;
+        }
+
         const bubbleRect = bubbleElement.getBoundingClientRect();
         const estimatedMenuHeight = 192;
         const estimatedMenuWidth = 176;
@@ -315,9 +319,11 @@ export function MessageBubbleList({
                                             return;
                                         }
 
+                                        const bubbleElement = event.currentTarget;
+
                                         clearLongPressTimer();
                                         longPressTimerRef.current = window.setTimeout(() => {
-                                            openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left", event.currentTarget);
+                                            openReplyMenu(messageGroup.id, isOwnMessage ? "right" : "left", bubbleElement);
                                         }, 450);
                                     }}
                                     onTouchEnd={clearLongPressTimer}
