@@ -1,5 +1,5 @@
 import { getApiErrorMessage } from "@/lib/api-error";
-import { callGetFile, callGetStudentProfile, callUpdateStudentProfile, callUploadFiles } from "@/lib/api-calling";
+import { callGetFile, callGetStudentProfile, callUpdateStudentProfile, callUploadFiles, getFileUrl } from "@/lib/api-calling";
 import { IProfile, IUpdateProfileDTO } from "@/types/profile";
 import { useCallback, useState } from "react";
 
@@ -69,7 +69,7 @@ export default function useProfile() {
             const response = await callUploadFiles(formData);
             if (response.data.success) {
                 const uploadedUrl = response.data.data[0].fileName as string;
-                const url = await getProfile(uploadedUrl);
+                const url = await getFileUrl(uploadedUrl, "profiles");
                 if (url) {
                     await updateProfile({
                         ...profile!,
@@ -84,18 +84,6 @@ export default function useProfile() {
             console.error("Failed to upload profile picture:", error);
         }
     }
-
-    const getProfile = async (fileName: string): Promise<string> => {
-        try {
-            const response  = await callGetFile(`profiles/${fileName}`);
-            const url = response.data.data?.url as string;
-            return url;
-        } catch (error) {
-            console.error("Failed to get profile picture:", error);
-            return "/default-profile.png";
-        }
-    }
-
     return {
         profile,
         isLoading,
@@ -106,6 +94,5 @@ export default function useProfile() {
         setProfileField,
         updateProfile,
         uploadProfilePicture,
-        getProfile,
     };
 }

@@ -29,6 +29,21 @@ export const callGetFile = async (fileName: string) => {
   });
 }
 
+export const getFileUrl = async (fileName: string, path: string): Promise<string> => {
+  try {
+    const response = await callGetFile(`${path}/${fileName}`);
+    if (response.data.success) {
+      const url = response.data.data?.url as string;
+      return url;
+    } else {
+      throw new Error("Failed to get file URL");
+    }
+  } catch (error) {
+    console.error("Error fetching file URL:", error);
+    throw error;
+  }
+}
+
 export const callCreateStudent = async (request: TCreateStudentDTO) => {
   return await api.post("/admin/student", request);
 }

@@ -1034,9 +1034,9 @@ export function MessageComposer({
                         className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-black/[0.03] text-slate-600 transition-colors hover:bg-black/[0.06] dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:bg-white/[0.08]"
                         aria-label={t("messagesParts.uploadFile")}
                     >
-                        <FileText className="h-4 w-4" />
+                        <Paperclip className="h-4 w-4" />
                     </button>
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 items-center">
                         {isGroupThread && mentionChoices.length > 0 ? (
                             <Mentions
                                 autoSize={{ minRows: 1, maxRows: 4 }}
