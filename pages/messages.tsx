@@ -75,10 +75,7 @@ export default function MessagesPage() {
   return (
     <>
       <section
-        className={[
-          "page-body flex min-h-0 flex-col gap-4",
-          mobilePane === "threads" ? "h-[calc(100vh-6.5rem)] md:h-auto" : "",
-        ].join(" ")}
+        className="page-body flex h-[calc(100vh-6.5rem)] min-h-0 flex-col gap-4 md:h-auto"
       >
         <div
           className={[

@@ -639,7 +639,7 @@ export function MessageBubbleList({
                                             ? "ring-2 ring-amber-400/90 ring-offset-2 ring-offset-transparent"
                                             : "",
                                         isOwnMessage
-                                            ? "rounded-br-[0.45rem] border-black/10 bg-black/72 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
+                                            ? "rounded-br-[0.45rem] border-sky-200 bg-blue-900/50 text-white dark:border-white/10 dark:bg-white/[0.12] dark:text-slate-50"
                                             : "rounded-bl-[0.45rem] border-black/8 bg-white/82 text-slate-900 dark:border-white/8 dark:bg-slate-900/78 dark:text-slate-100",
                                     ].join(" ")}
                                     onContextMenu={(event) => {
@@ -862,7 +862,7 @@ export function MessageComposer({
     const selectedFileAttachments = selectedAttachments.filter((attachment) => attachment.kind === "FILE" || !attachment.previewUrl);
 
     return (
-        <div className="border-t border-black/10 bg-white/80 px-3 py-3 dark:border-white/10 dark:bg-white/[0.03] sm:px-5">
+        <div className="sticky bottom-0 z-10 border-t border-black/10 bg-white/95 px-3 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-white/10 dark:bg-slate-950/95 dark:supports-[backdrop-filter]:bg-white/[0.03] sm:px-5">
             <div className="grid gap-2">
                 {replyTargetMessage ? (
                     <div className="relative overflow-hidden rounded-[1.1rem] border border-black/10 bg-black/[0.03] px-3 py-2 dark:border-white/10 dark:bg-white/[0.04]">
