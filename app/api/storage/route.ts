@@ -5,17 +5,12 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 export async function POST(request: Request) {
     try {
         const formData = await request.formData();
-        const file = formData.get("file") as File;
-        const path = formData.get("path") as string;
+        const files = formData.getAll("files") as File[];
+        const path = formData.get("path") as string || "";
 
-        if (!file) {
-            return new Response(JSON.stringify({ error: "No file uploaded" }), {
-                status: 400,
-            });
+        if (!files || files.length === 0) {
+            return new Response(JSON.stringify({ error: "No files uploaded" }), { status: 400 });
         }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
 
         const s3 = new S3Client({
             region: "auto",
@@ -26,19 +21,25 @@ export async function POST(request: Request) {
             },
         });
 
-        const fileName = `${Date.now()}-${file.name}`;
+        const uploadedFiles: { fileName: string; key: string }[] = [];
 
-        const key = `${path}/${fileName}`;
-        const response = await s3.send(
-            new PutObjectCommand({
-                Bucket: process.env.R3_BUCKET_NAME!,
-                Key: key,
-                Body: buffer,
-                ContentType: file.type,
-            })
-        );
+        for (const file of files) {
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const fileName = `${Date.now()}-${file.name}`;
+            const key = `${path}/${fileName}`;
 
-        return ok({ fileName, versionId: response?.VersionId || "N/A" }, 'File uploaded successfully');
+            await s3.send(
+                new PutObjectCommand({
+                    Bucket: process.env.R3_BUCKET_NAME!,
+                    Key: key,
+                    Body: buffer,
+                    ContentType: file.type,
+                })
+            );
+
+            uploadedFiles.push({ fileName, key });
+        }
+        return ok(uploadedFiles, 'Files uploaded successfully');
     } catch (error) {
         const errorMessage = (error as Error).message || "File upload failed";
         return fail(errorMessage, 500);
