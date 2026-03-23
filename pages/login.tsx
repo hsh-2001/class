@@ -1,3 +1,4 @@
+import SInput from "@/components/ui/SInput";
 import useAthentication from "@/hooks/useAthentication";
 
 export default function Login() {
@@ -23,23 +24,21 @@ export default function Login() {
         <form className="mt-8 space-y-4">
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">Email</span>
-            <input
+            <SInput
               type="email"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
               placeholder="admin@classsystem.com"
               value={loginModel.email}
-              onChange={(e) => setLoginModel({ ...loginModel, email: e.target.value })}
+              onChange={(value) => setLoginModel({ ...loginModel, email: String(value) })}
             />
           </label>
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-slate-700">Password</span>
-            <input
+            <SInput
               type="password"
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
               placeholder="Enter your password"
               value={loginModel.password}
-              onChange={(e) => setLoginModel({ ...loginModel, password: e.target.value })}
+              onChange={(value) => setLoginModel({ ...loginModel, password: String(value) })}
             />
           </label>
 

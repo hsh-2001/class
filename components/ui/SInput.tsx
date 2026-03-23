@@ -5,16 +5,33 @@ interface IInputProps {
     value?: string | number;
     onChange?: (value: string | number) => void;
     disabled?: boolean;
+    type: 'text' | 'email' | 'password';
 }
 
-export default function SInput({ placeholder, value, onChange, disabled }: IInputProps) {
+export default function SInput({ placeholder, value, onChange, disabled, type }: IInputProps) {
     return (
-        <Input
-            placeholder={placeholder}
-            value={value}
-            disabled={disabled}
-            onChange={(e) => onChange?.(e.target.value)}
-            className='w-full'
-        />
+        <>
+            {
+                type === 'password' ? (
+                    <Input.Password
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => onChange?.(e.target.value)}
+                        disabled={disabled}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
+                    />
+                ) : (
+                    <Input
+                        type={type}
+                        placeholder={placeholder}
+                        value={value}
+                        onChange={(e) => onChange?.(e.target.value)}
+                        disabled={disabled}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none transition focus:border-sky-400 focus:bg-white"
+                    />
+                )
+
+            }
+        </>
     )
 };
