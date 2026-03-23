@@ -166,9 +166,11 @@ export default function MessagesPage() {
                 autoScrollKey={`${selectedThreadId ?? "none"}:${mobilePane}:${isLoading ? "loading" : "ready"}`}
                 isVisible={mobilePane === "messages"}
                 canSendMessage={canSendMessage}
+                isGroupThread={Boolean(selectedThread?.isGroup)}
                 isSendingMessage={isSendingMessage}
                 isLoadingOlderMessages={isLoadingOlderMessages}
                 messageContent={messageContent}
+                mentionOptions={selectedThread?.threadMemberOptions ?? []}
                 replyTargetMessage={replyTargetMessage}
                 selectedAttachments={selectedAttachments}
                 selectedAttachmentAccept={selectedAttachmentAccept}

@@ -181,6 +181,7 @@ const mapThreadItem = (
             updatedAt: item.updatedAt.toISOString(),
             lastMessagePreview: getLastMessagePreview(lastMessage),
             hasMoreMessages,
+            threadMemberOptions: getThreadMemberOptions(item, currentUserId),
             messages,
         };
     }
@@ -221,6 +222,7 @@ const mapThreadItem = (
         updatedAt: item.updatedAt.toISOString(),
         lastMessagePreview: getLastMessagePreview(lastMessage),
         hasMoreMessages,
+        threadMemberOptions: getThreadMemberOptions(item, currentUserId),
         messages,
     };
 };
@@ -235,6 +237,46 @@ const mapMemberOption = (
     role: item.role,
     profileUrl: item.profile?.profile_url ?? undefined,
 });
+
+const mapThreadMemberOption = (
+    item: {
+        id: string;
+        email: string;
+        username: string;
+        role: Role;
+        profile: { firstName: string; lastName: string; profile_url?: string | null } | null;
+    },
+): IMessageMemberOption => ({
+    value: item.id,
+    label: getDisplayName(item),
+    username: item.username,
+    email: item.email,
+    role: item.role,
+    profileUrl: item.profile?.profile_url ?? undefined,
+});
+
+const getThreadMemberOptions = (
+    item: Awaited<ReturnType<typeof messageRepo.getThreadsBySchool>>[number],
+    currentUserId: string,
+): IMessageMemberOption[] => {
+    if (item.participantOneUserId && item.participantTwoUserId) {
+        return [item.participantOne, item.participantTwo]
+            .filter((participant): participant is NonNullable<typeof participant> => Boolean(participant))
+            .filter((participant) => participant.id !== currentUserId)
+            .map(mapThreadMemberOption);
+    }
+
+    const members = [
+        item.teacher?.user,
+        ...(item.class?.enrollments.map((enrollment) => enrollment.student.user) ?? []),
+    ].filter((member): member is NonNullable<typeof member> => Boolean(member));
+
+    const uniqueMembers = Array.from(new Map(members.map((member) => [member.id, member])).values());
+
+    return uniqueMembers
+        .filter((member) => member.id !== currentUserId)
+        .map(mapThreadMemberOption);
+};
 
 const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePageData> => {
     const [threads, members] = await Promise.all([

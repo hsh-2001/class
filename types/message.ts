@@ -61,6 +61,7 @@ export interface IMessageThreadItem {
     updatedAt: string;
     lastMessagePreview: string;
     hasMoreMessages: boolean;
+    threadMemberOptions: IMessageMemberOption[];
     messages: IMessageItem[];
 }
 
@@ -157,6 +158,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
     updatedAt: string;
     lastMessagePreview: string;
     hasMoreMessages: boolean;
+    threadMemberOptions: IMessageMemberOption[];
     messages: IMessageItem[];
 
     constructor(data: IMessageThreadItem) {
@@ -179,6 +181,7 @@ export class MessageThreadResponse implements IMessageThreadItem {
         this.updatedAt = data.updatedAt;
         this.lastMessagePreview = data.lastMessagePreview;
         this.hasMoreMessages = Boolean(data.hasMoreMessages);
+        this.threadMemberOptions = Array.isArray(data.threadMemberOptions) ? data.threadMemberOptions : [];
         this.messages = (data.messages ?? []).map((message) => ({
             ...message,
             content: message.content ?? "",

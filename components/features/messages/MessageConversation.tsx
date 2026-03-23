@@ -3,6 +3,7 @@ import {
     MessageAlbumModal,
     MessageBubbleList,
     MessageComposer,
+    MessageMentionOption,
     MessageRenderGroup,
 } from "@/components/features/messages/MessageConversationParts";
 import { IMessageAttachment, IMessageReplyPreview, MessageThreadResponse } from "@/types/message";
@@ -17,9 +18,11 @@ interface MessageConversationProps {
     autoScrollKey?: string;
     isVisible?: boolean;
     canSendMessage: boolean;
+    isGroupThread: boolean;
     isSendingMessage: boolean;
     isLoadingOlderMessages: boolean;
     messageContent: string;
+    mentionOptions: MessageMentionOption[];
     replyTargetMessage: IMessageReplyPreview | null;
     selectedAttachments: DraftMessageAttachment[];
     selectedAttachmentAccept: string;
@@ -79,9 +82,11 @@ export default function MessageConversation({
     autoScrollKey,
     isVisible = true,
     canSendMessage,
+    isGroupThread,
     isSendingMessage,
     isLoadingOlderMessages,
     messageContent,
+    mentionOptions,
     replyTargetMessage,
     selectedAttachments,
     selectedAttachmentAccept,
@@ -293,7 +298,9 @@ export default function MessageConversation({
                 canSendMessage={canSendMessage}
                 fileInputRef={fileInputRef}
                 isSendingMessage={isSendingMessage}
+                isGroupThread={isGroupThread}
                 messageContent={messageContent}
+                mentionOptions={mentionOptions}
                 replyTargetMessage={replyTargetMessage}
                 onCancelReply={onCancelReply}
                 onChangeMessageContent={onChangeMessageContent}

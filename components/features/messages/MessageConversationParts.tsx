@@ -2,10 +2,11 @@ import SButton from "@/components/ui/SButton";
 import SModal from "@/components/ui/SModal";
 import { callGetLinkPreview } from "@/lib/api-calling";
 import i18n from "@/lib/i18n";
+import { IMessageMemberOption } from "@/types/message";
 import { IMessageAttachment, IMessageReplyPreview } from "@/types/message";
 import { Copy, CornerUpLeft, ExternalLink, FileText, Forward, Paperclip, Play, Trash2, X } from "lucide-react";
 import { ILinkPreviewItem } from "@/types/link-preview";
-import { Avatar, Input, Popover, Typography, message as antMessage } from "antd";
+import { Avatar, Input, Mentions, Popover, Typography, message as antMessage } from "antd";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { RefObject, useEffect, useRef, useState } from "react";
@@ -15,6 +16,8 @@ export type DraftMessageAttachment = IMessageAttachment & {
     localId: string;
     previewUrl?: string;
 };
+
+export type MessageMentionOption = Pick<IMessageMemberOption, "label" | "username" | "value">;
 
 export type MessageRenderGroup = {
     id: string;
@@ -54,6 +57,7 @@ const getReplyPreviewText = (replyToMessage?: IMessageReplyPreview) => {
 };
 
 const urlPattern = /(?:https?:\/\/|www\.)[^\s<]+/gi;
+const mentionPattern = /(^|[\s([])(@[a-zA-Z0-9._-]+)/g;
 const trailingUrlPunctuation = new Set([")", ",", ".", "!", "?", ";", ":", "]", "}"]);
 
 const normalizeUrl = (value: string) => {
@@ -177,7 +181,59 @@ const useLinkPreview = (url: string) => {
     return preview;
 };
 
-function renderTextWithLinks(text: string, className: string) {
+const renderTextWithMentions = (
+    text: string,
+    isOwnMessage: boolean,
+    keyPrefix: string,
+) => {
+    const segments: React.ReactNode[] = [];
+    let currentIndex = 0;
+
+    for (const match of text.matchAll(mentionPattern)) {
+        const leadingText = match[1] ?? "";
+        const mentionValue = match[2] ?? "";
+        const matchIndex = match.index ?? 0;
+        const mentionStartIndex = matchIndex + leadingText.length;
+
+        if (mentionStartIndex > currentIndex) {
+            segments.push(
+                <span key={`${keyPrefix}-text-${currentIndex}`}>
+                    {text.slice(currentIndex, mentionStartIndex)}
+                </span>,
+            );
+        }
+
+        if (mentionValue) {
+            segments.push(
+                <span
+                    key={`${keyPrefix}-mention-${mentionStartIndex}`}
+                    className={[
+                        "rounded-md px-1 py-0.5 font-semibold",
+                        isOwnMessage
+                            ? "bg-white/14 text-white dark:bg-white/[0.12] dark:text-slate-50"
+                            : "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+                    ].join(" ")}
+                >
+                    {mentionValue}
+                </span>,
+            );
+        }
+
+        currentIndex = mentionStartIndex + mentionValue.length;
+    }
+
+    if (currentIndex < text.length) {
+        segments.push(
+            <span key={`${keyPrefix}-text-${currentIndex}`}>
+                {text.slice(currentIndex)}
+            </span>,
+        );
+    }
+
+    return segments;
+};
+
+function renderTextWithLinks(text: string, className: string, isOwnMessage = false) {
     const segments: React.ReactNode[] = [];
     let currentIndex = 0;
 
@@ -188,7 +244,7 @@ function renderTextWithLinks(text: string, className: string) {
         if (matchIndex > currentIndex) {
             segments.push(
                 <span key={`text-${currentIndex}`}>
-                    {text.slice(currentIndex, matchIndex)}
+                    {renderTextWithMentions(text.slice(currentIndex, matchIndex), isOwnMessage, `segment-${currentIndex}`)}
                 </span>,
             );
         }
@@ -223,7 +279,7 @@ function renderTextWithLinks(text: string, className: string) {
     if (currentIndex < text.length) {
         segments.push(
             <span key={`text-${currentIndex}`}>
-                {text.slice(currentIndex)}
+                {renderTextWithMentions(text.slice(currentIndex), isOwnMessage, `segment-${currentIndex}`)}
             </span>,
         );
     }
@@ -744,12 +800,13 @@ export function MessageBubbleList({
                                             url={normalizeUrl(firstUrl)}
                                         />
                                     ) : null}
-                                    {messageGroup.content ? (
-                                        renderTextWithLinks(
-                                            messageGroup.content,
-                                            "block break-words whitespace-pre-wrap text-[13px] leading-[1.55] tracking-[0.01em]",
-                                        )
-                                    ) : null}
+                                            {messageGroup.content ? (
+                                                renderTextWithLinks(
+                                                    messageGroup.content,
+                                                    "block break-words whitespace-pre-wrap text-[13px] leading-[1.55] tracking-[0.01em]",
+                                                    isOwnMessage,
+                                                )
+                                            ) : null}
                                 </div>
                             </div>
                         </div>
@@ -838,11 +895,15 @@ export function MessageComposer({
     onSendMessage,
     selectedAttachmentAccept,
     selectedAttachments,
+    isGroupThread,
+    mentionOptions,
 }: {
     canSendMessage: boolean;
     fileInputRef: RefObject<HTMLInputElement | null>;
     isSendingMessage: boolean;
+    isGroupThread: boolean;
     messageContent: string;
+    mentionOptions: MessageMentionOption[];
     replyTargetMessage: IMessageReplyPreview | null;
     onCancelReply: () => void;
     onChangeMessageContent: (value: string) => void;
@@ -853,6 +914,12 @@ export function MessageComposer({
     selectedAttachments: DraftMessageAttachment[];
 }) {
     const { t } = useTranslation();
+    const mentionChoices = mentionOptions
+        .filter((option) => option.username.trim().length > 0)
+        .map((option) => ({
+            value: option.username,
+            label: `${option.label} (@${option.username})`,
+        }));
 
     if (!canSendMessage) {
         return null;
@@ -970,21 +1037,42 @@ export function MessageComposer({
                         <FileText className="h-4 w-4" />
                     </button>
                     <div className="min-w-0 flex-1">
-                        <Input.TextArea
-                            autoSize={{ minRows: 1, maxRows: 4 }}
-                            value={messageContent}
-                            onChange={(event) => onChangeMessageContent(event.target.value)}
-                            onKeyDown={(event) => {
-                                if (event.key === "Enter" && !event.shiftKey) {
-                                    event.preventDefault();
-                                    if (!isSendingMessage) {
-                                        onSendMessage();
+                        {isGroupThread && mentionChoices.length > 0 ? (
+                            <Mentions
+                                autoSize={{ minRows: 1, maxRows: 4 }}
+                                value={messageContent}
+                                onChange={onChangeMessageContent}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" && !event.shiftKey) {
+                                        event.preventDefault();
+                                        if (!isSendingMessage) {
+                                            onSendMessage();
+                                        }
                                     }
-                                }
-                            }}
-                            placeholder={t("messagesParts.writeMessage")}
-                            className="rounded-[1.25rem]"
-                        />
+                                }}
+                                options={mentionChoices}
+                                prefix={["@"]}
+                                split=" "
+                                placeholder={t("messagesParts.writeMessage")}
+                                className="rounded-[1.25rem]"
+                            />
+                        ) : (
+                            <Input.TextArea
+                                autoSize={{ minRows: 1, maxRows: 4 }}
+                                value={messageContent}
+                                onChange={(event) => onChangeMessageContent(event.target.value)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" && !event.shiftKey) {
+                                        event.preventDefault();
+                                        if (!isSendingMessage) {
+                                            onSendMessage();
+                                        }
+                                    }
+                                }}
+                                placeholder={t("messagesParts.writeMessage")}
+                                className="rounded-[1.25rem]"
+                            />
+                        )}
                     </div>
                     <div className="shrink-0">
                         <SButton type="button" color="primary" onClick={onSendMessage} loading={isSendingMessage}>
