@@ -11,6 +11,7 @@ import { IEnrollStudentCourseDTO } from "@/types/enrollment";
 import { IUpdateProfileDTO } from "@/types/profile";
 import { ApiResponseData, BaseApiResponse } from "@/types/baseApi";
 import { IGetFileResponse, IUploadResponse } from "@/types/upload";
+import { IOverview } from "@/types/overview";
 
 export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
@@ -139,11 +140,11 @@ export const callGetLinkPreview = async (url: string) => {
 }
 
 export const callGetStudentProfile = async () => {
-  return await api.get("/student/update-profile");
+  return await api.get("/student/user-profile");
 }
 
 export const callUpdateStudentProfile = async (request: IUpdateProfileDTO) => {
-  return await api.put("/student/update-profile", request);
+  return await api.put("/student/user-profile", request);
 }
 
 export const callGetStudentCourses = async () => {
@@ -152,4 +153,9 @@ export const callGetStudentCourses = async () => {
 
 export const callEnrollStudentCourse = async (request: IEnrollStudentCourseDTO) => {
   return await api.post("/student/course", request);
+}
+
+export const callGetOverview = async (): Promise<BaseApiResponse<IOverview>> => {
+  const response = await api.get("/admin/overview");
+  return response.data;
 }

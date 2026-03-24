@@ -15,6 +15,9 @@ type StudentProfileUser = {
         gender: Gender;
         profile_url: string | null;
     } | null;
+    school?: {
+        name: string;
+    } | null;
 };
 
 const mapProfile = (user: StudentProfileUser): IProfile => {
@@ -27,11 +30,13 @@ const mapProfile = (user: StudentProfileUser): IProfile => {
         phone: user.profile?.phone ?? "",
         gender: user.profile?.gender ?? "MALE",
         profileUrl: user.profile?.profile_url ?? "",
+        schoolName: user.school?.name ?? "",
     };
 }
 
 const getProfile = async (userId: string) => {
     const user = await studentRepo.getProfileByUserId(userId);
+    console.log("Fetched user profile:", user);
     if (!user) {
         throw new Error("USER_NOT_FOUND");
     }

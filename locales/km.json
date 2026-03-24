@@ -298,5 +298,12 @@
     "male": "ប្រុស",
     "female": "ស្រី",
     "defaultInitials": "សស"
-  }
+  },
+  "total_classes": "ថ្នាក់សរុប",
+  "total_courses": "វគ្គសរុប",
+  "total_teachers": "គ្រូសរុប",
+  "total_students": "សិស្សសរុប",
+  "total_groups": "ក្រុមសរុប",
+  "courses_with_classes": "វគ្គដែលមានថ្នាក់",
+  "courses_with_no_classes": "វគ្គដែលមិនមានថ្នាក់"
 }

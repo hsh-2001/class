@@ -276,6 +276,13 @@ const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
 }
 
 
+const getOverview = async (userId: string) => {
+    const data = await prisma.$queryRaw`
+        SELECT * FROM get_overview(${userId}::uuid)
+    `
+
+    return data[0];
+}
 const adminRepo = {
     createStudent,
     getStudents,
@@ -291,6 +298,7 @@ const adminRepo = {
     createClass,
     getAllClasses,
     updateClass,
+    getOverview,
 };
 
 export default adminRepo;

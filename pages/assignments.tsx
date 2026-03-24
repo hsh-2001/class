@@ -34,11 +34,11 @@ export default function AssignmentsPage() {
                 <h1 className="mt-3 text-3xl font-semibold text-slate-950 dark:text-slate-50">
                   Assignments
                 </h1>
-                {/* <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+                <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
                   {canManage
                     ? "Create assignments for active classes and monitor upcoming due dates."
                     : "Review assignments from the classes you are currently enrolled in."}
-                </p> */}
+                </p>
               </div>
 
               {canManage ? (
@@ -48,27 +48,6 @@ export default function AssignmentsPage() {
               ) : null}
             </div>
           </div>
-        </div>
-
-        <div className="rounded-xl border border-black/10 bg-white/75 p-6 dark:border-white/10 dark:bg-white/5">
-          {!isUserReady || isLoading ? (
-            <Skeleton active paragraph={{ rows: 6 }} />
-          ) : assignments.length === 0 ? (
-            <Empty
-              description={canManage ? "No assignments created yet." : "No assignments available for your enrolled classes."}
-            />
-          ) : (
-            <div className="flex flex-col overflow-auto gap-6">
-              {/* <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Assignment List</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {assignments.length} assignment{assignments.length === 1 ? "" : "s"}
-                </p>
-              </div> */}
-
-              <AssignmentList assignments={assignments} />
-            </div>
-          )}
         </div>
       </div>
 

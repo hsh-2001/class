@@ -298,5 +298,12 @@
     "male": "Male",
     "female": "Female",
     "defaultInitials": "ST"
-  }
+  },
+  "total_classes": "Total classes",
+  "total_courses": "Total courses",
+  "total_teachers": "Total teachers",
+  "total_students": "Total students",
+  "total_groups": "Total groups",
+  "courses_with_classes": "Courses with classes",
+  "courses_with_no_classes": "Courses with no classes"
 }

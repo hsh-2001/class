@@ -7,7 +7,9 @@ const getProfileByUserId = async (userId: string) => {
         where: { id: userId },
         include: {
             profile: true,
-        },
+            student: true,
+            school: true,
+        }
     });
 };
 

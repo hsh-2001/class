@@ -128,6 +128,10 @@ const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
     return await adminRepo.getAllClasses(schoolId);
 }
 
+const getOverview = async (userId: string) => {
+    return await adminRepo.getOverview(userId);
+}
+
 
 const adminService = {
     createStudent,
@@ -143,6 +147,7 @@ const adminService = {
     createClass,
     getAllClasses,
     updateClass,
+    getOverview,
 };
 
 export default adminService;

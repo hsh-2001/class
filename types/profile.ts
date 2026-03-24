@@ -9,6 +9,7 @@ export interface IProfile {
     phone: string;
     gender: Gender;
     profileUrl: string;
+    schoolName?: string
 }
 
 export interface IUpdateProfileDTO {
@@ -18,4 +19,5 @@ export interface IUpdateProfileDTO {
     phone?: string | null;
     gender: Gender;
     profileUrl?: string | null;
+    schoolName?: string;
 }
