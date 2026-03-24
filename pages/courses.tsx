@@ -38,6 +38,9 @@ export default function CoursesPage() {
     studentCourseList,
     teacherList,
     disabledPastDate,
+    onClickEditClass,
+    isEditingClass,
+    handleUpdateClass,
   } = useCourse();
 
   return (
@@ -110,7 +113,7 @@ export default function CoursesPage() {
                     {t("courses.classesCount", { count: classList.length })}
                   </p>
                 </div>
-                <ClassList classList={classList} />
+                <ClassList classList={classList} onEdit={onClickEditClass} />
               </div>
             </div>
           )}
@@ -182,9 +185,9 @@ export default function CoursesPage() {
           <SModal
             isOpen={isClassModalVisible}
             onClose={handleCloseClassModal}
-            title="Add new class"
+            title={isEditingClass ? t("common.updateClass") : t("courses.addNewClass")}
           >
-            <Form layout="vertical" form={classForm} onSubmitCapture={onSubmitClass}>
+            <Form layout="vertical" form={classForm} onSubmitCapture={() => isEditingClass ? handleUpdateClass() : onSubmitClass()}>
               <div className="grid gap-4">
                 <Form.Item
                   name="name"
@@ -253,7 +256,7 @@ export default function CoursesPage() {
                   {t("common.cancel")}
                 </SButton>
                 <SButton type="submit" color="primary" loading={isSubmittingClass}>
-                  {t("courses.createClass")}
+                  {isEditingClass ? t("common.update") : t("courses.createClass")}
                 </SButton>
               </div>
             </Form>

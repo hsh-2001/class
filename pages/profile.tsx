@@ -42,13 +42,11 @@ export default function Profile() {
 
     return (
         <div className="page-body">
-            <Space direction="vertical" size={24} className="w-full">
+            <Space vertical size={24} className="w-full">
                 <Card className="border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5" variant="outlined">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <Typography.Text className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                                {t("profile.eyebrow")}
-                            </Typography.Text>
+                           <p className="text-xl font-medium">{t("profile.eyebrow")}</p>
                             <Typography.Title level={2} className="!mt-3 mb-2! !text-slate-950 dark:!text-slate-50">
                                 {isLoading ? t("profile.loadingProfile") : displayName}
                             </Typography.Title>

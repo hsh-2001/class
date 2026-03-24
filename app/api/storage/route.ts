@@ -9,7 +9,7 @@ export async function POST(request: Request) {
         const path = formData.get("path") as string || "";
 
         if (!files || files.length === 0) {
-            return new Response(JSON.stringify({ error: "No files uploaded" }), { status: 400 });
+            return fail("No files uploaded", 400);
         }
 
         const s3 = new S3Client({

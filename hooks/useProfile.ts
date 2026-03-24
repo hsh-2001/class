@@ -67,8 +67,8 @@ export default function useProfile() {
             formData.append("files", file);
             formData.append("path", "profiles");
             const response = await callUploadFiles(formData);
-            if (response.data.success) {
-                const uploadedUrl = response.data.data[0].fileName as string;
+            if (response.success) {
+                const uploadedUrl = response.data[0].fileName as string;
                 const url = await getFileUrl(uploadedUrl, "profiles");
                 if (url) {
                     await updateProfile({

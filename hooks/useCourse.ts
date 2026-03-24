@@ -7,6 +7,7 @@ import {
     callGetCourses,
     callGetStudentCourses,
     callGetTeachers,
+    callUpdateClass,
     callUpdateCourse,
 } from "@/lib/api-calling";
 import { upload } from "@/lib/upload";
@@ -45,6 +46,7 @@ export default function useCourse() {
     const [isUserReady, setIsUserReady] = useState(false);
     const [enrollingClassId, setEnrollingClassId] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+    const [isEditingClass, setIsEditingClass] = useState(false);
 
     const isEditing = editingCourseId !== null;
     const isStudent = currentUser?.role === "STUDENT";
@@ -242,6 +244,54 @@ export default function useCourse() {
         }
     };
 
+    const editingClassId = useRef<string | null>(null);
+    const onClickEditClass = async (classId: string) => {
+        setIsEditingClass(true);
+        setIsClassModalVisible(true);
+        editingClassId.current = classId;
+
+        const classToEdit = classList.find((cls) => cls.id === classId);
+        if (!classToEdit) {
+            return;
+        }
+        classForm.setFieldsValue({
+            name: classToEdit.name,
+            courseId: classToEdit.courseId,
+            teacherId: classToEdit.teacherId,
+            startDate: dayjs(classToEdit.startDate),
+            endDate: classToEdit.endDate ? dayjs(classToEdit.endDate) : undefined,
+        });
+    }
+
+    const handleUpdateClass = async () => {
+        const values = classForm.getFieldsValue();
+        setIsSubmittingClass(true);
+        if (!editingClassId.current) {
+            console.error("No class selected for editing.");
+            setIsSubmittingClass(false);
+            return;
+        }
+        try {
+            const response = await callUpdateClass(editingClassId.current, {
+                name: values.name,
+                courseId: values.courseId,
+                teacherId: values.teacherId,
+                startDate: values.startDate.toISOString(),
+                endDate: values.endDate ? values.endDate.toISOString() : null,
+            });
+
+            if (response.data.success) {
+                handleCloseClassModal();
+                await onLoadCourses();
+            }
+        } catch (error: unknown) {
+            console.error(getApiErrorMessage(error, "Failed to update class."));
+        } finally { 
+            setIsSubmittingClass(false);
+            setIsEditingClass(false);
+        }
+    };
+
     return {
         DatePicker,
         bannerPreview,
@@ -271,5 +321,8 @@ export default function useCourse() {
         studentCourseList,
         teacherList,
         disabledPastDate: (current: Dayjs) => current && current < dayjs().startOf("minute"),
+        onClickEditClass,
+        handleUpdateClass,
+        isEditingClass,
     };
 }

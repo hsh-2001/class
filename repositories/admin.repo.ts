@@ -195,6 +195,7 @@ const getAllCourses = async (schoolId: string) => {
     });
 }
 
+// Class management
 const createClass = async (schoolId: string, request: ICreateClassDTO) => {
     return await prisma.class.create({
         data: {
@@ -216,6 +217,21 @@ const createClass = async (schoolId: string, request: ICreateClassDTO) => {
                     },
                 },
             },
+        },
+    });
+}
+
+const updateClass = async (id: string, request: Partial<ICreateClassDTO>) => {
+    return await prisma.class.update({
+        where: {
+            id,
+        },
+        data: {
+            ...(request.name !== undefined ? { name: request.name } : {}),
+            ...(request.courseId !== undefined ? { courseId: request.courseId } : {}),
+            ...(request.teacherId !== undefined ? { teacherId: request.teacherId } : {}),
+            ...(request.startDate !== undefined ? { startDate: new Date(request.startDate) } : {}),
+            ...(request.endDate !== undefined ? { endDate: new Date(request.endDate ?? "") } : {}),
         },
     });
 }
@@ -274,6 +290,7 @@ const adminRepo = {
     updateCourse,
     createClass,
     getAllClasses,
+    updateClass,
 };
 
 export default adminRepo;

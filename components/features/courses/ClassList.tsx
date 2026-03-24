@@ -1,9 +1,10 @@
 import { ClassResponse } from "@/types/class";
 import { Table } from "antd";
 import dayjs from "dayjs";
+import { Edit } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-export default function ClassList({ classList }: { classList: ClassResponse[] }) {
+export default function ClassList({ classList, onEdit }: { classList: ClassResponse[], onEdit: (classId: string) => void }) {
     const { t } = useTranslation();
 
     return (
@@ -38,6 +39,18 @@ export default function ClassList({ classList }: { classList: ClassResponse[] })
                     dataIndex: "endDate",
                     key: "endDate",
                     render: (value: string | null) => value ? dayjs(value).format("MMM D, YYYY h:mm A") : t("courses.table.notScheduled"),
+                },
+                {
+                    title: t("courses.table.actions"),
+                    dataIndex: "actions",
+                    key: "actions",
+                    render: (_, record) => (
+                        <div>
+                            <Edit className="cursor-pointer text-gray-500 hover:text-gray-700" size={18} onClick={() => {
+                                onEdit(record.id);
+                            }} />
+                        </div>
+                    ),
                 },
             ]}
         />

@@ -279,7 +279,7 @@
     "albumPosition": "{{current}} of {{total}}"
   },
   "profile": {
-    "eyebrow": "Student Profile",
+    "eyebrow": "User Profile",
     "loadingProfile": "Loading profile...",
     "studentFallback": "Student",
     "description": "Keep your personal details current so classmates and teachers see the right account information.",

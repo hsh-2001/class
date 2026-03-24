@@ -9,31 +9,34 @@ import { ICreateTeacherDTO, IUpdateTeacherDTO } from "@/types/teacher";
 import { ICreateCourseDTO, IUpdateCourseDTO } from "@/types/course";
 import { IEnrollStudentCourseDTO } from "@/types/enrollment";
 import { IUpdateProfileDTO } from "@/types/profile";
-import { ApiResponseData } from "@/types/baseApi";
+import { ApiResponseData, BaseApiResponse } from "@/types/baseApi";
+import { IGetFileResponse, IUploadResponse } from "@/types/upload";
 
 export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
 };
 
-export const callUploadFiles = async (formData: FormData) => {
-  return await api.post("/storage", formData, {
+export const callUploadFiles = async (formData: FormData): Promise<BaseApiResponse< IUploadResponse[]>> => {
+  const result = await api.post("/storage", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+  return result.data;
 }
 
-export const callGetFile = async (fileName: string) => {
-  return await api.get("/storage", {
+export const callGetFile = async (fileName: string): Promise<BaseApiResponse<IGetFileResponse>> => {
+  const upload =  await api.get("/storage", {
     params: { file: fileName },
   });
+  return upload.data;
 }
 
 export const getFileUrl = async (fileName: string, path: string): Promise<string> => {
   try {
     const response = await callGetFile(`${path}/${fileName}`);
-    if (response.data.success) {
-      const url = response.data.data?.url as string;
+    if (response.success) {
+      const url = response.data.url as string;
       return url;
     } else {
       throw new Error("Failed to get file URL");
@@ -82,6 +85,10 @@ export const callUpdateCourse = async (request: IUpdateCourseDTO) => {
 
 export const callCreateClass = async (request: ICreateClassDTO) => {
   return await api.post("/admin/class", request);
+}
+
+export const callUpdateClass = async (classId: string, request: Partial<ICreateClassDTO>) => {
+  return await api.put("/admin/class", { classId, ...request });
 }
 
 export const callGetClasses = async () => {

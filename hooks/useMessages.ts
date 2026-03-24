@@ -1,7 +1,6 @@
 import { getApiErrorMessage } from "@/lib/api-error";
-import { callCreateMessageThread, callDeleteMessage, callGetMessages, callGetThreadMessagesPage, callSendMessage } from "@/lib/api-calling";
+import { callCreateMessageThread, callDeleteMessage, callGetMessages, callGetThreadMessagesPage, callSendMessage, callUploadFiles, getFileUrl } from "@/lib/api-calling";
 import { socketServerPath } from "@/lib/socket-shared";
-import { uploadMany } from "@/lib/upload";
 import {
     ICreateMessageThreadDTO,
     IMessageAttachment,
@@ -59,12 +58,22 @@ const uploadAttachments = async (path: string, attachments: DraftMessageAttachme
         return [];
     }
 
-    const batchUpload = await uploadMany(path, attachments.map((attachment) => attachment.file));
-    const uploadedUrls = batchUpload?.data?.map((item) => item.download_url).filter(Boolean) ?? [];
+    const formData = new FormData();
+    attachments.forEach((attachment) => {
+        formData.append("files", attachment.file);
+    });
+    formData.append("path", path);
+    const uploadFiles = await callUploadFiles(formData);
+    const fileNames = uploadFiles.data.map((item) => item.fileName);
 
-    if (uploadedUrls.length !== attachments.length) {
-        throw new Error("Failed to upload attachment.");
-    }
+    const uploadedUrls = await Promise.all(fileNames.map((fileName) => getFileUrl(fileName, path)));
+
+    // const batchUpload = await uploadMany(path, attachments.map((attachment) => attachment.file));
+    // const uploadedUrls = batchUpload?.data?.map((item) => item.download_url).filter(Boolean) ?? [];
+
+    // if (uploadedUrls.length !== attachments.length) {
+    //     throw new Error("Failed to upload attachment.");
+    // }
 
     return uploadedUrls;
 };
@@ -301,9 +310,10 @@ export default function useMessages() {
             const imageAttachments = selectedAttachments.filter((attachment) => attachment.kind === "IMAGE");
             const fileAttachments = selectedAttachments.filter((attachment) => attachment.kind === "FILE");
             const [uploadedImages, uploadedFiles] = await Promise.all([
-                uploadAttachments("class/messages/images", imageAttachments),
-                uploadAttachments("class/messages/files", fileAttachments),
+                uploadAttachments("messages/images", imageAttachments),
+                uploadAttachments("messages/files", fileAttachments),
             ]);
+            // return;
             const nextImageUrls = [...uploadedImages];
             const nextFileUrls = [...uploadedFiles];
             const uploadedAttachments: IMessageAttachment[] = selectedAttachments.map((attachment) => {

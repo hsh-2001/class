@@ -107,6 +107,8 @@ const updateCourse = async (request: IUpdateCourseDTO) => {
     return await adminRepo.updateCourse(request);
 }
 
+
+// Class management
 const createClass = async (schoolId: string, request: ICreateClassDTO) => {
     if (!request.name || !request.courseId || !request.teacherId || !request.startDate) {
         throw new Error("MISSING_FIELDS");
@@ -116,6 +118,10 @@ const createClass = async (schoolId: string, request: ICreateClassDTO) => {
     const groupThread = await messageService.ensureClassGroupThreadForClass(classItem.id);
     await messageService.notifyRealtimeParticipants(groupThread.id);
     return classItem;
+}
+
+const updateClass = async (classId: string, request: Partial<ICreateClassDTO>) => {
+    return await adminRepo.updateClass(classId, request);
 }
 
 const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
@@ -136,6 +142,7 @@ const adminService = {
     updateCourse,
     createClass,
     getAllClasses,
+    updateClass,
 };
 
 export default adminService;
