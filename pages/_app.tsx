@@ -9,6 +9,7 @@ import I18nProvider from "@/components/providers/I18nProvider";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { getPageSeo, seoDefaults } from "@/lib/seo";
+import GuestLayout from "@/components/layouts/GuestLayout";
 
 type LayoutAwareComponent = AppProps["Component"] & {
   disableLayout?: boolean;
@@ -42,7 +43,20 @@ export default function App({ Component, pageProps }: AppProps) {
           <meta name="twitter:description" content={seo.twitter.description} />
           <meta name="twitter:image" content={seo.twitter.image} />
         </Head>
-        <PageComponent {...pageProps} />
+        <I18nProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <GuestLayout>
+              <AntdThemeProvider>
+                <PageComponent {...pageProps} />
+              </AntdThemeProvider>
+            </GuestLayout>
+          </ThemeProvider>
+        </I18nProvider>
       </>
     );
   }

@@ -23,28 +23,30 @@ export default function AssignmentsPage() {
 
   return (
     <>
-      <section className="grid gap-6 page-body">
-        <div className="rounded-xl border border-black/10 bg-white/80 p-6 backdrop-blur dark:border-white/10 dark:bg-white/5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                Assignment Workspace
-              </p>
-              <h1 className="mt-3 text-3xl font-semibold text-slate-950 dark:text-slate-50">
-                Assignments
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-                {canManage
-                  ? "Create assignments for active classes and monitor upcoming due dates."
-                  : "Review assignments from the classes you are currently enrolled in."}
-              </p>
-            </div>
+      <div className="grid gap-6 page-body h-full overflow-auto w-full">
+        <div>
+          <div className="rounded-xl border border-black/10 bg-white/80 p-6 backdrop-blur dark:border-white/10 dark:bg-white/5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+                  Assignment Workspace
+                </p>
+                <h1 className="mt-3 text-3xl font-semibold text-slate-950 dark:text-slate-50">
+                  Assignments
+                </h1>
+                {/* <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
+                  {canManage
+                    ? "Create assignments for active classes and monitor upcoming due dates."
+                    : "Review assignments from the classes you are currently enrolled in."}
+                </p> */}
+              </div>
 
-            {canManage ? (
-              <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
-                Add Assignment
-              </SButton>
-            ) : null}
+              {canManage ? (
+                <SButton type="button" color="primary" onClick={() => setIsModalVisible(true)}>
+                  Add Assignment
+                </SButton>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -56,19 +58,19 @@ export default function AssignmentsPage() {
               description={canManage ? "No assignments created yet." : "No assignments available for your enrolled classes."}
             />
           ) : (
-            <>
-              <div className="mb-4 flex items-center justify-between">
+            <div className="flex flex-col overflow-auto gap-6">
+              {/* <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">Assignment List</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   {assignments.length} assignment{assignments.length === 1 ? "" : "s"}
                 </p>
-              </div>
+              </div> */}
 
               <AssignmentList assignments={assignments} />
-            </>
+            </div>
           )}
         </div>
-      </section>
+      </div>
 
       {canManage ? (
         <SModal

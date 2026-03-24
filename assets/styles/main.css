@@ -60,7 +60,7 @@
 
 
 .page-body:first-child:not(#S_MODAL) {
-  animation: opacityIn .5s ease-in-out forwards;
+  /* animation: opacityIn .5s ease-in-out forwards; */
 }
 
 @keyframes opacityIn {
@@ -85,4 +85,9 @@
   100% {
     opacity: 1;
   }
+}
+
+
+.ant-select {
+  border-radius: 30px !important;
 }

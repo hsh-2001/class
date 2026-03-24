@@ -55,7 +55,7 @@ export default function Header({ onToggleSidebar, isSidebarOpen }: { onToggleSid
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden md:block">
-            <LanguageSelect className="w-36 [&_.ant-select-selector]:!rounded-full [&_.ant-select-selector]:!shadow-none" />
+            <LanguageSelect className="w-36 h-10! [&_.ant-select-selector]:rounded-full! [&_.ant-select-selector]:shadow-none!" />
           </div>
           <div className="hidden md:block">
             <ThemeToggle />

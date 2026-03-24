@@ -67,7 +67,7 @@ export default function SideBar({ onToggleSidebar }: { onToggleSidebar: () => vo
 
                 <div className="mt-4 space-y-3">
                     <div className="md:hidden">
-                        <LanguageSelect className="w-full [&_.ant-select-selector]:rounded-full! [&_.ant-select-selector]:shadow-none!" />
+                        <LanguageSelect className="w-[92%] h-10 [&_.ant-select-selector]:rounded-full! [&_.ant-select-selector]:shadow-none!" />
                     </div>
                     <div className="md:hidden w-full">
                         <ThemeToggle className="w-full [&>button]:w-full" />

@@ -4,11 +4,13 @@ interface SButtonProps {
     children: React.ReactNode;
     onClick?: () => void;
     type: "button" | "submit" | "reset";
-    color: "primary" | "secondary" | "danger";
+    color?: "primary" | "secondary" | "danger";
     loading?: boolean;
+    disabled?: boolean;
+    className?: string;
 }
 
-export default function SButton({ children, onClick, type, color, loading }: SButtonProps) {
+export default function SButton({ children, onClick, type, color = 'primary', loading, disabled, className }: SButtonProps) {
     const styleMapping = (color: SButtonProps["color"]) => {
         switch (color) {
             case "primary":
@@ -25,9 +27,9 @@ export default function SButton({ children, onClick, type, color, loading }: SBu
     return (
         <button
             type={type}
-            className={`h-8 whitespace-nowrap rounded-full px-4 text-sm font-medium transition-colors ${styleMapping(color)} ${loading ? "cursor-not-allowed opacity-50" : " cursor-pointer"}`}
+            className={`h-8 whitespace-nowrap rounded-full px-4 text-sm font-medium transition-colors ${styleMapping(color)} ${loading ? "cursor-not-allowed opacity-50" : " cursor-pointer"} ${className}`}
             onClick={onClick}
-            disabled={loading}
+            disabled={loading || disabled}
         >
             {loading ? (<div className="flex items-center gap-2"> <Loader className="animate-spin h-4 w-4" /> {children} </div>) : children}
         </button>
