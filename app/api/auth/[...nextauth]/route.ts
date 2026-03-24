@@ -4,18 +4,8 @@ import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions = {
   providers: [
-    GoogleProvider({
-      clientId: "587765033466-u7jelvjeb6552arspvo2vancin0le1va.apps.googleusercontent.com",
-      clientSecret: "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",
-      authorization: {
-        params: {
-          scope:
-            "openid email profile https://www.googleapis.com/auth/calendar",
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    }),
+   
+    // }),
   ],
 
   callbacks: {
