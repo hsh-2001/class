@@ -277,7 +277,8 @@ const getAllClasses = async (schoolId: string): Promise<IClassListItem[]> => {
 
 
 const getOverview = async (userId: string) => {
-    const data = await prisma.$queryRaw`
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = await prisma.$queryRaw<any[]>`
         SELECT * FROM get_overview(${userId}::uuid)
     `
 
