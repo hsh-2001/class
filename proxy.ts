@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import authService from "./services/auth.service";
 
 export function proxy(request: NextRequest) {
-    const exludedPaths = ['/api/auth/login', '/api/auth/register', '/api/socket', '/api/socket_io'];
+    const exludedPaths = ['/api/auth/login', '/api/auth/register', '/api/socket', '/api/socket_io', '/api/auth/refresh'];
     if (exludedPaths.some(p => request.nextUrl?.pathname.startsWith(p)) || !request.nextUrl.pathname.startsWith('/api')) {
         return NextResponse.next();
     }

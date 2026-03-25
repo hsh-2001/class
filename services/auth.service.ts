@@ -61,7 +61,7 @@ const generateToken = async (user: IUserDTO) => {
     }
 
     const payload = { id: user.id, email: user.email, role: user.role, schoolId: user.schoolId };
-    const options: SignOptions = { expiresIn: "1d" };
+    const options: SignOptions = { expiresIn: String(process.env.JWT_EXPIRES_IN) || "1h" };
 
     return jwt.sign(payload, secret, options);
 }
@@ -74,7 +74,7 @@ const generateRefreshToken = async (user: IUserDTO) => {
     }
 
     const payload = { id: user.id, email: user.email, role: user.role, schoolId: user.schoolId };
-    const options: SignOptions = { expiresIn: "7d" };
+    const options: SignOptions = { expiresIn: String(process.env.JWT_REFRESH_EXPIRES_IN) || "7d" };
 
     return jwt.sign(payload, secret, options);
 }

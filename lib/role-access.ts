@@ -9,14 +9,14 @@ export const APP_ROLES = {
 export type AppRole = Role;
 
 export const routeRoleAccess: Record<string, AppRole[]> = {
-    "/": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
+    "/": [APP_ROLES.ADMIN, APP_ROLES.TEACHER],
     "/members": [APP_ROLES.ADMIN],
     "/courses": [APP_ROLES.ADMIN, APP_ROLES.STUDENT],
     "/live-classes": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
     "/schedule": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
     "/assignments": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
     "/messages": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
-    "/settings": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
+    "/settings": [APP_ROLES.ADMIN],
     "/profile": [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER],
 };
 
