@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
             return fail("Unauthorized", 401);
         }
         const payload = { id: user.id, email: user.email, role: user.role, schoolId: user.schoolId };
-        const options: SignOptions = { expiresIn: String(process.env.JWT_EXPIRES_IN) || "1h" };
+        const options: SignOptions = { expiresIn: "1h" };
         const newToken = await jwt.sign(payload, process.env.JWT_SECRET!, options);
         const refreshToken = await authService.generateRefreshToken(user);
         return ok({ token: newToken, refreshToken }, 'success');
