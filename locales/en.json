@@ -144,6 +144,8 @@
     "enterCourseCode": "Enter course code",
     "enterCourseDescription": "Enter course description",
     "morningBatch": "Morning Batch A",
+    "classes": "Classes",
+    "courses": "Courses",
     "validation": {
       "courseName": "Please enter the course name!",
       "courseCode": "Please enter the course code!",

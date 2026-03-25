@@ -4,6 +4,7 @@ import StudentCourseEnrollmentList from "@/components/features/courses/StudentCo
 import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
 import SModal from "@/components/ui/SModal";
+import SToggleButton from "@/components/ui/SToggleButton";
 import useCourse from "@/hooks/useCourse";
 import { DatePicker, Form, Select, Skeleton } from "antd";
 import Image from "next/image";
@@ -41,37 +42,23 @@ export default function CoursesPage() {
     onClickEditClass,
     isEditingClass,
     handleUpdateClass,
+    isClass,
+    setIsClass,
   } = useCourse();
 
   return (
     <>
       <section className="grid gap-6 page-body">
-        <div className="rounded-xl border border-black/10 bg-white/80 p-6 backdrop-blur dark:border-white/10 dark:bg-white/5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                {isStudent ? t("courses.studentEyebrow") : t("courses.adminEyebrow")}
-              </p>
-              <h1 className="mt-3 text-3xl font-semibold text-slate-950 dark:text-slate-50">
-                {isStudent ? t("courses.studentTitle") : t("courses.adminTitle")}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-                {isStudent
-                  ? t("courses.studentDescription")
-                  : t("courses.adminDescription")}
-              </p>
-            </div>
-
-            {!isStudent ? (
-              <div className="flex gap-2">
-                <SButton type="button" color="secondary" onClick={() => setIsClassModalVisible(true)}>
-                  {t("courses.addClass")}
-                </SButton>
-                <SButton type="button" color="primary" onClick={() => setIsCourseModalVisible(true)}>
-                  {t("courses.addCourse")}
-                </SButton>
-              </div>
-            ) : null}
+        <div className="flex justify-between">
+          <SToggleButton
+            name={{ option1: t("courses.courses"), option2: t("courses.classes") }}
+            onChange={() => setIsClass(prev => !prev)}
+            isActive={!isClass}
+          />
+          <div>
+            <SButton type="button" color="primary" onClick={() => isClass ? setIsClassModalVisible(true) : setIsCourseModalVisible(true)}>
+              {isClass ? t("courses.addClass") : t("courses.addCourse")}
+            </SButton>
           </div>
         </div>
 
@@ -96,25 +83,29 @@ export default function CoursesPage() {
             </>
           ) : (
             <div className="grid gap-6">
-              <div>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.courseList")}</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("courses.coursesCount", { count: courseList.length })}
-                  </p>
-                </div>
-                <CourseList courseList={courseList} onClickEdit={onClickEdit} />
-              </div>
-
-              <div>
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.classOfferings")}</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {t("courses.classesCount", { count: classList.length })}
-                  </p>
-                </div>
-                <ClassList classList={classList} onEdit={onClickEditClass} />
-              </div>
+              {
+                !isClass ? (
+                  <div>
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.courseList")}</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {t("courses.coursesCount", { count: courseList.length })}
+                      </p>
+                    </div>
+                    <CourseList courseList={courseList} onClickEdit={onClickEdit} />
+                  </div>
+                ) : (
+                  <div>
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("courses.classOfferings")}</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                        {t("courses.classesCount", { count: classList.length })}
+                      </p>
+                    </div>
+                    <ClassList classList={classList} onEdit={onClickEditClass} />
+                  </div>
+                )
+              }
             </div>
           )}
         </div>
@@ -164,8 +155,8 @@ export default function CoursesPage() {
                       {bannerPreview.length > 0
                         ? <Image src={bannerPreview} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
                         : courseForm.getFieldValue("courseBanner")
-                        ? <Image src={courseForm.getFieldValue("courseBanner")} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
-                        : <p className="text-sm text-slate-500 dark:text-slate-400">{t("courses.clickToUploadBanner")}</p>}
+                          ? <Image src={courseForm.getFieldValue("courseBanner")} alt="Course Banner Preview" layout="fill" objectFit="contain" className="rounded-md" />
+                          : <p className="text-sm text-slate-500 dark:text-slate-400">{t("courses.clickToUploadBanner")}</p>}
                     </div>
                   </div>
                 </Form.Item>

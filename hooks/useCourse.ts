@@ -47,6 +47,7 @@ export default function useCourse() {
     const [enrollingClassId, setEnrollingClassId] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [isEditingClass, setIsEditingClass] = useState(false);
+    const [isClass, setIsClass] = useState(false);
 
     const isEditing = editingCourseId !== null;
     const isStudent = currentUser?.role === "STUDENT";
@@ -324,5 +325,7 @@ export default function useCourse() {
         onClickEditClass,
         handleUpdateClass,
         isEditingClass,
+        isClass,
+        setIsClass,
     };
 }
