@@ -2,13 +2,15 @@ import { TeacherResponse } from "@/types/teacher";
 import Table from "antd/es/table/Table";
 import { Edit } from "lucide-react";
 
-export default function TeacherList({ teacherList, onClickEdit }: { teacherList: TeacherResponse[], onClickEdit: (record: TeacherResponse) => void }) {
+export default function TeacherList({ teacherList, onClickEdit, isLoading }:
+    { teacherList: TeacherResponse[], onClickEdit: (record: TeacherResponse) => void, isLoading: boolean }) {
     return (
         <div className="w-full overflow-auto">
             <Table
                 pagination={false}
                 dataSource={teacherList}
                 rowKey="id"
+                loading={isLoading}
                 columns={[
                     {
                         title: "ID",

@@ -4,7 +4,8 @@ import { Edit } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 
-export default function CourseList({ courseList, onClickEdit }: { courseList: ICourse[]; onClickEdit: (record: ICourse) => void }) {
+export default function CourseList({ courseList, onClickEdit, isLoading }: 
+  { courseList: ICourse[]; onClickEdit: (record: ICourse) => void; isLoading: boolean }) {
   const { t } = useTranslation();
 
   return (
@@ -12,6 +13,7 @@ export default function CourseList({ courseList, onClickEdit }: { courseList: IC
       rowKey="id"
       pagination={false}
       dataSource={courseList}
+      loading={isLoading}
       columns={[
         {
           title: t("courses.table.name"),

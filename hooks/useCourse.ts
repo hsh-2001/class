@@ -19,6 +19,7 @@ import { DatePicker } from "antd";
 import { useForm } from "antd/es/form/Form";
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useRef, useState } from "react";
+import useLoading from "./useLoading";
 
 type CourseFormValues = Omit<ICreateCourseDTO, "schoolId">;
 type ClassFormValues = Omit<ICreateClassDTO, "startDate" | "endDate"> & {
@@ -52,6 +53,12 @@ export default function useCourse() {
     const isEditing = editingCourseId !== null;
     const isStudent = currentUser?.role === "STUDENT";
     const file = useRef<File | null>(null);
+
+    const {
+        startLoading,
+        stopLoading,
+        isLoading,
+    } = useLoading();
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -111,9 +118,8 @@ export default function useCourse() {
     }, []);
 
     const onLoadCourses = useCallback(async () => {
+        startLoading('get-courses');
         try {
-            setIsPageLoading(true);
-
             if (isStudent) {
                 const response = await callGetStudentCourses();
                 if (response.data.success) {
@@ -131,7 +137,7 @@ export default function useCourse() {
                 ),
             );
         } finally {
-            setIsPageLoading(false);
+            stopLoading('get-courses');
         }
     }, [isStudent, loadAdminData]);
 
@@ -287,7 +293,7 @@ export default function useCourse() {
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to update class."));
-        } finally { 
+        } finally {
             setIsSubmittingClass(false);
             setIsEditingClass(false);
         }
@@ -327,5 +333,6 @@ export default function useCourse() {
         isEditingClass,
         isClass,
         setIsClass,
+        isLoading,
     };
 }

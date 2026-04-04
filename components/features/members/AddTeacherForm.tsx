@@ -11,10 +11,11 @@ interface IAddTeacherFormProps {
     onSubmit: () => void;
     onCancel?: () => void;
     submitText?: string;
+    isLoading?: boolean;
 }
 
 export default function AddTeacherForm(
-    { form, fieldItem, genders, onSubmit, onCancel, submitText = "Submit" }: IAddTeacherFormProps
+    { form, fieldItem, genders, onSubmit, onCancel, submitText = "Submit", isLoading = false }: IAddTeacherFormProps
 ) {
     return (
         <>
@@ -41,6 +42,7 @@ export default function AddTeacherForm(
                                 <SInput
                                     placeholder={`Enter ${field.label.toLowerCase()}`}
                                     disabled={field.disabled}
+                                    type={["password", "confirmPassword"].includes(field.name) ? "password" : "text"}
                                 />
                             );
                         }
@@ -61,7 +63,7 @@ export default function AddTeacherForm(
                     <SButton type="button" color="secondary" onClick={onCancel}>
                         Cancel
                     </SButton>
-                    <SButton type="submit" color="primary" >
+                    <SButton type="submit" color="primary" loading={isLoading}>
                         {submitText}
                     </SButton>
                 </div>

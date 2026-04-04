@@ -13,6 +13,7 @@ import {
     callUpdateTeacher
 } from "@/lib/api-calling";
 import { ICreateTeacherDTO, IUpdateTeacherDTO, TeacherResponse } from "@/types/teacher";
+import useLoading from "./useLoading";
 
 type StudentFormValues = TCreateStudentDTO & { confirmPassword: string };
 type TeacherFormValues = ICreateTeacherDTO & { confirmPassword: string };
@@ -23,6 +24,11 @@ export default function useMembers() {
     const [isActive, setIsActive] = useState("students");
     const [editingId, setEditingId] = useState<string | null>(null);
     const isEditing = editingId !== null;
+    const {
+        startLoading,
+        stopLoading,
+        isLoading,
+    } = useLoading();
 
     const [form] = useForm<StudentFormValues>();
     const [teacherForm] = useForm<TeacherFormValues>();
@@ -195,6 +201,8 @@ export default function useMembers() {
                 : values.dateOfBirth,
         };
 
+        startLoading("create-student");
+
         try {
             const response = await callCreateStudent(payload);
             if (response.data.success) {
@@ -204,12 +212,16 @@ export default function useMembers() {
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to create student."));
+        } finally {
+            stopLoading("create-student");
         }
     }
 
     const handleUpdateStudent = async () => {
         const values = form.getFieldsValue();
         if (!editingId) return;
+
+        startLoading("update-student");
 
         const payload: TUpdateStudentDTO = {
             id: editingId,
@@ -229,6 +241,8 @@ export default function useMembers() {
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to update student."));
+        } finally {
+            stopLoading("update-student");
         }
     }
 
@@ -237,6 +251,8 @@ export default function useMembers() {
         const payload = {
             ...values,
         };
+
+        startLoading("create-teacher");
 
         try {
             const response = await callCreateTeacher(payload);
@@ -248,11 +264,15 @@ export default function useMembers() {
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to create teacher."));
         }
+        finally {
+            stopLoading("create-teacher");
+        }
     }
 
     const handleUpdateTeacher = async () => {
         const values = teacherForm.getFieldsValue();
         if (!editingId) return;
+        startLoading("update-teacher");
 
         const payload: IUpdateTeacherDTO = {
             id: editingId,
@@ -272,6 +292,8 @@ export default function useMembers() {
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to update teacher."));
+        } finally {
+            stopLoading("update-teacher");
         }
     }
 
@@ -280,19 +302,22 @@ export default function useMembers() {
         : isEditing ? handleUpdateTeacher : handleCreateTeacher;
 
     const onGetAllStudents = async () => {
+        startLoading("get-student");
         try {
             const response = await callGetStudents();
-            console.log(response.data);
             if (response.data.success) {
                 const students = response.data.data.map((item: StudentResponse) => new StudentResponse(item));
                 setStudentList(students);
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to fetch students."));
+        } finally {
+            stopLoading("get-student");
         }
     }
 
     const onGetAllTeachers = async () => {
+        startLoading("get-teacher");
         try {
             const response = await callGetTeachers();
             console.log(response.data.success);
@@ -302,8 +327,9 @@ export default function useMembers() {
             }
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to fetch teachers."));
+        } finally {
+            stopLoading("get-teacher");
         }
-
     }
 
     const onClickEdit = (record: StudentResponse | TeacherResponse) => {
@@ -359,5 +385,6 @@ export default function useMembers() {
         onClickEdit,
         handleCloseModal,
         isEditing,
+        isLoading,
     }
 };

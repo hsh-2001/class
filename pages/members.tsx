@@ -27,6 +27,7 @@ export default function Members() {
         onClickEdit,
         handleCloseModal,
         isEditing,
+        isLoading,
     } = useMembers();
 
     useEffect(() => {
@@ -51,8 +52,8 @@ export default function Members() {
 
                 {
                     isActive === "students" ?
-                        <StudentList studentList={studentList} onClickEdit={onClickEdit} />
-                        : <TeacherList teacherList={teacherList} onClickEdit={onClickEdit} />
+                        <StudentList studentList={studentList} onClickEdit={onClickEdit} isLoading={isLoading("get-student")} />
+                        : <TeacherList teacherList={teacherList} onClickEdit={onClickEdit} isLoading={isLoading("get-teacher")} />
                 }
             </div>
             <SModal
@@ -73,6 +74,8 @@ export default function Members() {
                             onSubmit={onSubmit}
                             onCancel={handleCloseModal}
                             submitText={isEditing ? "Update" : "Submit"}
+                            isLoading={isLoading(isEditing ? "update-student" : "create-student")}
+
                         />
                         :
 
@@ -83,6 +86,7 @@ export default function Members() {
                             onSubmit={onSubmit}
                             onCancel={handleCloseModal}
                             submitText={isEditing ? "Update" : "Submit"}
+                            isLoading={isLoading(isEditing ? "update-teacher" : "create-teacher")}
                         />
                 }
             </SModal>

@@ -44,6 +44,7 @@ export default function CoursesPage() {
     handleUpdateClass,
     isClass,
     setIsClass,
+    isLoading,
   } = useCourse();
 
   return (
@@ -76,7 +77,7 @@ export default function CoursesPage() {
 
               <StudentCourseEnrollmentList
                 courses={studentCourseList}
-                isLoading={isPageLoading}
+                isLoading={isLoading('get-courses')}
                 enrollingClassId={enrollingClassId}
                 onEnroll={onEnrollCourse}
               />
@@ -92,7 +93,7 @@ export default function CoursesPage() {
                         {t("courses.coursesCount", { count: courseList.length })}
                       </p>
                     </div>
-                    <CourseList courseList={courseList} onClickEdit={onClickEdit} />
+                    <CourseList courseList={courseList} onClickEdit={onClickEdit} isLoading={isLoading('get-courses')} />
                   </div>
                 ) : (
                   <div>
