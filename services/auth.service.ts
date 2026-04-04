@@ -1,3 +1,4 @@
+import prisma from "@/lib/prisma";
 import { Role } from "@/prisma/generated/enums";
 import authRepo from "@/repositories/auth.repo";
 import { ICreateUserDTO, IUser, IUserDTO } from "@/types/user";
@@ -8,6 +9,15 @@ const createUser = async (request: ICreateUserDTO) => {
     const existingUser = await getUserByEmail(request.email);
     if (existingUser) {
         throw new Error("EMAIL_ALREADY_EXISTS");
+    }
+
+    const schoolId = await prisma.school.findUnique({
+        where: { id: request.schoolId },
+        select: { id: true },
+    });
+
+    if (!schoolId) {
+        throw new Error("SCHOOL_NOT_FOUND");
     }
 
     const hashedPassword = await getPasswordHash(request.password);

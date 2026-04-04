@@ -7,8 +7,7 @@ export function proxy(request: NextRequest) {
     if (exludedPaths.some(p => request.nextUrl?.pathname.startsWith(p)) || !request.nextUrl.pathname.startsWith('/api')) {
         return NextResponse.next();
     }
-    const token = request.headers.get("Authorization")?.split(" ")[1]; 
-    console.log("Received request for:", request.nextUrl.pathname);
+    const token = request.headers.get("Authorization")?.split(" ")[1];
     if (!token) {
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }

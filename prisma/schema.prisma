@@ -40,9 +40,9 @@ model User {
 }
 
 enum Role {
+  ADMIN
   STUDENT
   TEACHER
-  ADMIN
 }
 
 enum Gender {

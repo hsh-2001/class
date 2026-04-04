@@ -1,17 +1,15 @@
 import { ok, fail } from "@/lib/api-response";
-import { Role } from "@/prisma/generated/enums";
 import authService from "@/services/auth.service";
 
 export async function POST(request: Request) {
     try {
         const body = await request.json();
         const { schoolId, email, password, role, firstName, lastName, phone, gender, username } = body;
-
         await authService.createUser({
             schoolId,
             email,
             password,
-            role: role ?? Role.STUDENT,
+            role: role ?? "STUDENT",
             firstName,
             lastName,
             phone,
