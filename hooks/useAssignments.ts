@@ -5,6 +5,7 @@ import { AssignmentResponse, IAssignmentClassOption, IAssignmentPageData, ICreat
 import dayjs, { Dayjs } from "dayjs";
 import { useForm } from "antd/es/form/Form";
 import { useCallback, useEffect, useState } from "react";
+import useLoading from "./useLoading";
 
 type AssignmentFormValues = Omit<ICreateAssignmentDTO, "dueDate"> & {
     dueDate: Dayjs;
@@ -15,10 +16,10 @@ export default function useAssignments() {
     const [assignments, setAssignments] = useState<AssignmentResponse[]>([]);
     const [classOptions, setClassOptions] = useState<IAssignmentClassOption[]>([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isUserReady, setIsUserReady] = useState(false);
     const [role, setRole] = useState<ReturnType<typeof getUserRoleFromStorage>>();
+    const { startLoading, stopLoading, isLoading } = useLoading();
 
     const canManage = role === "ADMIN" || role === "TEACHER";
 
@@ -28,18 +29,17 @@ export default function useAssignments() {
     }, []);
 
     const fetchAssignments = useCallback(async () => {
+        startLoading('get');
         try {
-            setIsLoading(true);
             const response = await callGetAssignments();
             if (response.data.success) {
                 const payload = response.data.data as IAssignmentPageData;
                 setAssignments(payload.assignments.map((item) => new AssignmentResponse(item)));
                 setClassOptions(payload.classOptions);
             }
+            stopLoading('get');
         } catch (error: unknown) {
             console.error(getApiErrorMessage(error, "Failed to fetch assignments."));
-        } finally {
-            setIsLoading(false);
         }
     }, []);
 
@@ -87,11 +87,11 @@ export default function useAssignments() {
         disabledPastDate: (current: Dayjs) => current && current < dayjs().startOf("minute"),
         form,
         handleCloseModal,
-        isLoading,
         isModalVisible,
         isSubmitting,
         isUserReady,
         onSubmit,
         setIsModalVisible,
+        isLoading,
     };
 }

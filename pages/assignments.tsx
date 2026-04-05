@@ -17,6 +17,7 @@ export default function AssignmentsPage() {
     onSubmit,
     setIsModalVisible,
     assignments,
+    isLoading,
   } = useAssignments();
 
   const { t } = useTranslation();
@@ -50,7 +51,7 @@ export default function AssignmentsPage() {
         </div>
       </div>
 
-      {assignments.length && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 py-2">
+      {(assignments.length > 0 && !isLoading('get')) ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 py-2">
         {assignments.map((item, index) => (
           <div key={index} className="bg-slate-100 dark:bg-slate-800 rounded-md p-2 space-y-2">
             <p className="text-lg font-medium">{item.title}</p>
@@ -66,7 +67,16 @@ export default function AssignmentsPage() {
             </div>
           </div>
         ))}
-      </div>}
+      </div>
+        : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 py-2">
+          {
+            Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className=" w-full animate-pulse h-40 bg-slate-100 rounded-md dark:bg-slate-600/60">
+              </div>
+            ))
+          }
+        </div>
+      }
 
       {canManage ? (
         <SModal

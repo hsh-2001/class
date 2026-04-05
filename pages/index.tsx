@@ -77,7 +77,7 @@ function StatCard({ title, value, Icon, isLoading }: StatCardProps) {
   return <>
     {
       isLoading ?
-        <div className=" animate-pulse bg-gray-100 dark:bg-slate-900/10 h-20 rounded-lg">
+        <div className=" animate-pulse bg-gray-100 dark:bg-slate-600/60 h-20 rounded-lg">
         </div>
         : <div className="bg-white dark:bg-gray-800 rounded-lg p-5 dark:hover:scale-105 transition-all flex items-center space-x-4 hover:shadow-xl duration-200">
           {Icon && <Icon className="w-8 h-8 text-blue-500 dark:text-blue-400" />}
