@@ -1,10 +1,16 @@
 import { ClassResponse } from "@/types/class";
 import { Table } from "antd";
 import dayjs from "dayjs";
-import { Edit } from "lucide-react";
+import { Edit, Trash } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-export default function ClassList({ classList, onEdit }: { classList: ClassResponse[], onEdit: (classId: string) => void }) {
+export default function ClassList(
+    { classList, onEdit, onDelete }:
+        {
+            classList: ClassResponse[],
+            onEdit: (classId: string) => void
+            onDelete: (id: string) => void
+        }) {
     const { t } = useTranslation();
 
     return (
@@ -45,9 +51,12 @@ export default function ClassList({ classList, onEdit }: { classList: ClassRespo
                     dataIndex: "actions",
                     key: "actions",
                     render: (_, record) => (
-                        <div>
+                        <div className="flex gap-2">
                             <Edit className="cursor-pointer text-gray-500 hover:text-gray-700" size={18} onClick={() => {
                                 onEdit(record.id);
+                            }} />
+                            <Trash className="cursor-pointer text-red-500 hover:text-red-400" size={18} onClick={() => {
+                                onDelete(record.id);
                             }} />
                         </div>
                     ),

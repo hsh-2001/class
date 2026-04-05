@@ -307,5 +307,8 @@
   "total_students": "Total students",
   "total_groups": "Total groups",
   "courses_with_classes": "Courses with classes",
-  "courses_with_no_classes": "Courses with no classes"
+  "courses_with_no_classes": "Courses with no classes",
+  "Are you sure you want to delete this ?": "Are you sure you want to delete this ?",
+  "Cancel": "Cancel",
+  "Confirm": "Confirm"
 }

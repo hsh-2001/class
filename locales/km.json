@@ -305,5 +305,9 @@
   "total_students": "សិស្សសរុប",
   "total_groups": "ក្រុមសរុប",
   "courses_with_classes": "វគ្គដែលមានថ្នាក់",
-  "courses_with_no_classes": "វគ្គដែលមិនមានថ្នាក់"
+  "courses_with_no_classes": "វគ្គដែលមិនមានថ្នាក់",
+  "Are you sure you want to delete this ?": "តើអ្នកពិតជាចង់លុបមែនទេ?",
+  "Cancel": "បិទ",
+  "Delete": "លុប",
+  "Confirm": "យល់ព្រម"
 }

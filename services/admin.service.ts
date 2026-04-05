@@ -132,6 +132,14 @@ const getOverview = async (userId: string) => {
     return await adminRepo.getOverview(userId);
 }
 
+const deleteClass = async (id: string) => {
+    return await adminRepo.deleteClass(id);
+}
+
+const deleteCourse = async (id: string) => {
+    return await adminRepo.deleteCourse(id);
+}
+
 
 const adminService = {
     createStudent,
@@ -148,6 +156,8 @@ const adminService = {
     getAllClasses,
     updateClass,
     getOverview,
+    deleteClass,
+    deleteCourse,
 };
 
 export default adminService;

@@ -17,7 +17,7 @@ export const callLogin = async (request: ILoginDTO) => {
   return await api.post("/auth/login", request);
 };
 
-export const callUploadFiles = async (formData: FormData): Promise<BaseApiResponse< IUploadResponse[]>> => {
+export const callUploadFiles = async (formData: FormData): Promise<BaseApiResponse<IUploadResponse[]>> => {
   const result = await api.post("/storage", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -27,7 +27,7 @@ export const callUploadFiles = async (formData: FormData): Promise<BaseApiRespon
 }
 
 export const callGetFile = async (fileName: string): Promise<BaseApiResponse<IGetFileResponse>> => {
-  const upload =  await api.get("/storage", {
+  const upload = await api.get("/storage", {
     params: { file: fileName },
   });
   return upload.data;
@@ -158,4 +158,20 @@ export const callEnrollStudentCourse = async (request: IEnrollStudentCourseDTO) 
 export const callGetOverview = async (): Promise<BaseApiResponse<IOverview>> => {
   const response = await api.get("/admin/overview");
   return response.data;
+}
+
+export const callDeleteClass = async (id: string): Promise<BaseApiResponse<any>> => {
+  return await api.delete('admin/class', {
+    params: {
+      id: id,
+    }
+  });
+}
+
+export const callDeleteCourse = async (id: string): Promise<BaseApiResponse<any>> => {
+  return await api.delete('admin/course', {
+    params: {
+      id: id
+    }
+  });
 }

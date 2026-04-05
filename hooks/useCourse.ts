@@ -2,6 +2,8 @@ import { getApiErrorMessage } from "@/lib/api-error";
 import {
     callCreateClass,
     callCreateCourse,
+    callDeleteClass,
+    callDeleteCourse,
     callEnrollStudentCourse,
     callGetClasses,
     callGetCourses,
@@ -43,12 +45,12 @@ export default function useCourse() {
     const [bannerPreview, setBannerPreview] = useState<string>("");
     const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
     const [isSubmittingClass, setIsSubmittingClass] = useState(false);
-    const [isPageLoading, setIsPageLoading] = useState(true);
     const [isUserReady, setIsUserReady] = useState(false);
     const [enrollingClassId, setEnrollingClassId] = useState<string | null>(null);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [isEditingClass, setIsEditingClass] = useState(false);
     const [isClass, setIsClass] = useState(false);
+    const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
     const isEditing = editingCourseId !== null;
     const isStudent = currentUser?.role === "STUDENT";
@@ -299,6 +301,41 @@ export default function useCourse() {
         }
     };
 
+    const deleteId = useRef("");
+    const isDeleteClass = useRef(false);
+    const onClickDeleteCourse = (id: string) => {
+        deleteId.current = id;
+        isDeleteClass.current = false;
+        setShowConfirmDelete(true);
+    };
+
+    const onClickDeleteClass = (id: string) => {
+        deleteId.current = id;
+        isDeleteClass.current = true;
+        setShowConfirmDelete(true);
+    };
+
+    const onCloseDeleteDialog = () => {
+        deleteId.current = "";
+        isDeleteClass.current = false;
+        setShowConfirmDelete(false);
+    }
+
+    const onConfirmDelete = async () => {
+        if (!deleteId.current.trim()) return;
+        try {
+            if (isDeleteClass.current) {
+                await callDeleteClass(deleteId.current);
+            } else {
+                await callDeleteCourse(deleteId.current);
+            }
+            loadAdminData();
+            setShowConfirmDelete(false);
+        } catch (error) {
+            console.error("error", error);
+        }
+    };
+
     return {
         DatePicker,
         bannerPreview,
@@ -313,7 +350,6 @@ export default function useCourse() {
         isClassModalVisible,
         isCourseModalVisible,
         isEditing,
-        isPageLoading,
         isStudent,
         isSubmittingClass,
         isSubmittingCourse,
@@ -334,5 +370,11 @@ export default function useCourse() {
         isClass,
         setIsClass,
         isLoading,
+        onClickDeleteClass,
+        onClickDeleteCourse,
+        showConfirmDelete,
+        setShowConfirmDelete,
+        onCloseDeleteDialog,
+        onConfirmDelete
     };
 }

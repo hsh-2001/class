@@ -20,11 +20,10 @@ export default function SModal({ isOpen, onClose, title = "Confirm", children }:
 
     if (!isOpen || typeof document === "undefined") return null;
 
-
     return createPortal(
         <div
             id="S_MODAL"
-            className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+            className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-black/80 p-4"
             onClick={onClose}
         >
             <div

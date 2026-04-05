@@ -26,7 +26,7 @@ export const sidebarItems: SidebarItem[] = [
   { labelKey: "sidebar.liveClasses", href: "/live-classes", icon: Video, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
   { labelKey: "sidebar.schedule", href: "/schedule", icon: CalendarDays, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
   { labelKey: "sidebar.assignments", href: "/assignments", icon: ClipboardCheck, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
-  { labelKey: "sidebar.messages", href: "/messages", icon: MessageSquare, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
+  // { labelKey: "sidebar.messages", href: "/messages", icon: MessageSquare, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
   { labelKey: "sidebar.settings", href: "/settings", icon: Settings, roles: [APP_ROLES.ADMIN] },
   { labelKey: "sidebar.profile", href: "/profile", icon: User, roles: [APP_ROLES.ADMIN, APP_ROLES.STUDENT, APP_ROLES.TEACHER] },
 ];

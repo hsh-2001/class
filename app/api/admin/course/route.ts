@@ -51,3 +51,15 @@ export async function PUT(request: NextRequest) {
         return fail(message, 500);
     }
 }
+
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+        const response = await adminService.deleteCourse(String(id));
+        return ok(response);
+    } catch {
+        return fail("Server error", 500);
+    }
+};

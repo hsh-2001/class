@@ -1,11 +1,11 @@
 import { ICourse } from "@/types/course";
 import { Table } from "antd";
-import { Edit } from "lucide-react";
+import { Edit, Trash } from "lucide-react";
 import Image from "next/image";
 import { useTranslation } from "react-i18next";
 
-export default function CourseList({ courseList, onClickEdit, isLoading }: 
-  { courseList: ICourse[]; onClickEdit: (record: ICourse) => void; isLoading: boolean }) {
+export default function CourseList({ courseList, onClickEdit, isLoading, onDelete }:
+  { courseList: ICourse[]; onClickEdit: (record: ICourse) => void; isLoading: boolean, onDelete: (id: string) => void }) {
   const { t } = useTranslation();
 
   return (
@@ -54,9 +54,14 @@ export default function CourseList({ courseList, onClickEdit, isLoading }:
           key: "actions",
           width: 100,
           render: (_, record) => (
-            <button onClick={() => onClickEdit(record)}>
-              <Edit className="h-4 w-4 cursor-pointer text-black/90 dark:text-slate-50" />
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => onClickEdit(record)}>
+                <Edit className="h-4 w-4 cursor-pointer text-black/90 dark:text-slate-50" />
+              </button>
+              <Trash className="cursor-pointer text-red-500 hover:text-red-400" size={18} onClick={() => {
+                onDelete(record.id);
+              }} />
+            </div>
           ),
         },
       ]}

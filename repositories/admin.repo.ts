@@ -284,6 +284,22 @@ const getOverview = async (userId: string) => {
 
     return data[0];
 }
+
+const deleteClass = async (id: string) => {
+    return await prisma.class.delete({
+        where: {
+            id: id,
+        }
+    })
+};
+
+const deleteCourse = async (id: string) => {
+    return await prisma.course.delete({
+        where: {
+            id: id,
+        }
+    })
+}
 const adminRepo = {
     createStudent,
     getStudents,
@@ -300,6 +316,8 @@ const adminRepo = {
     getAllClasses,
     updateClass,
     getOverview,
+    deleteClass,
+    deleteCourse,
 };
 
 export default adminRepo;

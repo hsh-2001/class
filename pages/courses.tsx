@@ -1,6 +1,7 @@
 import ClassList from "@/components/features/courses/ClassList";
 import CourseList from "@/components/features/courses/CourseList";
 import StudentCourseEnrollmentList from "@/components/features/courses/StudentCourseEnrollmentList";
+import { DeleteModal } from "@/components/features/DeleteModal";
 import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
 import SModal from "@/components/ui/SModal";
@@ -25,7 +26,6 @@ export default function CoursesPage() {
     isClassModalVisible,
     isCourseModalVisible,
     isEditing,
-    isPageLoading,
     isStudent,
     isSubmittingClass,
     isSubmittingCourse,
@@ -45,6 +45,11 @@ export default function CoursesPage() {
     isClass,
     setIsClass,
     isLoading,
+    onClickDeleteClass,
+    onClickDeleteCourse,
+    showConfirmDelete,
+    onCloseDeleteDialog,
+    onConfirmDelete
   } = useCourse();
 
   return (
@@ -93,7 +98,12 @@ export default function CoursesPage() {
                         {t("courses.coursesCount", { count: courseList.length })}
                       </p>
                     </div>
-                    <CourseList courseList={courseList} onClickEdit={onClickEdit} isLoading={isLoading('get-courses')} />
+                    <CourseList
+                      courseList={courseList}
+                      onClickEdit={onClickEdit}
+                      onDelete={onClickDeleteCourse}
+                      isLoading={isLoading('get-courses')}
+                    />
                   </div>
                 ) : (
                   <div>
@@ -103,7 +113,11 @@ export default function CoursesPage() {
                         {t("courses.classesCount", { count: classList.length })}
                       </p>
                     </div>
-                    <ClassList classList={classList} onEdit={onClickEditClass} />
+                    <ClassList
+                      classList={classList}
+                      onEdit={onClickEditClass}
+                      onDelete={onClickDeleteClass}
+                    />
                   </div>
                 )
               }
@@ -255,6 +269,11 @@ export default function CoursesPage() {
           </SModal>
         </>
       ) : null}
+      <DeleteModal
+        open={showConfirmDelete}
+        onClose={() => onCloseDeleteDialog()}
+        onConfirm={onConfirmDelete}
+      />
     </>
   );
 }
