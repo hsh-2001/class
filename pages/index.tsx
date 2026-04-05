@@ -5,7 +5,7 @@ import { User, Users, Book, Clipboard, MessageCircle } from "lucide-react";
 
 export default function Home() {
   const { t } = useTranslation();
-  const { overview, getOverview } = useOverview();
+  const { overview, getOverview, isLoading } = useOverview();
 
   useEffect(() => {
     getOverview();
@@ -13,13 +13,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen p-6 space-y-8 transition-colors duration-300">
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <StatCard title={t("total_students")} value={overview?.total_students} Icon={User} />
-        <StatCard title={t("total_teachers")} value={overview?.total_teachers} Icon={Users} />
-        <StatCard title={t("total_classes")} value={overview?.total_classes} Icon={Clipboard} />
-        <StatCard title={t("total_courses")} value={overview?.total_courses} Icon={Book} />
-        <StatCard title={t("total_groups")} value={overview?.total_groups} Icon={MessageCircle} />
+        <StatCard title={t("total_students")} value={overview?.total_students} Icon={User} isLoading={isLoading('get')} />
+        <StatCard title={t("total_teachers")} value={overview?.total_teachers} Icon={Users} isLoading={isLoading('get')} />
+        <StatCard title={t("total_classes")} value={overview?.total_classes} Icon={Clipboard} isLoading={isLoading('get')} />
+        <StatCard title={t("total_courses")} value={overview?.total_courses} Icon={Book} isLoading={isLoading('get')} />
+        <StatCard title={t("total_groups")} value={overview?.total_groups} Icon={MessageCircle} isLoading={isLoading('get')} />
       </div>
 
       <div>
@@ -70,16 +70,22 @@ interface StatCardProps {
   title: string;
   value?: number;
   Icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  isLoading: boolean
 }
 
-function StatCard({ title, value, Icon }: StatCardProps) {
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-5 dark:hover:scale-105 transition-all flex items-center space-x-4 hover:shadow-xl duration-200">
-      {Icon && <Icon className="w-8 h-8 text-blue-500 dark:text-blue-400" />}
-      <div>
-        <p className="text-sm text-gray-500 dark:text-gray-300">{title}</p>
-        <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value ?? 0}</p>
-      </div>
-    </div>
-  );
+function StatCard({ title, value, Icon, isLoading }: StatCardProps) {
+  return <>
+    {
+      isLoading ?
+        <div className=" animate-pulse bg-gray-100 dark:bg-slate-900/10 h-20 rounded-lg">
+        </div>
+        : <div className="bg-white dark:bg-gray-800 rounded-lg p-5 dark:hover:scale-105 transition-all flex items-center space-x-4 hover:shadow-xl duration-200">
+          {Icon && <Icon className="w-8 h-8 text-blue-500 dark:text-blue-400" />}
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-300">{title}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value ?? 0}</p>
+          </div>
+        </div>
+    }
+  </>;
 }
