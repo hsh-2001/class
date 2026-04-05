@@ -6,7 +6,6 @@ const createUser = async (user: ICreateUserDTO) => {
         throw new Error("MISSING_SCHOOL_ID");
     }
 
-    console.log("Creating user with data:", user);
     return await prisma.user.create({
         data: {
             schoolId: user.schoolId,

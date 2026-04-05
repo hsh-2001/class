@@ -4,7 +4,7 @@ import useAthentication from "@/hooks/useAthentication";
 import useProfile from "@/hooks/useProfile";
 import { Gender } from "@/prisma/generated/enums";
 import { useEffect } from "react";
-import { Alert, Card, Col, Form, Row, Select, Skeleton, Space, Statistic, Typography } from "antd";
+import { Alert, Avatar, Card, Col, Form, Row, Select, Skeleton, Space, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import { School2Icon } from "lucide-react";
@@ -32,14 +32,6 @@ export default function Profile() {
     }, [fetchProfile]);
 
     const displayName = `${profile?.firstName || t("profile.studentFallback")} ${profile?.lastName || ""}`.trim();
-    const profileCompletion = [
-        profile?.username,
-        profile?.firstName,
-        profile?.lastName,
-        profile?.phone,
-        profile?.gender,
-        profile?.profileUrl,
-    ].filter((value) => !!value).length;
 
     return (
         <div className="page-body">
@@ -47,13 +39,6 @@ export default function Profile() {
                 <Card className="border-black/10 bg-white/80 dark:border-white/10 dark:bg-white/5" variant="outlined">
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            {/* <p className="text-xl font-medium">{t("profile.eyebrow")}</p> */}
-                            {/* <Typography.Title level={2} className="!mt-3 mb-2! text-slate-950! dark:text-slate-50!">
-                                {isLoading ? t("profile.loadingProfile") : displayName}
-                            </Typography.Title> */}
-                            {/* <Typography.Paragraph className="mb-0! max-w-2xl text-sm! !text-slate-600 dark:!text-slate-300">
-                                {t("profile.description")}
-                            </Typography.Paragraph> */}
                             <p className="text-md md:text-xl">
                                 <School2Icon className="inline-block mr-2 mb-1" />
                                 { profile?.schoolName && profile.schoolName }</p>
@@ -83,29 +68,27 @@ export default function Profile() {
                                 }}
                             >
                                 <div className="mb-6 flex items-center gap-4">
-                                    <div className="relative w-20 h-20 rounded-full">
+                                    <div className="relative w-20! h-20! rounded-full">
                                         <input type="file"
-                                            className=" absolute w-full h-full opacity-0"
+                                            className=" absolute w-full h-full z-20 opacity-0"
                                             onChange={(e) => {
                                                 if (e.target.files && e.target.files[0]) {
                                                     uploadProfilePicture(e.target.files[0]);
                                                 }
                                             }} />
                                         {profile?.profileUrl && (
-                                            <Image
+                                            <Avatar
                                                 src={profile?.profileUrl}
                                                 alt="Profile Picture"
-                                                width={80}
-                                                height={80}
-                                                className="rounded-full object-cover w-20 h-20"
+                                                className="rounded-full z-0 object-cover w-20! h-20!"
                                             />
                                         )}
                                     </div>
                                     <div>
-                                        <Typography.Title copyable level={4} className="!mb-1 text-slate-950! dark:!text-slate-50">
+                                        <Typography.Title copyable level={4} className="mb-1! text-slate-950! dark:text-slate-50!">
                                             {displayName}
                                         </Typography.Title>
-                                        <Typography.Text className="!text-sm text-slate-500! dark:!text-slate-400">
+                                        <Typography.Text className="text-sm! text-slate-500! dark:text-slate-400!">
                                             {t("profile.updateDetails")}
                                         </Typography.Text>
                                     </div>

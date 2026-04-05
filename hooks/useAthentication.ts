@@ -24,7 +24,7 @@ export default function useAthentication() {
                 router.push("/");
             }
         } catch (error: unknown) {
-            console.log("Login failed:", error);
+            console.error("Login failed:", error);
         } finally {
             setIsSubmitting(false);
         }

@@ -4,9 +4,6 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET() {
   const session: any = await getServerSession(authOptions);
-
-  console.log("SESSION:", session);
-
   if (!session) {
     return Response.json({ error: "Not logged in" }, { status: 401 });
   }

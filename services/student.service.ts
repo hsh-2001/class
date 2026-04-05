@@ -36,7 +36,6 @@ const mapProfile = (user: StudentProfileUser): IProfile => {
 
 const getProfile = async (userId: string) => {
     const user = await studentRepo.getProfileByUserId(userId);
-    console.log("Fetched user profile:", user);
     if (!user) {
         throw new Error("USER_NOT_FOUND");
     }

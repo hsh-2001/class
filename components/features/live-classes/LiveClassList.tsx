@@ -28,7 +28,7 @@ export default function LiveClassList({ sessions }: { sessions: LiveClassRespons
             {sessions.map((session) => (
                 <article
                     key={session.id}
-                    className="overflow-hidden rounded-[1.75rem] border border-black/10 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-950/70"
+                    className="overflow-hidden rounded-md border border-black/10 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-950/70"
                 >
                     <div className="border-b border-black/5 bg-[linear-gradient(135deg,rgba(14,165,233,0.12),rgba(249,115,22,0.08),rgba(255,255,255,0.8))] p-5 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.16),rgba(249,115,22,0.08),rgba(2,6,23,0.86))]">
                         <div className="flex items-start justify-between gap-3">

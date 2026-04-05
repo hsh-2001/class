@@ -320,7 +320,6 @@ export default function useMembers() {
         startLoading("get-teacher");
         try {
             const response = await callGetTeachers();
-            console.log(response.data.success);
             if (response.data.success) {
                 const teachers = response.data.data.map((item: TeacherResponse) => new TeacherResponse(item));
                 setTeacherList(teachers);

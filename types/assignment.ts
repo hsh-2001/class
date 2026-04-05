@@ -49,4 +49,8 @@ export class AssignmentResponse implements IAssignmentListItem {
         this.courseCode = data.courseCode;
         this.teacherName = data.teacherName;
     }
+
+    get dueDateFordisplay () {
+        return new Date(this.dueDate).toLocaleString();
+    }
 }

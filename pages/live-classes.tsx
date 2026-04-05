@@ -2,7 +2,7 @@ import LiveClassList from "@/components/features/live-classes/LiveClassList";
 import useLiveClasses from "@/hooks/useLiveClasses";
 import dayjs from "dayjs";
 import { Skeleton } from "antd";
-import { CalendarRange, Clock3, RadioTower, ShieldCheck } from "lucide-react";
+import { Clock3, RadioTower } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function LiveClassesPage() {
@@ -17,12 +17,9 @@ export default function LiveClassesPage() {
     upcomingCount,
   } = useLiveClasses();
 
-  const liveSessions = sessions.filter((session) => session.status === "LIVE");
-  const queuedSessions = sessions.filter((session) => session.status === "UPCOMING");
-
   return (
     <section className="grid gap-6 page-body">
-      <div className="overflow-hidden rounded-4xl border border-black/10 bg-[linear-gradient(135deg,rgba(14,165,233,0.16),rgba(249,115,22,0.08),rgba(255,255,255,0.92))] p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(14,165,233,0.18),rgba(249,115,22,0.08),rgba(2,6,23,0.94))]">
+      <div className="overflow-hidden rounded-md border border-black/10  p-2">
         <div className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr]">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-600 dark:text-slate-300">
@@ -51,7 +48,7 @@ export default function LiveClassesPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-            <article className="rounded-[1.5rem] border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-950/70">
+            <article className="rounded-xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-950/70">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 <RadioTower className="h-4 w-4" />
                 {t("liveClasses.liveWindow")}
@@ -62,7 +59,7 @@ export default function LiveClassesPage() {
               </p>
             </article>
 
-            <article className="rounded-[1.5rem] border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-950/70">
+            <article className="rounded-xl border border-black/10 bg-white/80 p-5 dark:border-white/10 dark:bg-slate-950/70">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                 <Clock3 className="h-4 w-4" />
                 {t("liveClasses.nextStart")}
@@ -81,7 +78,7 @@ export default function LiveClassesPage() {
       </div>
 
       <div className="grid">
-        <section className="rounded-[1.75rem] border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
+        <section className="rounded-md border border-black/10 bg-white/80 p-6 dark:border-white/10 dark:bg-white/5">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-slate-950 dark:text-slate-50">{t("liveClasses.sessionBoard")}</h2>

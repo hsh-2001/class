@@ -1,26 +1,25 @@
-import AssignmentList from "@/components/features/assignments/AssignmentList";
 import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
 import SModal from "@/components/ui/SModal";
 import useAssignments from "@/hooks/useAssignments";
-import { DatePicker, Empty, Form, Select, Skeleton } from "antd";
+import { DatePicker, Form, Select } from "antd";
+import { useTranslation } from "react-i18next";
 
 export default function AssignmentsPage() {
   const {
-    assignments,
     canManage,
     classOptions,
     disabledPastDate,
     form,
     handleCloseModal,
-    isLoading,
     isModalVisible,
     isSubmitting,
-    isUserReady,
     onSubmit,
     setIsModalVisible,
+    assignments,
   } = useAssignments();
 
+  const { t } = useTranslation();
   return (
     <>
       <div className="grid gap-6 page-body h-full overflow-auto w-full">
@@ -50,6 +49,24 @@ export default function AssignmentsPage() {
           </div>
         </div>
       </div>
+
+      {assignments.length && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 py-2">
+        {assignments.map((item, index) => (
+          <div key={index} className="bg-slate-100 dark:bg-slate-800 rounded-md p-2 space-y-2">
+            <p className="text-lg font-medium">{item.title}</p>
+            <h1 className="text-sm"> {t('Class')}: {item.className}</h1>
+            <div className="bg-slate-500/10 p-2 rounded-md">
+              <p className="flex justify-between">
+                {t('Teacher')}
+                <span>{item.teacherName}</span>
+              </p>
+            </div>
+            <div className="flex gap-1 justify-end">
+              <span className="bg-slate-500/10 rounded-md p-2 text-yellow-500"> {t('Due Date')}: {item.dueDateFordisplay}</span>
+            </div>
+          </div>
+        ))}
+      </div>}
 
       {canManage ? (
         <SModal
