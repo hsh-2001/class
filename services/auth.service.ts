@@ -1,5 +1,5 @@
-import prisma from "@/lib/prisma";
-import { Role } from "@/prisma/generated/enums";
+import db from "@/lib/db";
+import { Role } from "@/types/enums";
 import authRepo from "@/repositories/auth.repo";
 import { ICreateUserDTO, IUser, IUserDTO } from "@/types/user";
 import bcrypt from "bcryptjs";
@@ -11,12 +11,8 @@ const createUser = async (request: ICreateUserDTO) => {
         throw new Error("EMAIL_ALREADY_EXISTS");
     }
 
-    const schoolId = await prisma.school.findUnique({
-        where: { id: request.schoolId },
-        select: { id: true },
-    });
-
-    if (!schoolId) {
+    const schoolResult = await db.query("SELECT id FROM schools WHERE id = $1", [request.schoolId]);
+    if (schoolResult.rowCount === 0) {
         throw new Error("SCHOOL_NOT_FOUND");
     }
 

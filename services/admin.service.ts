@@ -1,4 +1,4 @@
-import { $Enums } from "@/prisma/generated/browser";
+import type { Role, Gender } from "@/types/enums";
 import adminRepo from "@/repositories/admin.repo";
 import authService from "@/services/auth.service";
 import messageService from "@/services/message.service";
@@ -41,11 +41,11 @@ const getStudents = async (): Promise<IStudentListItem[]> => {
             userId: student.userId,
             email: student.user.email,
             username: student.user.username,
-            role: student.user.role as $Enums.Role,
+            role: student.user.role as Role,
             firstName: student.user.profile!.firstName,
             lastName: student.user.profile!.lastName,
             phone: student.user.profile!.phone,
-            gender: student.user.profile!.gender as $Enums.Gender,
+            gender: student.user.profile!.gender as Gender,
             dateOfBirth: student.user.createdAt,
         }));
 }
@@ -61,7 +61,7 @@ const getUserById = async (userId: string) => {
 const createTeacher = async (request: ICreateUserDTO) => {
     const user = await authService.createTeacher({
         ...request,
-        role: "TEACHER" as $Enums.Role,
+        role: "TEACHER" as Role,
         schoolId: request.schoolId || "school-01",
     });
 
@@ -79,13 +79,13 @@ const getTeachers = async (): Promise<ITeacherListItem[]> => {
         id: teacher.id,
         userId: teacher.userId,
         email: teacher.user.email,
-        role: teacher.user.role as $Enums.Role,
+        role: teacher.user.role as Role,
         username: teacher.user.username,
         firstName: teacher.user.profile?.firstName || "",
         lastName: teacher.user.profile?.lastName || "",
         phone: teacher.user.profile?.phone || "",
         schoolId: teacher.user.schoolId,
-        gender: teacher.user.profile?.gender as $Enums.Gender || "OTHER",
+        gender: teacher.user.profile?.gender as Gender || "OTHER" as Gender,
     }));
 }
 

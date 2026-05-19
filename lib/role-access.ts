@@ -1,4 +1,4 @@
-import type { Role } from "@/prisma/generated/enums";
+import type { Role } from "@/types/enums";
 
 export const APP_ROLES = {
     ADMIN: "ADMIN",

@@ -1,4 +1,4 @@
-import type { Gender } from "@/prisma/generated/enums";
+import type { Gender } from "@/types/enums";
 import type { Dayjs } from "dayjs";
 
 export interface IStudent {

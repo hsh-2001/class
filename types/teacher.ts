@@ -1,4 +1,4 @@
-import { $Enums } from "@/prisma/generated/browser";
+import type { Role } from "@/types/enums";
 
 export interface ITeacher {
     id: string;
@@ -24,7 +24,7 @@ export interface ITeacherListItem extends ITeacherProfileInput {
     id: string;
     userId: string;
     email: string;
-    role: $Enums.Role;
+    role: Role;
     username?: string;
 }
 
@@ -34,7 +34,7 @@ export class TeacherResponse implements ITeacherListItem {
     id: string;
     userId: string;
     email: string;
-    role: $Enums.Role;
+    role: Role;
     firstName: string;
     lastName: string;
     phone?: string | null;

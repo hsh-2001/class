@@ -1,4 +1,4 @@
-import type { Gender, Role } from "@/prisma/generated/enums";
+import type { Gender, Role } from "@/types/enums";
 
 export interface IUserProfileDTO {
     firstName: string;

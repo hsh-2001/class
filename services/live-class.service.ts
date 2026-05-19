@@ -1,4 +1,4 @@
-import type { Role } from "@/prisma/generated/enums";
+import type { Role } from "@/types/enums";
 import liveClassRepo from "@/repositories/live-class.repo";
 import { ILiveClassItem, ILiveClassPageData, LiveClassStatus } from "@/types/live-class";
 

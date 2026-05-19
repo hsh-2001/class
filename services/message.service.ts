@@ -1,5 +1,5 @@
 import { emitMessagePageDataToUser } from "@/lib/socket-server";
-import type { Role } from "@/prisma/generated/enums";
+import type { Role } from "@/types/enums";
 import messageRepo from "@/repositories/message.repo";
 import {
     ICreateMessageThreadDTO,
@@ -268,7 +268,7 @@ const getThreadMemberOptions = (
 
     const members = [
         item.teacher?.user,
-        ...(item.class?.enrollments.map((enrollment) => enrollment.student.user) ?? []),
+        ...(item.class?.enrollments.map((enrollment: { student: { user: { id: string; username: string; email: string; role: string; schoolId: string; profile?: { firstName: string; lastName: string; profile_url?: string | null } | null } } }) => enrollment.student.user) ?? []),
     ].filter((member): member is NonNullable<typeof member> => Boolean(member));
 
     const uniqueMembers = Array.from(new Map(members.map((member) => [member.id, member])).values());
@@ -290,7 +290,7 @@ const getMessagePageData = async (user: MessageUserContext): Promise<IMessagePag
         canSendMessage: true,
         classOptions: [],
         memberOptions: members.map(mapMemberOption),
-        threads: threads.map((item) => mapThreadItem(item, user.id)),
+        threads: threads.map((item: any) => mapThreadItem(item, user.id)),
     };
 };
 
@@ -323,7 +323,7 @@ const getThreadMessagesPageForUser = async (
             }
 
             if (!thread.student) {
-                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                const isEnrolled = thread.class?.enrollments.some((enrollment: { student: { userId: string } }) => enrollment.student.userId === user.id);
                 if (!isEnrolled) {
                     throw new Error("UNAUTHORIZED");
                 }
@@ -399,7 +399,7 @@ const notifyRealtimeParticipants = async (threadId: string) => {
         return;
     }
 
-    await Promise.all(thread.class.enrollments.map(async (enrollment) => {
+    await Promise.all(thread.class.enrollments.map(async (enrollment: { student: { userId: string; user: { role: Role; schoolId: string } } }) => {
         const studentPageData = await getMessagePageData({
             id: enrollment.student.userId,
             role: enrollment.student.user.role,
@@ -481,7 +481,7 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
     }
 
     if (request.replyToMessageId) {
-        const replyTarget = thread.messages.find((message) => message.id === request.replyToMessageId);
+        const replyTarget = thread.messages.find((message: { id: string }) => message.id === request.replyToMessageId);
         if (!replyTarget) {
             throw new Error("REPLY_TARGET_NOT_FOUND");
         }
@@ -502,7 +502,7 @@ const sendMessageForUser = async (user: MessageUserContext, request: ISendMessag
             }
 
             if (!thread.student) {
-                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                const isEnrolled = thread.class?.enrollments.some((enrollment: { student: { userId: string } }) => enrollment.student.userId === user.id);
                 if (!isEnrolled) {
                     throw new Error("UNAUTHORIZED");
                 }
@@ -548,7 +548,7 @@ const deleteMessageForUser = async (user: MessageUserContext, request: IDeleteMe
             }
 
             if (!thread.student) {
-                const isEnrolled = thread.class?.enrollments.some((enrollment) => enrollment.student.userId === user.id);
+                const isEnrolled = thread.class?.enrollments.some((enrollment: { student: { userId: string } }) => enrollment.student.userId === user.id);
                 if (!isEnrolled) {
                     throw new Error("UNAUTHORIZED");
                 }
@@ -556,7 +556,7 @@ const deleteMessageForUser = async (user: MessageUserContext, request: IDeleteMe
         }
     }
 
-    const message = thread.messages.find((item) => item.id === request.messageId);
+    const message = thread.messages.find((item: { id: string }) => item.id === request.messageId);
     if (!message) {
         throw new Error("MESSAGE_NOT_FOUND");
     }

@@ -2,7 +2,7 @@ import SButton from "@/components/ui/SButton";
 import SInput from "@/components/ui/SInput";
 import useAthentication from "@/hooks/useAthentication";
 import useProfile from "@/hooks/useProfile";
-import { Gender } from "@/prisma/generated/enums";
+import { Gender } from "@/types/enums";
 import { useEffect } from "react";
 import { Alert, Avatar, Card, Col, Form, Row, Select, Skeleton, Space, Typography } from "antd";
 import { useTranslation } from "react-i18next";

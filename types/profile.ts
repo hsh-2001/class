@@ -1,4 +1,4 @@
-import type { Gender } from "@/prisma/generated/enums";
+import type { Gender } from "@/types/enums";
 
 export interface IProfile {
     userId: string;

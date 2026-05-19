@@ -1,5 +1,5 @@
 import studentRepo from "@/repositories/student.repo";
-import type { Gender } from "@/prisma/generated/enums";
+import type { Gender } from "@/types/enums";
 import messageService from "@/services/message.service";
 import { IStudentCourseEnrollmentItem } from "@/types/enrollment";
 import { IProfile, IUpdateProfileDTO } from "@/types/profile";

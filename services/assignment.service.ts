@@ -1,6 +1,6 @@
 import assignmentRepo from "@/repositories/assignment.repo";
 import { IAssignmentClassOption, IAssignmentListItem, IAssignmentPageData, ICreateAssignmentDTO } from "@/types/assignment";
-import type { Role } from "@/prisma/generated/enums";
+import type { Role } from "@/types/enums";
 
 type AssignmentUserContext = {
     id: string;
